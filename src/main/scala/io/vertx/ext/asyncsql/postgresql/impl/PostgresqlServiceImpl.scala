@@ -30,12 +30,8 @@ class PostgresqlServiceImpl(val vertx: Vertx, val config: JsonObject)
 
   override protected val defaultPassword: Option[String] = Some("test")
 
-  override protected def createConnectionProxy(connId: String, takePromise: Promise[Connection], freeHandler: Connection => Future[_]): PostgresqlTransaction = {
-    val connId = UUID.randomUUID().toString
-    val address = s"$registerAddress.$connId"
-    val transaction = new PostgresqlTransactionImpl(vertx, classOf[PostgresqlTransaction], takePromise, freeHandler)
-    logger.info("creating transaction proxy?")
-    transaction
+  override protected def createConnectionProxy(connection: Connection, freeHandler: Connection => Future[_]): PostgresqlTransaction = {
+    new PostgresqlTransactionImpl(vertx, classOf[PostgresqlTransaction], connection, freeHandler)
   }
 
 }

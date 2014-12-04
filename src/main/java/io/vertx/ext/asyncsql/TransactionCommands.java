@@ -1,5 +1,6 @@
 package io.vertx.ext.asyncsql;
 
+import io.vertx.codegen.annotations.ProxyClose;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -15,13 +16,15 @@ public interface TransactionCommands {
    *
    * @param resultHandler Callback if commit succeeded.
    */
-  void commit(Handler<AsyncResult<String>> resultHandler);
+  @ProxyClose
+  void commit(Handler<AsyncResult<Void>> resultHandler);
 
   /**
    * Rolls back a transaction.
    *
    * @param resultHandler Callback if rollback succeeded.
    */
+  @ProxyClose
   void rollback(Handler<AsyncResult<Void>> resultHandler);
 
 }

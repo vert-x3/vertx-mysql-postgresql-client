@@ -11,7 +11,7 @@ import io.vertx.test.core.VertxTestBase
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-class PostgresqlScalaTest extends SqlTestBase {
+class PostgresqlScalaTest extends SqlTestBase[PostgresqlTransaction, PostgresqlService] {
   val address = "campudus.postgresql"
 
   override def await() = super.await()

@@ -30,11 +30,8 @@ class MysqlServiceImpl(val vertx: Vertx, val config: JsonObject)
 
   override protected val defaultPassword: Option[String] = None
 
-  override protected def createConnectionProxy(connId: String, takePromise: Promise[Connection], freeHandler: Connection => Future[_]): MysqlTransaction = {
-    val connId = UUID.randomUUID().toString
-    val address = s"$registerAddress.$connId"
-    val transaction = new MysqlTransactionImpl(vertx, classOf[MysqlTransaction], takePromise, freeHandler)
-    transaction
+  override protected def createConnectionProxy(connection: Connection, freeHandler: Connection => Future[_]): MysqlTransaction = {
+    new MysqlTransactionImpl(vertx, classOf[MysqlTransaction], connection, freeHandler)
   }
 
 }

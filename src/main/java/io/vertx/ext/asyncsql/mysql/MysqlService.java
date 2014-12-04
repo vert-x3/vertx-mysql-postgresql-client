@@ -36,8 +36,8 @@ public interface MysqlService extends BaseSqlService, DatabaseCommands {
   /**
    * Begins a transaction.
    *
-   * @return The transaction.
+   * @param transaction The transaction to be used.
    */
-  MysqlTransaction begin();
+  void begin(Handler<AsyncResult<MysqlTransaction>> transaction);
 
 }

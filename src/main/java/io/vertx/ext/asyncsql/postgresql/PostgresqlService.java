@@ -20,7 +20,6 @@ import io.vertx.serviceproxy.ProxyHelper;
 public interface PostgresqlService extends BaseSqlService, DatabaseCommands {
 
   static PostgresqlService create(Vertx vertx, JsonObject config) {
-    System.out.println("yay?!");
     return new PostgresqlServiceImpl(vertx, config);
   }
 
@@ -35,8 +34,8 @@ public interface PostgresqlService extends BaseSqlService, DatabaseCommands {
   /**
    * Begins a transaction.
    *
-   * @return The transaction.
+   * @param transaction The transaction to be used.
    */
-  PostgresqlTransaction begin();
+  void begin(Handler<AsyncResult<PostgresqlTransaction>> transaction);
 
 }

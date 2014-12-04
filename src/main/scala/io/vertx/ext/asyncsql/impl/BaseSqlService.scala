@@ -43,26 +43,24 @@ trait BaseSqlService[TransactionType, PoolType <: AsyncConnectionPool] extends C
   protected lazy val pool: AsyncConnectionPool = AsyncConnectionPool(vertx, maxPoolSize, configuration, poolFactory)
   protected lazy val registerAddress: String = config.getString("address")
 
-  protected def createConnectionProxy(connId: String, takePromise: Promise[Connection], freeHandler: Connection => Future[_]): TransactionType
+  protected def createConnectionProxy(connection: Connection, freeHandler: Connection => Future[_]): TransactionType
 
   protected def withConnection[T](fn: Connection => Future[T]): Future[T] = {
     logger.info("with connection in AbstractSqlService")
     pool.withConnection(fn)
   }
 
-  def begin(): TransactionType = {
-    val connId = newConnectionId()
-    val takePromise = Promise[Connection]()
+  def begin(handler: Handler[AsyncResult[TransactionType]]): Unit = {
     pool.take().onComplete {
       case Success(conn) =>
         logger.info("begin -> succeed takePromise with connection")
-        takePromise.success(conn)
+        val freeHandler = (conn: Connection) => pool.giveBack(conn)
+        val proxy = createConnectionProxy(conn, freeHandler)
+        handler.handle(VFuture.succeededFuture(proxy))
       case Failure(ex) =>
         logger.info(s"begin -> fail takePromise with $ex")
-        takePromise.failure(ex)
+        handler.handle(VFuture.failedFuture(ex))
     }
-    val freeHandler = (conn: Connection) => pool.giveBack(conn)
-    createConnectionProxy(connId, takePromise, freeHandler)
   }
 
   def stop(stopped: Handler[AsyncResult[Void]]): Unit = {
@@ -74,10 +72,10 @@ trait BaseSqlService[TransactionType, PoolType <: AsyncConnectionPool] extends C
 
   def start(started: Handler[AsyncResult[Void]]): Unit = {
     logger.info(s"starting ${this.getClass.getName}")
-//    val mc = vertx.eventBus().localConsumer(registerAddress, fnToHandler { msg: Message[JsonObject] =>
-//      val address = msg.body().getString("register")
-//      logger.info(s"created local consumer at $address")
-//    })
+    //    val mc = vertx.eventBus().localConsumer(registerAddress, fnToHandler { msg: Message[JsonObject] =>
+    //      val address = msg.body().getString("register")
+    //      logger.info(s"created local consumer at $address")
+    //    })
     started.handle(VFuture.succeededFuture())
   }
 

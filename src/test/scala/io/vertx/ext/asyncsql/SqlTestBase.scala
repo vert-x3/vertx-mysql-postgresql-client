@@ -11,20 +11,17 @@ import io.vertx.test.core.VertxTestBase
 import org.junit.Test
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.{Try, Failure, Success}
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-abstract class SqlTestBase extends VertxTestBase {
+abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionCommands, SqlService <: BaseSqlService with DatabaseCommands {
+  def begin(transaction : Handler[AsyncResult[Transaction]])
+}] extends VertxTestBase {
 
   protected val log: Logger = LoggerFactory.getLogger(super.getClass)
   implicit val executionContext: ExecutionContext = SimpleExecutionContext.apply(log)
-
-  type Transaction = DatabaseCommands with TransactionCommands
-
-  type SqlService = BaseSqlService with DatabaseCommands {
-    def begin(): Transaction
-  }
 
   def asyncsqlService: SqlService
 
@@ -53,8 +50,7 @@ abstract class SqlTestBase extends VertxTestBase {
   @Test
   def simpleTransaction(): Unit = {
     (for {
-      transaction <- Future.successful(asyncsqlService.begin())
-      _ <- waitTick()
+      transaction <- beginTransaction()
       res <- arhToFuture((transaction.raw _).curried("SELECT 1 AS one"))
       commit <- {
         log.info(s"got a result from first select: ${res.encode()}")
@@ -82,6 +78,15 @@ abstract class SqlTestBase extends VertxTestBase {
     val p = Promise[T]()
     fn(new Handler[AsyncResult[T]] {
       override def handle(event: AsyncResult[T]): Unit =
+        if (event.succeeded()) p.success(event.result()) else p.failure(event.cause())
+    })
+    p.future
+  }
+
+  private def beginTransaction(): Future[Transaction] = {
+    val p = Promise[Transaction]()
+    asyncsqlService.begin(new Handler[AsyncResult[Transaction]] {
+      override def handle(event: AsyncResult[Transaction]): Unit =
         if (event.succeeded()) p.success(event.result()) else p.failure(event.cause())
     })
     p.future

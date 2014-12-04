@@ -17,11 +17,10 @@ import scala.concurrent.{Future, Promise}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-class PostgresqlScalaVerticleTest extends SqlTestBase {
+class PostgresqlScalaVerticleTest extends SqlTestBase[PostgresqlTransaction, PostgresqlService] {
   val address = "campudus.postgresql"
 
-
-  override lazy val asyncsqlService: SqlService = PostgresqlService.createEventBusProxy(vertx, address)
+  override lazy val asyncsqlService = PostgresqlService.createEventBusProxy(vertx, address)
 
   override def setUp(): Unit = {
     super.setUp()
