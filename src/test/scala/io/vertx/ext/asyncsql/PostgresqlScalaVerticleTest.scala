@@ -8,7 +8,7 @@ import io.vertx.core.logging.Logger
 import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{DeploymentOptions, AsyncResult, Handler}
 import io.vertx.ext.asyncsql.postgresql.{PostgresqlTransaction, PostgresqlService}
-import io.vertx.proxygen.ProxyHelper
+import io.vertx.serviceproxy.ProxyHelper
 import io.vertx.test.core.VertxTestBase
 import org.junit.{Ignore, Test}
 
@@ -30,7 +30,7 @@ class PostgresqlScalaVerticleTest extends SqlTestBase {
     val config: JsonObject = new JsonObject().put("postgresql", new JsonObject().put("address", address))
     val options: DeploymentOptions = new DeploymentOptions().setConfig(config)
 
-    vertx.deployVerticle("service:io.vertx:ext-mysql-postgresql", options, new Handler[AsyncResult[String]] {
+    vertx.deployVerticle("service:io.vertx:mysql-postgresql-service", options, new Handler[AsyncResult[String]] {
       override def handle(event: AsyncResult[String]): Unit = {
         if (event.succeeded()) {
           log.info("deployment succeeded")
