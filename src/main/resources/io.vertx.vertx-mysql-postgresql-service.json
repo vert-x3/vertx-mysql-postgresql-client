@@ -1,0 +1,14 @@
+{
+  "main" : "io.vertx.ext.asyncsql.AsyncSqlServiceVerticle",
+  "options" : {
+    "worker" : false,
+    "config" : {
+      "address" : "vertx.asyncsql",
+      "dbType" : "postgresql",
+      "defaultPort" : 5432,
+      "defaultDatabase" : "testdb",
+      "defaultUser" : "vertx",
+      "defaultPassword" : "test"
+    }
+  }
+}
