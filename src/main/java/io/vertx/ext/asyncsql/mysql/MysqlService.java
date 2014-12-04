@@ -10,7 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.BaseSqlService;
 import io.vertx.ext.asyncsql.DatabaseCommands;
 import io.vertx.ext.asyncsql.mysql.impl.MysqlServiceImpl;
-import io.vertx.proxygen.ProxyHelper;
+import io.vertx.serviceproxy.ProxyHelper;
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>

@@ -4,7 +4,7 @@ import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.mysql.MysqlService;
 import io.vertx.ext.asyncsql.postgresql.PostgresqlService;
-import io.vertx.proxygen.ProxyHelper;
+import io.vertx.serviceproxy.ProxyHelper;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
