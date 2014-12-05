@@ -72,17 +72,7 @@ trait BaseSqlService[TransactionType, PoolType <: AsyncConnectionPool] extends C
 
   def start(started: Handler[AsyncResult[Void]]): Unit = {
     logger.info(s"starting ${this.getClass.getName}")
-    //    val mc = vertx.eventBus().localConsumer(registerAddress, fnToHandler { msg: Message[JsonObject] =>
-    //      val address = msg.body().getString("register")
-    //      logger.info(s"created local consumer at $address")
-    //    })
     started.handle(VFuture.succeededFuture())
-  }
-
-  private def newConnectionId(): String = UUID.randomUUID().toString
-
-  private def fnToHandler[T](fn: T => Unit): Handler[T] = new Handler[T] {
-    override def handle(event: T): Unit = fn(event)
   }
 
   private def getConfiguration(config: JsonObject) = {
