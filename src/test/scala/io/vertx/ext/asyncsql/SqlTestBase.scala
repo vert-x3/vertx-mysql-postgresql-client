@@ -16,8 +16,9 @@ import scala.util.{Try, Failure, Success}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionCommands, SqlService <: BaseSqlService with DatabaseCommands {
+abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionCommands, Connection <: DatabaseCommands with ConnectionCommands, SqlService <: BaseSqlService with DatabaseCommands {
   def begin(transaction : Handler[AsyncResult[Transaction]])
+  def take(connection : Handler[AsyncResult[Connection]])
 }] extends VertxTestBase {
 
   protected val log: Logger = LoggerFactory.getLogger(super.getClass)
@@ -74,6 +75,33 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
     await()
   }
 
+  @Test
+  def simpleUseConnection(): Unit = {
+    (for {
+      connection <- takeConnection()
+      res <- arhToFuture((connection.raw _).curried("SELECT 1 AS one"))
+      commit <- {
+        log.info(s"got a result from first select: ${res.encode()}")
+        arhToFuture(connection.close)
+      }
+    } yield {
+      log.info(s"res=${res.encode()}")
+      assertNotNull(res)
+      val expected = new JsonObject()
+        .put("rows", 1)
+        .put("results", new JsonArray().add(new JsonArray().add(1)))
+        .put("fields", new JsonArray().add("one"))
+      res.remove("message")
+      assertEquals(expected, res)
+      testComplete()
+    }) recover {
+      case ex: Throwable =>
+        log.error("should not get this exception:", ex)
+        fail(s"should not get an exception: ${ex.getClass.getName}")
+    }
+    await()
+  }
+
   private def arhToFuture[T](fn: Handler[AsyncResult[T]] => Unit): Future[T] = {
     val p = Promise[T]()
     fn(new Handler[AsyncResult[T]] {
@@ -83,14 +111,9 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
     p.future
   }
 
-  private def beginTransaction(): Future[Transaction] = {
-    val p = Promise[Transaction]()
-    asyncsqlService.begin(new Handler[AsyncResult[Transaction]] {
-      override def handle(event: AsyncResult[Transaction]): Unit =
-        if (event.succeeded()) p.success(event.result()) else p.failure(event.cause())
-    })
-    p.future
-  }
+  private def takeConnection(): Future[Connection] = arhToFuture(asyncsqlService.take)
+
+  private def beginTransaction(): Future[Transaction] = arhToFuture(asyncsqlService.begin)
 
   private def waitTick(): Future[_] = {
     val p = Promise[Unit]()

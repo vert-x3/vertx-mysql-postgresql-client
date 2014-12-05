@@ -7,7 +7,7 @@ import io.vertx.core.json.{JsonArray, JsonObject}
 import io.vertx.core.logging.Logger
 import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{DeploymentOptions, AsyncResult, Handler}
-import io.vertx.ext.asyncsql.postgresql.{PostgresqlTransaction, PostgresqlService}
+import io.vertx.ext.asyncsql.postgresql.{PostgresqlConnection, PostgresqlTransaction, PostgresqlService}
 import io.vertx.serviceproxy.ProxyHelper
 import io.vertx.test.core.VertxTestBase
 import org.junit.{Ignore, Test}
@@ -17,7 +17,7 @@ import scala.concurrent.{Future, Promise}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-class PostgresqlScalaVerticleTest extends SqlTestBase[PostgresqlTransaction, PostgresqlService] {
+class PostgresqlScalaVerticleTest extends SqlTestBase[PostgresqlTransaction, PostgresqlConnection, PostgresqlService] {
   val address = "campudus.postgresql"
 
   override lazy val asyncsqlService = PostgresqlService.createEventBusProxy(vertx, address)

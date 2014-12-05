@@ -5,13 +5,13 @@ import java.util.concurrent.CountDownLatch
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{AsyncResult, Handler}
-import io.vertx.ext.asyncsql.postgresql.{PostgresqlTransaction, PostgresqlService}
+import io.vertx.ext.asyncsql.postgresql.{PostgresqlConnection, PostgresqlTransaction, PostgresqlService}
 import io.vertx.test.core.VertxTestBase
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-class PostgresqlScalaTest extends SqlTestBase[PostgresqlTransaction, PostgresqlService] {
+class PostgresqlScalaTest extends SqlTestBase[PostgresqlTransaction, PostgresqlConnection, PostgresqlService] {
   val address = "campudus.postgresql"
 
   override def await() = super.await()

@@ -11,9 +11,8 @@ import scala.concurrent.{Future, Promise}
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
 class PostgresqlTransactionImpl(val vertx: Vertx,
-                                override protected val transactionClass: Class[PostgresqlTransaction],
                                 override protected val connection: Connection,
                                 override protected val freeHandler: Connection => Future[_])
-  extends BaseTransactionImpl[PostgresqlTransaction] with PostgresqlTransaction {
+  extends BaseTransactionImpl with PostgresqlTransaction {
 
 }

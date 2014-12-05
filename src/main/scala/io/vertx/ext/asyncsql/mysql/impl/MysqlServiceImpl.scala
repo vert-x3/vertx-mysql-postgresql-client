@@ -8,7 +8,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.asyncsql.impl.BaseSqlService
 import io.vertx.ext.asyncsql.impl.pool.MysqlAsyncConnectionPool
-import io.vertx.ext.asyncsql.mysql.{MysqlService, MysqlTransaction}
+import io.vertx.ext.asyncsql.mysql.{MysqlConnection, MysqlService, MysqlTransaction}
 
 import scala.concurrent.{Future, Promise}
 
@@ -16,7 +16,7 @@ import scala.concurrent.{Future, Promise}
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
 class MysqlServiceImpl(val vertx: Vertx, val config: JsonObject)
-  extends BaseSqlService[MysqlTransaction, MysqlAsyncConnectionPool] with MysqlService {
+  extends BaseSqlService[MysqlConnection, MysqlTransaction, MysqlAsyncConnectionPool] with MysqlService {
 
   override protected val poolFactory = MysqlAsyncConnectionPool.apply _
 
@@ -30,8 +30,12 @@ class MysqlServiceImpl(val vertx: Vertx, val config: JsonObject)
 
   override protected val defaultPassword: Option[String] = None
 
-  override protected def createConnectionProxy(connection: Connection, freeHandler: Connection => Future[_]): MysqlTransaction = {
-    new MysqlTransactionImpl(vertx, classOf[MysqlTransaction], connection, freeHandler)
+  override protected def createTransactionProxy(connection: Connection, freeHandler: Connection => Future[_]): MysqlTransaction = {
+    new MysqlTransactionImpl(vertx, connection, freeHandler)
+  }
+
+  override protected def createConnectionProxy(connection: Connection, freeHandler: Connection => Future[_]): MysqlConnection = {
+    new MysqlConnectionImpl(vertx, connection, freeHandler)
   }
 
 }

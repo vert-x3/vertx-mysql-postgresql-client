@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-trait BaseTransactionImpl extends CommandImplementations with TransactionCommandNames {
+trait BaseConnectionImpl extends CommandImplementations with TransactionCommandNames {
   val vertx: Vertx
 
   protected val connection: Connection
@@ -22,15 +22,17 @@ trait BaseTransactionImpl extends CommandImplementations with TransactionCommand
 
   override protected def withConnection[T](fn: Connection => Future[T]): Future[T] = fn(connection)
 
-  def closeWithCommand(cmd: String, resultHandler: Handler[AsyncResult[Void]]): Unit = {
+  def close(resultHandler: Handler[AsyncResult[Void]]): Unit = freeHandler(connection)
+
+  def startTransaction(resultHandler: Handler[AsyncResult[Void]]): Unit =
+    commandAndEmptyResult(startTransactionCommand, resultHandler)
+
+  def commit(resultHandler: Handler[AsyncResult[Void]]): Unit = commandAndEmptyResult(commitCommand, resultHandler)
+
+  def rollback(resultHandler: Handler[AsyncResult[Void]]): Unit = commandAndEmptyResult(rollbackCommand, resultHandler)
+
+  private def commandAndEmptyResult(cmd: String, resultHandler: Handler[AsyncResult[Void]]): Unit =
     connection.sendQuery(cmd) map {
       _ => resultHandler.handle(VFuture.succeededFuture())
     }
-    freeHandler(connection)
-  }
-
-  def rollback(resultHandler: Handler[AsyncResult[Void]]): Unit = closeWithCommand(rollbackCommand, resultHandler)
-
-  def commit(resultHandler: Handler[AsyncResult[Void]]): Unit = closeWithCommand(commitCommand, resultHandler)
-
 }

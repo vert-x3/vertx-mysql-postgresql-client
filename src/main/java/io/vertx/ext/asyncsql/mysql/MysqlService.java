@@ -27,17 +27,18 @@ public interface MysqlService extends BaseSqlService, DatabaseCommands {
     return ProxyHelper.createProxy(MysqlService.class, vertx, address);
   }
 
-  @Override
-  void start(Handler<AsyncResult<Void>> whenDone);
-
-  @Override
-  void stop(Handler<AsyncResult<Void>> whenDone);
-
   /**
    * Begins a transaction.
    *
    * @param transaction The transaction to be used.
    */
   void begin(Handler<AsyncResult<MysqlTransaction>> transaction);
+
+  /**
+   * Gets a connection and frees it on close.
+   *
+   * @param connection The connection that can be used.
+   */
+  void take(Handler<AsyncResult<MysqlConnection>> connection);
 
 }

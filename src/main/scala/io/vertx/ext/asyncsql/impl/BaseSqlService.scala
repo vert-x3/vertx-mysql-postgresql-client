@@ -17,7 +17,7 @@ import scala.util.{Failure, Success}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-trait BaseSqlService[TransactionType, PoolType <: AsyncConnectionPool] extends CommandImplementations {
+trait BaseSqlService[ConnectionType, TransactionType, PoolType <: AsyncConnectionPool] extends CommandImplementations {
 
   val vertx: Vertx
   val config: JsonObject
@@ -43,25 +43,19 @@ trait BaseSqlService[TransactionType, PoolType <: AsyncConnectionPool] extends C
   protected lazy val pool: AsyncConnectionPool = AsyncConnectionPool(vertx, maxPoolSize, configuration, poolFactory)
   protected lazy val registerAddress: String = config.getString("address")
 
-  protected def createConnectionProxy(connection: Connection, freeHandler: Connection => Future[_]): TransactionType
+  protected def createTransactionProxy(connection: Connection, freeHandler: Connection => Future[_]): TransactionType
+
+  protected def createConnectionProxy(connection: Connection, freeHandler: Connection => Future[_]): ConnectionType
 
   protected def withConnection[T](fn: Connection => Future[T]): Future[T] = {
-    logger.info("with connection in AbstractSqlService")
     pool.withConnection(fn)
   }
 
-  def begin(handler: Handler[AsyncResult[TransactionType]]): Unit = {
-    pool.take().onComplete {
-      case Success(conn) =>
-        logger.info("begin -> succeed takePromise with connection")
-        val freeHandler = (conn: Connection) => pool.giveBack(conn)
-        val proxy = createConnectionProxy(conn, freeHandler)
-        handler.handle(VFuture.succeededFuture(proxy))
-      case Failure(ex) =>
-        logger.info(s"begin -> fail takePromise with $ex")
-        handler.handle(VFuture.failedFuture(ex))
-    }
-  }
+  def begin(handler: Handler[AsyncResult[TransactionType]]): Unit =
+    usePoolForInnerProxy(createTransactionProxy, handler)
+
+  def take(handler: Handler[AsyncResult[ConnectionType]]): Unit =
+    usePoolForInnerProxy(createConnectionProxy, handler)
 
   def stop(stopped: Handler[AsyncResult[Void]]): Unit = {
     pool.close() onComplete {
@@ -73,6 +67,17 @@ trait BaseSqlService[TransactionType, PoolType <: AsyncConnectionPool] extends C
   def start(started: Handler[AsyncResult[Void]]): Unit = {
     logger.info(s"starting ${this.getClass.getName}")
     started.handle(VFuture.succeededFuture())
+  }
+
+  private def usePoolForInnerProxy[T](createFn: (Connection, Connection => Future[_]) => T, handler: Handler[AsyncResult[T]]): Unit = {
+    pool.take().onComplete {
+      case Success(conn) =>
+        val freeHandler = (conn: Connection) => pool.giveBack(conn)
+        val proxy = createFn(conn, freeHandler)
+        handler.handle(VFuture.succeededFuture(proxy))
+      case Failure(ex) =>
+        handler.handle(VFuture.failedFuture(ex))
+    }
   }
 
   private def getConfiguration(config: JsonObject) = {

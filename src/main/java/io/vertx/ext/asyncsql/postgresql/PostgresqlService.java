@@ -27,15 +27,18 @@ public interface PostgresqlService extends BaseSqlService, DatabaseCommands {
     return ProxyHelper.createProxy(PostgresqlService.class, vertx, address);
   }
 
-  void start(Handler<AsyncResult<Void>> whenDone);
-
-  void stop(Handler<AsyncResult<Void>> whenDone);
-
   /**
-   * Begins a transaction.
+   * Begins a transaction and frees it on commit or callback.
    *
    * @param transaction The transaction to be used.
    */
   void begin(Handler<AsyncResult<PostgresqlTransaction>> transaction);
+
+  /**
+   * Gets a connection and frees it on close.
+   *
+   * @param connection The connection that can be used.
+   */
+  void take(Handler<AsyncResult<PostgresqlConnection>> connection);
 
 }
