@@ -13,6 +13,6 @@ import io.vertx.ext.asyncsql.DatabaseCommands;
  */
 @VertxGen
 @ProxyGen
-public interface MysqlConnection extends DatabaseCommands, ConnectionCommands {
+public interface MysqlConnection extends ConnectionCommands, DatabaseCommands {
 
 }

@@ -7,6 +7,7 @@ import io.vertx.core.{AsyncResult, Handler, Vertx, Future => VFuture}
 import io.vertx.ext.asyncsql.impl.pool.SimpleExecutionContext
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.{Failure, Success}
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
@@ -23,10 +24,14 @@ trait BaseTransactionImpl extends CommandImplementations with TransactionCommand
   override protected def withConnection[T](fn: Connection => Future[T]): Future[T] = fn(connection)
 
   def closeWithCommand(cmd: String, resultHandler: Handler[AsyncResult[Void]]): Unit = {
-    connection.sendQuery(cmd) map {
-      _ => resultHandler.handle(VFuture.succeededFuture())
+    connection.sendQuery(cmd) onComplete {
+      case Success(_) =>
+        freeHandler(connection)
+        resultHandler.handle(VFuture.succeededFuture())
+      case Failure(x) =>
+        freeHandler(connection)
+        resultHandler.handle(VFuture.failedFuture(x))
     }
-    freeHandler(connection)
   }
 
   def rollback(resultHandler: Handler[AsyncResult[Void]]): Unit = closeWithCommand(rollbackCommand, resultHandler)

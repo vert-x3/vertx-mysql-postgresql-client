@@ -13,6 +13,6 @@ import io.vertx.ext.asyncsql.DatabaseCommands;
  */
 @VertxGen
 @ProxyGen
-public interface PostgresqlConnection extends DatabaseCommands, ConnectionCommands {
+public interface PostgresqlConnection extends ConnectionCommands, DatabaseCommands {
 
 }
