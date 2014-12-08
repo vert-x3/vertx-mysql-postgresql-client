@@ -8,7 +8,7 @@ import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{AsyncResult, Handler}
 import io.vertx.ext.asyncsql.impl.pool.SimpleExecutionContext
 import io.vertx.test.core.VertxTestBase
-import org.junit.Test
+import org.junit.{Ignore, Test}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Try, Failure, Success}
@@ -102,6 +102,127 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
     await()
   }
 
+  @Test
+  def selectWithEmptyOptions(): Unit = completeTest(
+    for {
+      _ <- setupSimpleTestTable
+      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions()))
+    } yield {
+      val json = s.getJsonArray("results")
+      assertEquals(26, json.size())
+    }
+  )
+
+  @Test
+  def selectWithFields(): Unit = completeTest(
+    for {
+      _ <- setupSimpleTestTable
+      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("name"))))
+    } yield {
+      assertEquals(26, s.getInteger("rows"))
+      val results = s.getJsonArray("results")
+      assertEquals(26, results.size())
+      import collection.JavaConverters._
+      assertEquals(names, results.getList.asScala.map(_.asInstanceOf[JsonArray].getString(0)))
+    }
+  )
+
+  @Test
+  def selectWithLimit(): Unit = completeTest {
+    val expectedResults = 10
+    for {
+      _ <- setupSimpleTestTable
+      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setLimit(expectedResults)))
+    } yield {
+      import collection.JavaConverters._
+      log.info(s"result = ${s.encodePrettily()}")
+      assertEquals(expectedResults, s.getInteger("rows"))
+      val results = s.getJsonArray("results")
+      assertEquals(expectedResults, results.size())
+      val fields = s.getJsonArray("fields").getList.asScala
+      assertEquals(2, fields.length)
+      val idIdx = fields.indexOf("id")
+      val nameIdx = fields.indexOf("name")
+      val expected = names.zipWithIndex.take(expectedResults)
+      assertEquals(expected, results.getList.asScala.map { x =>
+        val arr = x.asInstanceOf[JsonArray]
+        (arr.getString(nameIdx), arr.getLong(idIdx))
+      }.toList)
+    }
+  }
+
+  @Test
+  def selectWithOffset(): Unit = completeTest {
+    val expectedOffset = 10
+    for {
+      _ <- setupSimpleTestTable
+      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setOffset(expectedOffset)))
+    } yield {
+      import collection.JavaConverters._
+      log.info(s"result = ${s.encodePrettily()}")
+      assertEquals(names.length - expectedOffset, s.getInteger("rows"))
+      val results = s.getJsonArray("results")
+      assertEquals(names.length - expectedOffset, results.size())
+      val fields = s.getJsonArray("fields").getList.asScala
+      assertEquals(2, fields.length)
+      val idIdx = fields.indexOf("id")
+      val nameIdx = fields.indexOf("name")
+      val expected = names.zipWithIndex.drop(expectedOffset)
+      assertEquals(expected, results.getList.asScala.map { x =>
+        val arr = x.asInstanceOf[JsonArray]
+        (arr.getString(nameIdx), arr.getLong(idIdx))
+      }.toList)
+    }
+  }
+
+  @Test
+  def selectWithLimitAndOffset(): Unit = completeTest {
+    val expectedLimit = 10
+    val expectedOffset = 10
+    for {
+      _ <- setupSimpleTestTable
+      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setLimit(expectedLimit).setOffset(expectedOffset)))
+    } yield {
+      import collection.JavaConverters._
+      log.info(s"result = ${s.encodePrettily()}")
+      assertEquals(expectedLimit, s.getInteger("rows"))
+      val results = s.getJsonArray("results")
+      assertEquals(expectedLimit, results.size())
+      val fields = s.getJsonArray("fields").getList.asScala
+      assertEquals(2, fields.length)
+      val idIdx = fields.indexOf("id")
+      val nameIdx = fields.indexOf("name")
+      val expected = names.zipWithIndex.drop(expectedOffset).take(expectedLimit)
+      assertEquals(expected, results.getList.asScala.map { x =>
+        val arr = x.asInstanceOf[JsonArray]
+        (arr.getString(nameIdx), arr.getLong(idIdx))
+      }.toList)
+    }
+  }
+
+  @Test
+  def selectWithFieldsAndLimitAndOffset(): Unit = completeTest {
+    val expectedLimit = 10
+    val expectedOffset = 10
+    for {
+      _ <- setupSimpleTestTable
+      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("name")).setLimit(expectedLimit).setOffset(expectedOffset)))
+    } yield {
+      import collection.JavaConverters._
+      log.info(s"result = ${s.encodePrettily()}")
+      assertEquals(expectedLimit, s.getInteger("rows"))
+      val results = s.getJsonArray("results")
+      assertEquals(expectedLimit, results.size())
+      val fields = s.getJsonArray("fields").getList.asScala
+      assertEquals(1, fields.length)
+      val expected = names.drop(expectedOffset).take(expectedLimit)
+      assertEquals(expected, results.getList.asScala.map { x =>
+        val arr = x.asInstanceOf[JsonArray]
+        arr.getString(0)
+      }.toList)
+    }
+  }
+
   private def arhToFuture[T](fn: Handler[AsyncResult[T]] => Unit): Future[T] = {
     val p = Promise[T]()
     fn(new Handler[AsyncResult[T]] {
@@ -115,12 +236,32 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   private def beginTransaction(): Future[Transaction] = arhToFuture(asyncsqlService.begin)
 
-  private def waitTick(): Future[_] = {
-    val p = Promise[Unit]()
-    vertx.setTimer(10, new Handler[lang.Long] {
-      override def handle(event: lang.Long): Unit = p.success()
-    })
-    p.future
+  val names = List("Albert", "Bertram", "Carl", "Dieter", "Emil", "Friedrich", "Gustav", "Heinrich", "Ingolf",
+    "Johann", "Klaus", "Ludwig", "Max", "Norbert", "Otto", "Paul", "Quirin", "Rudolf", "Stefan", "Thorsten", "Ulrich",
+    "Viktor", "Wilhelm", "Xaver", "Yoda", "Zacharias")
+  val simpleTestTable = names.map(x => "'" + x + "'").zipWithIndex.map(_.swap)
+
+  private def completeTest(f: Future[_]): Unit = {
+    f map (_ => testComplete()) recover {
+      case ex: Throwable =>
+        log.error("should not get this exception", ex)
+        fail("got exception")
+    }
+    await()
+  }
+
+  private def setupSimpleTestTable: Future[Unit] = {
+    for {
+      t <- arhToFuture(asyncsqlService.begin)
+      _ <- arhToFuture((t.raw _).curried("DROP TABLE IF EXISTS test_table;"))
+      _ <- arhToFuture((t.raw _).curried(
+        """CREATE TABLE test_table (
+          |  id BIGINT,
+          |  name VARCHAR(255)
+          |);""".stripMargin))
+      _ <- arhToFuture((t.raw _).curried(s"INSERT INTO test_table (id, name) VALUES ${simpleTestTable.mkString(",")};"))
+      _ <- arhToFuture(t.commit)
+    } yield ()
   }
 
 }

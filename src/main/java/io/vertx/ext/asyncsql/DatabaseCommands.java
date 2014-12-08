@@ -38,11 +38,11 @@ public interface DatabaseCommands {
    * filter the columns by providing a fields array. If you omit the fields array, it selects every column available in
    * the table.
    *
-   * @param table         The name of the table.
-   * @param fields        The fields to get values from.
+   * @param table         The table to select data from.
+   * @param options       Options for Limit/Offset etc.
    * @param resultHandler Callback to handle the result.
    */
-  void select(String table, List<String> fields, Handler<AsyncResult<JsonObject>> resultHandler);
+  void select(String table, SelectOptions options, Handler<AsyncResult<JsonObject>> resultHandler);
 
   /**
    * Creates a prepared statement and lets you fill the ? with values.

@@ -7,11 +7,13 @@ import io.vertx.core.json.{JsonArray, JsonObject}
 import io.vertx.core.logging.Logger
 import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{AsyncResult, Handler, Future => VFuture}
-import io.vertx.ext.asyncsql.DatabaseCommands
+import io.vertx.ext.asyncsql.{SelectOptions, DatabaseCommands}
 import io.vertx.ext.asyncsql.impl.pool.SimpleExecutionContext
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
+
+import java.util.Objects._
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
@@ -42,6 +44,7 @@ trait CommandImplementations extends DatabaseCommands {
   }
 
   private def sendRawCommand(statement: String): Future[QueryResult] = withConnection { conn =>
+    logger.info(s"sending raw command: $statement")
     conn.sendQuery(statement)
   }
 
@@ -64,9 +67,16 @@ trait CommandImplementations extends DatabaseCommands {
     applyToHandler(sendPreparedCommand(statement, values.getList.asScala), resultHandler)
   }
 
-  override def select(table: String, fields: util.List[String], resultHandler: Handler[AsyncResult[JsonObject]]): Unit = {
+  override def select(table: String, selectOptions: SelectOptions, resultHandler: Handler[AsyncResult[JsonObject]]): Unit = {
+    requireNonNull(table, "needs to know which table to select")
+
     import collection.JavaConverters._
-    val stmt = selectCommand(table, fields.asScala.toStream, None, None)
+
+    val fields = selectOptions.getFields
+    val limit = Option(selectOptions.getLimit).map(_.intValue())
+    val offset = Option(selectOptions.getOffset).map(_.intValue())
+
+    val stmt = selectCommand(table, fields.iterator().asScala.toStream.asInstanceOf[Stream[String]], limit, offset)
     applyToHandler(sendRawCommand(stmt), resultHandler)
   }
 
@@ -104,12 +114,12 @@ trait CommandImplementations extends DatabaseCommands {
   private def insertCommand(table: String, fields: Stream[String], listOfLines: Stream[Stream[String]]): String =
     s"INSERT INTO ${escapeField(table)} ${fields.map(f => escapeField(f.toString)).mkString("(", ",", ")")} VALUES ${listOfLines.mkString(",")}"
 
-  private def selectCommand(table: String, fields: Stream[String], limit: Option[Long], offset: Option[Long]): String =
-  if (fields.isEmpty) {
-    s"SELECT * FROM ${escapeField(table)} ${limit.map(l => s"LIMIT $l")}${offset.map(o => s"OFFSET $o")}"
-  } else {
-    s"SELECT ${fields.map(escapeField).mkString(",")} FROM ${escapeField(table)} ${limit.map(l => s"LIMIT $l")}${offset.map(o => s"OFFSET $o")}"
-  }
+  private def selectCommand(table: String, fields: Stream[String], limit: Option[Int], offset: Option[Int]): String =
+    if (fields.isEmpty) {
+      s"SELECT * FROM ${escapeField(table)}${limit.map(l => s" LIMIT $l").getOrElse("")}${offset.map(o => s" OFFSET $o").getOrElse("")}"
+    } else {
+      s"SELECT ${fields.map(escapeField).mkString(",")} FROM ${escapeField(table)}${limit.map(l => s" LIMIT $l").getOrElse("")}${offset.map(o => s" OFFSET $o").getOrElse("")}"
+    }
 
   private def resultToJsonObject(qr: QueryResult): JsonObject = {
     val result = new JsonObject()
