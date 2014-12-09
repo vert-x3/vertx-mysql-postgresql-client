@@ -223,6 +223,26 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
     }
   }
 
+  @Test
+  def insert(): Unit = completeTest {
+    import collection.JavaConverters._
+
+    for {
+      _ <- setupSimpleTestTable
+      i <- arhToFuture((asyncsqlService.insert _).curried("test_table")(List("name").asJava)(List(new JsonArray().add("Anna")).asJava))
+      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions()))
+    } yield {
+      import collection.JavaConverters._
+      log.info(s"result = ${s.encodePrettily()}")
+      val results = s.getJsonArray("results")
+      val fields = s.getJsonArray("fields").getList.asScala
+      assertEquals(names ++ List("Anna"), results.getList.asScala.map { x =>
+        val arr = x.asInstanceOf[JsonArray]
+        arr.getString(0)
+      }.toList)
+    }
+  }
+
   private def arhToFuture[T](fn: Handler[AsyncResult[T]] => Unit): Future[T] = {
     val p = Promise[T]()
     fn(new Handler[AsyncResult[T]] {
