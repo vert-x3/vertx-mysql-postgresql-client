@@ -129,12 +129,13 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   @Test
   def selectWithLimit(): Unit = completeTest {
+    import collection.JavaConverters._
     val expectedResults = 10
+    
     for {
       _ <- setupSimpleTestTable
       s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setLimit(expectedResults)))
     } yield {
-      import collection.JavaConverters._
       log.info(s"result = ${s.encodePrettily()}")
       assertEquals(expectedResults, s.getInteger("rows"))
       val results = s.getJsonArray("results")
@@ -153,12 +154,13 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   @Test
   def selectWithOffset(): Unit = completeTest {
+    import collection.JavaConverters._
     val expectedOffset = 10
+
     for {
       _ <- setupSimpleTestTable
       s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setOffset(expectedOffset)))
     } yield {
-      import collection.JavaConverters._
       log.info(s"result = ${s.encodePrettily()}")
       assertEquals(names.length - expectedOffset, s.getInteger("rows"))
       val results = s.getJsonArray("results")
@@ -177,13 +179,14 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   @Test
   def selectWithLimitAndOffset(): Unit = completeTest {
+    import collection.JavaConverters._
     val expectedLimit = 10
     val expectedOffset = 10
+
     for {
       _ <- setupSimpleTestTable
       s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setLimit(expectedLimit).setOffset(expectedOffset)))
     } yield {
-      import collection.JavaConverters._
       log.info(s"result = ${s.encodePrettily()}")
       assertEquals(expectedLimit, s.getInteger("rows"))
       val results = s.getJsonArray("results")
@@ -202,13 +205,14 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   @Test
   def selectWithFieldsAndLimitAndOffset(): Unit = completeTest {
+    import collection.JavaConverters._
     val expectedLimit = 10
     val expectedOffset = 10
+
     for {
       _ <- setupSimpleTestTable
       s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("name")).setLimit(expectedLimit).setOffset(expectedOffset)))
     } yield {
-      import collection.JavaConverters._
       log.info(s"result = ${s.encodePrettily()}")
       assertEquals(expectedLimit, s.getInteger("rows"))
       val results = s.getJsonArray("results")
@@ -234,7 +238,6 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
       i <- arhToFuture((asyncsqlService.insert _).curried("test_table")(List("id", "name").asJava)(List(new JsonArray().add(id).add(name)).asJava))
       s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("id").add("name"))))
     } yield {
-      import collection.JavaConverters._
       log.info(s"result = ${s.encodePrettily()}")
       val results = s.getJsonArray("results")
       val fields = s.getJsonArray("fields").getList.asScala
@@ -258,7 +261,6 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
       p <- arhToFuture((asyncsqlService.prepared _).curried("INSERT INTO test_table (id, name) VALUES (?, ?)")(new JsonArray().add(id).add(name)))
       s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("id").add("name"))))
     } yield {
-      import collection.JavaConverters._
       log.info(s"result = ${s.encodePrettily()}")
       val results = s.getJsonArray("results")
       val fields = s.getJsonArray("fields").getList.asScala
