@@ -58,7 +58,6 @@ trait CommandImplementations extends DatabaseCommands {
   override def insert(table: String, fields: util.List[String], values: util.List[JsonArray], resultHandler: Handler[AsyncResult[JsonObject]]): Unit = {
     import collection.JavaConverters._
     val stmt = insertCommand(table, fields.asScala.toStream, values.asScala.toStream.map(_.getList.asScala.toStream.map(escapeValue)))
-    logger.info(s"insert command = $stmt")
     applyToHandler(sendRawCommand(stmt), resultHandler)
   }
 
@@ -75,8 +74,10 @@ trait CommandImplementations extends DatabaseCommands {
     val fields = selectOptions.getFields
     val limit = Option(selectOptions.getLimit).map(_.intValue())
     val offset = Option(selectOptions.getOffset).map(_.intValue())
+    val convFields = fields.iterator().asScala.toStream.asInstanceOf[Stream[String]]
 
-    val stmt = selectCommand(table, fields.iterator().asScala.toStream.asInstanceOf[Stream[String]], limit, offset)
+    val stmt = selectCommand(table, convFields, limit, offset)
+
     applyToHandler(sendRawCommand(stmt), resultHandler)
   }
 
@@ -111,15 +112,22 @@ trait CommandImplementations extends DatabaseCommands {
     case x => escapeString(x.toString)
   }
 
-  private def insertCommand(table: String, fields: Stream[String], listOfLines: Stream[Stream[String]]): String =
-    s"INSERT INTO ${escapeField(table)} ${fields.map(f => escapeField(f.toString)).mkString("(", ",", ")")} VALUES ${listOfLines.mkString(",")}"
+  private def insertCommand(table: String, fields: Stream[String], listOfLines: Stream[Stream[String]]): String = {
+    val tableStr = escapeField(table)
+    val fieldsStr = fields.map(f => escapeField(f.toString)).mkString(",")
+    val listOfLinesStr = listOfLines.map(_.mkString(",")).mkString("(", "),(", ")")
 
-  private def selectCommand(table: String, fields: Stream[String], limit: Option[Int], offset: Option[Int]): String =
-    if (fields.isEmpty) {
-      s"SELECT * FROM ${escapeField(table)}${limit.map(l => s" LIMIT $l").getOrElse("")}${offset.map(o => s" OFFSET $o").getOrElse("")}"
-    } else {
-      s"SELECT ${fields.map(escapeField).mkString(",")} FROM ${escapeField(table)}${limit.map(l => s" LIMIT $l").getOrElse("")}${offset.map(o => s" OFFSET $o").getOrElse("")}"
-    }
+    s"INSERT INTO $tableStr ($fieldsStr) VALUES $listOfLinesStr"
+  }
+
+  private def selectCommand(table: String, fields: Stream[String], limit: Option[Int], offset: Option[Int]): String = {
+    val fieldsStr = if (fields.isEmpty) "*" else fields.map(escapeField).mkString(",")
+    val tableStr = escapeField(table)
+    val limitStr = limit.map(l => s"LIMIT $l").getOrElse("")
+    val offsetStr = offset.map(o => s"OFFSET $o").getOrElse("")
+
+    s"SELECT $fieldsStr FROM $tableStr $limitStr $offsetStr"
+  }
 
   private def resultToJsonObject(qr: QueryResult): JsonObject = {
     val result = new JsonObject()

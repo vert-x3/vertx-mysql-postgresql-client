@@ -4,8 +4,6 @@ import io.vertx.codegen.annotations.Options;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import java.util.List;
-
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */

@@ -226,19 +226,47 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
   @Test
   def insert(): Unit = completeTest {
     import collection.JavaConverters._
+    val id = 27L
+    val name = "Adele"
 
     for {
       _ <- setupSimpleTestTable
-      i <- arhToFuture((asyncsqlService.insert _).curried("test_table")(List("name").asJava)(List(new JsonArray().add("Anna")).asJava))
-      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions()))
+      i <- arhToFuture((asyncsqlService.insert _).curried("test_table")(List("id", "name").asJava)(List(new JsonArray().add(id).add(name)).asJava))
+      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("id").add("name"))))
     } yield {
       import collection.JavaConverters._
       log.info(s"result = ${s.encodePrettily()}")
       val results = s.getJsonArray("results")
       val fields = s.getJsonArray("fields").getList.asScala
-      assertEquals(names ++ List("Anna"), results.getList.asScala.map { x =>
+      assertTrue("Should have an id field", fields.contains("id"))
+      assertTrue("Should have a name field", fields.contains("name"))
+      assertEquals(names.zipWithIndex.map(_.swap) ++ List((id, name)), results.getList.asScala.map { x =>
         val arr = x.asInstanceOf[JsonArray]
-        arr.getString(0)
+        (arr.getLong(0), arr.getString(1))
+      }.toList)
+    }
+  }
+
+  @Test
+  def prepared(): Unit = completeTest {
+    import collection.JavaConverters._
+    val id = 27
+    val name = "Adele"
+
+    for {
+      _ <- setupSimpleTestTable
+      p <- arhToFuture((asyncsqlService.prepared _).curried("INSERT INTO test_table (id, name) VALUES (?, ?)")(new JsonArray().add(id).add(name)))
+      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("id").add("name"))))
+    } yield {
+      import collection.JavaConverters._
+      log.info(s"result = ${s.encodePrettily()}")
+      val results = s.getJsonArray("results")
+      val fields = s.getJsonArray("fields").getList.asScala
+      assertTrue("Should have an id field", fields.contains("id"))
+      assertTrue("Should have a name field", fields.contains("name"))
+      assertEquals(names.zipWithIndex.map(_.swap) ++ List((id, name)), results.getList.asScala.map { x =>
+        val arr = x.asInstanceOf[JsonArray]
+        (arr.getLong(0), arr.getString(1))
       }.toList)
     }
   }
@@ -256,7 +284,7 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   private def beginTransaction(): Future[Transaction] = arhToFuture(asyncsqlService.begin)
 
-  val names = List("Albert", "Bertram", "Carl", "Dieter", "Emil", "Friedrich", "Gustav", "Heinrich", "Ingolf",
+  val names = List("Albert", "Bertram", "Cornelius", "Dieter", "Emil", "Friedrich", "Gustav", "Heinrich", "Ingolf",
     "Johann", "Klaus", "Ludwig", "Max", "Norbert", "Otto", "Paul", "Quirin", "Rudolf", "Stefan", "Thorsten", "Ulrich",
     "Viktor", "Wilhelm", "Xaver", "Yoda", "Zacharias")
   val simpleTestTable = names.map(x => "'" + x + "'").zipWithIndex.map(_.swap)
