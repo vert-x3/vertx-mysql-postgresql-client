@@ -11,9 +11,13 @@ trait MysqlOverrides extends CommandImplementations {
   override protected def selectCommand(table: String, fields: Stream[String], limit: Option[Int], offset: Option[Int]): String = {
     val fieldsStr = if (fields.isEmpty) "*" else fields.map(escapeField).mkString(",")
     val tableStr = escapeField(table)
-    val limitStr = limit.map(l => s"LIMIT $l").getOrElse(s"LIMIT ${Long.MaxValue}")
-    val offsetStr = offset.map(o => s"OFFSET $o").getOrElse("")
+    val limitStr = (limit, offset) match {
+      case (Some(l), Some(o)) => s"LIMIT $o, $l"
+      case (None, Some(o)) => s"LIMIT $o, ${Long.MaxValue}"
+      case (Some(l), None) => s"LIMIT $l"
+      case _ => ""
+    }
 
-    s"SELECT $fieldsStr FROM $tableStr $limitStr $offsetStr"
+    s"SELECT $fieldsStr FROM $tableStr $limitStr"
   }
 }
