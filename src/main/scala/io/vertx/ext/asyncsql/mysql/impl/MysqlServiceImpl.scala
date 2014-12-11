@@ -16,7 +16,7 @@ import scala.concurrent.{Future, Promise}
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
 class MysqlServiceImpl(val vertx: Vertx, val config: JsonObject)
-  extends BaseSqlService[MysqlConnection, MysqlTransaction, MysqlAsyncConnectionPool] with MysqlService {
+  extends BaseSqlService[MysqlConnection, MysqlTransaction, MysqlAsyncConnectionPool] with MysqlService with MysqlOverrides {
 
   override protected val poolFactory = MysqlAsyncConnectionPool.apply _
 

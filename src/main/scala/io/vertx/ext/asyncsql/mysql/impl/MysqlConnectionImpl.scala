@@ -13,6 +13,6 @@ import scala.concurrent.Future
 class MysqlConnectionImpl(val vertx: Vertx,
                                override protected val connection: Connection,
                                override protected val freeHandler: Connection => Future[_])
-  extends BaseConnectionImpl with MysqlConnection {
+  extends BaseConnectionImpl with MysqlConnection with MysqlOverrides {
 
 }

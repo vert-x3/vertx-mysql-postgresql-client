@@ -13,6 +13,6 @@ import scala.concurrent.{Future, Promise}
 class MysqlTransactionImpl(val vertx: Vertx,
                            override protected val connection: Connection,
                            override protected val freeHandler: Connection => Future[_])
-  extends BaseTransactionImpl with MysqlTransaction {
+  extends BaseTransactionImpl with MysqlTransaction with MysqlOverrides {
 
 }

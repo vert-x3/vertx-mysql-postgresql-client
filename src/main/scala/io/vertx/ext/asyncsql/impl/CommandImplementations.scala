@@ -112,7 +112,14 @@ trait CommandImplementations extends DatabaseCommands {
     case x => escapeString(x.toString)
   }
 
-  private def insertCommand(table: String, fields: Stream[String], listOfLines: Stream[Stream[String]]): String = {
+  /**
+   * Returns an INSERT INTO command as a raw SQL string to send to the database.
+   * @param table The name of the table.
+   * @param fields The fields to put values in.
+   * @param listOfLines The values - can be multiple rows, so list of list.
+   * @return A string containing the raw SQL command.
+   */
+  protected def insertCommand(table: String, fields: Stream[String], listOfLines: Stream[Stream[String]]): String = {
     val tableStr = escapeField(table)
     val fieldsStr = fields.map(f => escapeField(f.toString)).mkString(",")
     val listOfLinesStr = listOfLines.map(_.mkString(",")).mkString("(", "),(", ")")
@@ -120,7 +127,15 @@ trait CommandImplementations extends DatabaseCommands {
     s"INSERT INTO $tableStr ($fieldsStr) VALUES $listOfLinesStr"
   }
 
-  private def selectCommand(table: String, fields: Stream[String], limit: Option[Int], offset: Option[Int]): String = {
+  /**
+   * Returns an SELECT command as a raw SQL string to send to the database.
+   * @param table The name of the table.
+   * @param fields The fields to put values in.
+   * @param limit Optional limit clause.
+   * @param offset Optional offset clause.
+   * @return A string containing the raw SQL command.
+   */
+  protected def selectCommand(table: String, fields: Stream[String], limit: Option[Int], offset: Option[Int]): String = {
     val fieldsStr = if (fields.isEmpty) "*" else fields.map(escapeField).mkString(",")
     val tableStr = escapeField(table)
     val limitStr = limit.map(l => s"LIMIT $l").getOrElse("")
