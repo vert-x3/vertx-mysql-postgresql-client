@@ -19,7 +19,7 @@ import scala.util.{Try, Failure, Success}
 abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionCommands, Connection <: DatabaseCommands with ConnectionCommands, SqlService <: BaseSqlService with DatabaseCommands {
   def begin(transaction : Handler[AsyncResult[Transaction]])
   def take(connection : Handler[AsyncResult[Connection]])
-}] extends VertxTestBase {
+}] extends VertxTestBase with TestData {
 
   protected val log: Logger = LoggerFactory.getLogger(super.getClass)
   implicit val executionContext: ExecutionContext = SimpleExecutionContext.apply(log)
@@ -131,7 +131,7 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
   def selectWithLimit(): Unit = completeTest {
     import collection.JavaConverters._
     val expectedResults = 10
-    
+
     for {
       _ <- setupSimpleTestTable
       s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setLimit(expectedResults)))
@@ -285,11 +285,6 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
   private def takeConnection(): Future[Connection] = arhToFuture(asyncsqlService.take)
 
   private def beginTransaction(): Future[Transaction] = arhToFuture(asyncsqlService.begin)
-
-  val names = List("Albert", "Bertram", "Cornelius", "Dieter", "Emil", "Friedrich", "Gustav", "Heinrich", "Ingolf",
-    "Johann", "Klaus", "Ludwig", "Max", "Norbert", "Otto", "Paul", "Quirin", "Rudolf", "Stefan", "Thorsten", "Ulrich",
-    "Viktor", "Wilhelm", "Xaver", "Yoda", "Zacharias")
-  val simpleTestTable = names.map(x => "'" + x + "'").zipWithIndex.map(_.swap)
 
   private def completeTest(f: Future[_]): Unit = {
     f map (_ => testComplete()) recover {
