@@ -1,17 +1,14 @@
 package io.vertx.ext.asyncsql
 
-import java.lang
-
 import io.vertx.core.json.{JsonArray, JsonObject}
 import io.vertx.core.logging.Logger
 import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{AsyncResult, Handler}
 import io.vertx.ext.asyncsql.impl.pool.SimpleExecutionContext
 import io.vertx.test.core.VertxTestBase
-import org.junit.{Ignore, Test}
+import org.junit.Test
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.{Try, Failure, Success}
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
@@ -27,9 +24,8 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
   def asyncsqlService: SqlService
 
   @Test
-  def simpleConnection(): Unit = {
-    log.info("starting simple select test")
-    (for {
+  def simpleConnection(): Unit = completeTest {
+    for {
       res <- arhToFuture((asyncsqlService.raw _).curried("SELECT 1 AS one"))
     } yield {
       assertNotNull(res)
@@ -39,18 +35,12 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
         .put("fields", new JsonArray().add("one"))
       res.remove("message")
       assertEquals(expected, res)
-      testComplete()
-    }) recover {
-      case ex: Throwable =>
-        log.error("should not get this exception:", ex)
-        fail(s"should not get exception.")
     }
-    await()
   }
 
   @Test
-  def simpleTransaction(): Unit = {
-    (for {
+  def simpleTransaction(): Unit = completeTest {
+    for {
       transaction <- beginTransaction()
       res <- arhToFuture((transaction.raw _).curried("SELECT 1 AS one"))
       commit <- {
@@ -66,18 +56,12 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
         .put("fields", new JsonArray().add("one"))
       res.remove("message")
       assertEquals(expected, res)
-      testComplete()
-    }) recover {
-      case ex: Throwable =>
-        log.error("should not get this exception:", ex)
-        fail(s"should not get an exception: ${ex.getClass.getName}")
     }
-    await()
   }
 
   @Test
-  def simpleUseConnection(): Unit = {
-    (for {
+  def simpleUseConnection(): Unit = completeTest {
+    for {
       connection <- takeConnection()
       res <- arhToFuture((connection.raw _).curried("SELECT 1 AS one"))
       commit <- {
@@ -93,17 +77,11 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
         .put("fields", new JsonArray().add("one"))
       res.remove("message")
       assertEquals(expected, res)
-      testComplete()
-    }) recover {
-      case ex: Throwable =>
-        log.error("should not get this exception:", ex)
-        fail(s"should not get an exception: ${ex.getClass.getName}")
     }
-    await()
   }
 
   @Test
-  def selectWithEmptyOptions(): Unit = completeTest(
+  def selectWithEmptyOptions(): Unit = completeTest {
     for {
       _ <- setupSimpleTestTable
       s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions()))
@@ -111,10 +89,12 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
       val json = s.getJsonArray("results")
       assertEquals(26, json.size())
     }
-  )
+  }
 
   @Test
-  def selectWithFields(): Unit = completeTest(
+  def selectWithFields(): Unit = completeTest {
+    import scala.collection.JavaConverters._
+
     for {
       _ <- setupSimpleTestTable
       s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("name"))))
@@ -122,14 +102,13 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
       assertEquals(26, s.getInteger("rows"))
       val results = s.getJsonArray("results")
       assertEquals(26, results.size())
-      import collection.JavaConverters._
       assertEquals(names, results.getList.asScala.map(_.asInstanceOf[JsonArray].getString(0)))
     }
-  )
+  }
 
   @Test
   def selectWithLimit(): Unit = completeTest {
-    import collection.JavaConverters._
+    import scala.collection.JavaConverters._
     val expectedResults = 10
 
     for {
@@ -154,7 +133,7 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   @Test
   def selectWithOffset(): Unit = completeTest {
-    import collection.JavaConverters._
+    import scala.collection.JavaConverters._
     val expectedOffset = 10
 
     for {
@@ -179,7 +158,7 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   @Test
   def selectWithLimitAndOffset(): Unit = completeTest {
-    import collection.JavaConverters._
+    import scala.collection.JavaConverters._
     val expectedLimit = 10
     val expectedOffset = 10
 
@@ -205,7 +184,7 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   @Test
   def selectWithFieldsAndLimitAndOffset(): Unit = completeTest {
-    import collection.JavaConverters._
+    import scala.collection.JavaConverters._
     val expectedLimit = 10
     val expectedOffset = 10
 
@@ -229,7 +208,7 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   @Test
   def insert(): Unit = completeTest {
-    import collection.JavaConverters._
+    import scala.collection.JavaConverters._
     val id = 27L
     val name = "Adele"
 
@@ -252,7 +231,7 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
 
   @Test
   def prepared(): Unit = completeTest {
-    import collection.JavaConverters._
+    import scala.collection.JavaConverters._
     val id = 27
     val name = "Adele"
 

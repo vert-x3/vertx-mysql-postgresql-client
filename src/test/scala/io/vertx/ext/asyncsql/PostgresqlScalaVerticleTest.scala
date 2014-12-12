@@ -1,18 +1,10 @@
 package io.vertx.ext.asyncsql
 
 import java.util.concurrent.CountDownLatch
-import java.util.function.Consumer
 
-import io.vertx.core.json.{JsonArray, JsonObject}
-import io.vertx.core.logging.Logger
-import io.vertx.core.logging.impl.LoggerFactory
-import io.vertx.core.{DeploymentOptions, AsyncResult, Handler}
-import io.vertx.ext.asyncsql.postgresql.{PostgresqlConnection, PostgresqlTransaction, PostgresqlService}
-import io.vertx.serviceproxy.ProxyHelper
-import io.vertx.test.core.VertxTestBase
-import org.junit.{Ignore, Test}
-
-import scala.concurrent.{Future, Promise}
+import io.vertx.core.json.JsonObject
+import io.vertx.core.{AsyncResult, DeploymentOptions, Handler}
+import io.vertx.ext.asyncsql.postgresql.{PostgresqlConnection, PostgresqlService, PostgresqlTransaction}
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.

@@ -3,10 +3,8 @@ package io.vertx.ext.asyncsql
 import java.util.concurrent.CountDownLatch
 
 import io.vertx.core.json.JsonObject
-import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{AsyncResult, Handler}
-import io.vertx.ext.asyncsql.postgresql.{PostgresqlConnection, PostgresqlTransaction, PostgresqlService}
-import io.vertx.test.core.VertxTestBase
+import io.vertx.ext.asyncsql.postgresql.{PostgresqlConnection, PostgresqlService, PostgresqlTransaction}
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
