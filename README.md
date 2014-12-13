@@ -56,3 +56,26 @@ There are only a few commands available currently, but in theory you should be a
 database using the `raw` action.
 
 The database will always reply to your requests in the `replyHandler` provided with every message.
+
+The module will expose a service proxy that you can use with your favorite language. Just create it with the same 
+address as you provided in the configuration, for example in Java for PostgreSQL:
+
+    PostgresqlService service = PostgresqlService.createEventBusProxy(vertx, address)
+
+On the service, you have various methods that you can use to talk with the database.
+
+#### Connections
+
+To get a connection and use it, you need to use the `take()` method on the `MysqlService` or `PostgresqlService` 
+instance.
+
+#### Transactions
+
+If you don't need the flexibility of a connection and just to make a single transaction, you can use the `begin()`
+method. When you're done and `commit` or `rollback`, the transaction will be closed and the underlying connection will 
+be made available for other purposes again.
+
+#### Direct access via service
+
+If you don't need any fancy transactions or ordering for your query, you can use the commands provided by the
+service directly. Just call the commands as you would on a connection or transaction.
