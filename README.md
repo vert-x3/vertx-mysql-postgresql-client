@@ -150,5 +150,5 @@ all values in the database will be the same as they were before starting the tra
 
 #### Direct access via service
 
-If you don't need any fancy transactions or ordering for your query, you can use the commands provided by the
+If you don't need any ordering promises for your query or transactions, you can use the commands provided by the
 service directly. Just call the commands as you would on a connection or transaction.
