@@ -60,22 +60,6 @@ public class PostgresqlConnectionVertxProxyHandler extends ProxyHandler {
       throw new IllegalStateException("action not specified");
     }
     switch (action) {
-      case "raw": {
-        service.raw((java.lang.String)json.getValue("command"), createHandler(msg));
-        break;
-      }
-      case "insert": {
-        service.insert((java.lang.String)json.getValue("table"), convertList(json.getJsonArray("fields").getList()), convertList(json.getJsonArray("values").getList()), createHandler(msg));
-        break;
-      }
-      case "select": {
-        service.select((java.lang.String)json.getValue("table"), new io.vertx.ext.asyncsql.SelectOptions(json.getJsonObject("options")), createHandler(msg));
-        break;
-      }
-      case "prepared": {
-        service.prepared((java.lang.String)json.getValue("statement"), (io.vertx.core.json.JsonArray)json.getValue("values"), createHandler(msg));
-        break;
-      }
       case "startTransaction": {
         service.startTransaction(createHandler(msg));
         break;
@@ -91,6 +75,22 @@ public class PostgresqlConnectionVertxProxyHandler extends ProxyHandler {
       case "close": {
         service.close(createHandler(msg));
         close();
+        break;
+      }
+      case "raw": {
+        service.raw((java.lang.String)json.getValue("command"), createHandler(msg));
+        break;
+      }
+      case "insert": {
+        service.insert((java.lang.String)json.getValue("table"), convertList(json.getJsonArray("fields").getList()), convertList(json.getJsonArray("values").getList()), createHandler(msg));
+        break;
+      }
+      case "select": {
+        service.select((java.lang.String)json.getValue("table"), new io.vertx.ext.asyncsql.SelectOptions(json.getJsonObject("options")), createHandler(msg));
+        break;
+      }
+      case "prepared": {
+        service.prepared((java.lang.String)json.getValue("statement"), (io.vertx.core.json.JsonArray)json.getValue("values"), createHandler(msg));
         break;
       }
       default: {

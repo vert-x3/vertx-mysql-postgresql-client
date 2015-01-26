@@ -51,6 +51,40 @@ public class PostgresqlServiceVertxEBProxy implements PostgresqlService {
     this._address = address;
   }
 
+  public void start(Handler<AsyncResult<Void>> whenDone) {
+    if (closed) {
+      whenDone.handle(Future.failedFuture(new IllegalStateException("Proxy is closed")));
+      return;
+    }
+    JsonObject _json = new JsonObject();
+    DeliveryOptions _deliveryOptions = new DeliveryOptions();
+    _deliveryOptions.addHeader("action", "start");
+    _vertx.eventBus().<Void>send(_address, _json, _deliveryOptions, res -> {
+      if (res.failed()) {
+        whenDone.handle(Future.failedFuture(res.cause()));
+      } else {
+        whenDone.handle(Future.succeededFuture(res.result().body()));
+      }
+    });
+  }
+
+  public void stop(Handler<AsyncResult<Void>> whenDone) {
+    if (closed) {
+      whenDone.handle(Future.failedFuture(new IllegalStateException("Proxy is closed")));
+      return;
+    }
+    JsonObject _json = new JsonObject();
+    DeliveryOptions _deliveryOptions = new DeliveryOptions();
+    _deliveryOptions.addHeader("action", "stop");
+    _vertx.eventBus().<Void>send(_address, _json, _deliveryOptions, res -> {
+      if (res.failed()) {
+        whenDone.handle(Future.failedFuture(res.cause()));
+      } else {
+        whenDone.handle(Future.succeededFuture(res.result().body()));
+      }
+    });
+  }
+
   public void raw(String command, Handler<AsyncResult<JsonObject>> resultHandler) {
     if (closed) {
       resultHandler.handle(Future.failedFuture(new IllegalStateException("Proxy is closed")));
@@ -123,40 +157,6 @@ public class PostgresqlServiceVertxEBProxy implements PostgresqlService {
         resultHandler.handle(Future.failedFuture(res.cause()));
       } else {
         resultHandler.handle(Future.succeededFuture(res.result().body()));
-      }
-    });
-  }
-
-  public void start(Handler<AsyncResult<Void>> whenDone) {
-    if (closed) {
-      whenDone.handle(Future.failedFuture(new IllegalStateException("Proxy is closed")));
-      return;
-    }
-    JsonObject _json = new JsonObject();
-    DeliveryOptions _deliveryOptions = new DeliveryOptions();
-    _deliveryOptions.addHeader("action", "start");
-    _vertx.eventBus().<Void>send(_address, _json, _deliveryOptions, res -> {
-      if (res.failed()) {
-        whenDone.handle(Future.failedFuture(res.cause()));
-      } else {
-        whenDone.handle(Future.succeededFuture(res.result().body()));
-      }
-    });
-  }
-
-  public void stop(Handler<AsyncResult<Void>> whenDone) {
-    if (closed) {
-      whenDone.handle(Future.failedFuture(new IllegalStateException("Proxy is closed")));
-      return;
-    }
-    JsonObject _json = new JsonObject();
-    DeliveryOptions _deliveryOptions = new DeliveryOptions();
-    _deliveryOptions.addHeader("action", "stop");
-    _vertx.eventBus().<Void>send(_address, _json, _deliveryOptions, res -> {
-      if (res.failed()) {
-        whenDone.handle(Future.failedFuture(res.cause()));
-      } else {
-        whenDone.handle(Future.succeededFuture(res.result().body()));
       }
     });
   }

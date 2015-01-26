@@ -64,6 +64,14 @@ public class PostgresqlServiceVertxProxyHandler extends ProxyHandler {
       throw new IllegalStateException("action not specified");
     }
     switch (action) {
+      case "start": {
+        service.start(createHandler(msg));
+        break;
+      }
+      case "stop": {
+        service.stop(createHandler(msg));
+        break;
+      }
       case "raw": {
         service.raw((java.lang.String)json.getValue("command"), createHandler(msg));
         break;
@@ -78,14 +86,6 @@ public class PostgresqlServiceVertxProxyHandler extends ProxyHandler {
       }
       case "prepared": {
         service.prepared((java.lang.String)json.getValue("statement"), (io.vertx.core.json.JsonArray)json.getValue("values"), createHandler(msg));
-        break;
-      }
-      case "start": {
-        service.start(createHandler(msg));
-        break;
-      }
-      case "stop": {
-        service.stop(createHandler(msg));
         break;
       }
 

@@ -1,13 +1,13 @@
 package io.vertx.ext.asyncsql;
 
-import io.vertx.codegen.annotations.Options;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-@Options
+@DataObject
 public class SelectOptions {
   private JsonArray fields;
   private Integer limit;

@@ -38,6 +38,12 @@ public class MysqlService implements BaseSqlService,  DatabaseCommands {
   public Object getDelegate() {
     return delegate;
   }
+  public void start(Handler<AsyncResult<Void>> whenDone) {
+    ((io.vertx.ext.asyncsql.BaseSqlService) this.delegate).start(whenDone);
+  }
+  public void stop(Handler<AsyncResult<Void>> whenDone) {
+    ((io.vertx.ext.asyncsql.BaseSqlService) this.delegate).stop(whenDone);
+  }
   /**
    * Sends a raw command to the database.
    *
@@ -120,12 +126,6 @@ public class MysqlService implements BaseSqlService,  DatabaseCommands {
         resultHandler.handle(f)
       }
     });
-  }
-  public void start(Handler<AsyncResult<Void>> whenDone) {
-    ((io.vertx.ext.asyncsql.BaseSqlService) this.delegate).start(whenDone);
-  }
-  public void stop(Handler<AsyncResult<Void>> whenDone) {
-    ((io.vertx.ext.asyncsql.BaseSqlService) this.delegate).stop(whenDone);
   }
   public static MysqlService create(Vertx vertx, Map<String, Object> config) {
     def ret= MysqlService.FACTORY.apply(io.vertx.ext.asyncsql.mysql.MysqlService.create((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null));

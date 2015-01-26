@@ -38,6 +38,38 @@ public class MysqlConnection implements ConnectionCommands,  DatabaseCommands {
     return delegate;
   }
   /**
+   * Starts a transaction on this connection.
+   *
+   * @param handler Tells the caller whether the transaction command was successful.
+   */
+  public void startTransaction(Handler<AsyncResult<Void>> handler) {
+    ((io.vertx.ext.asyncsql.ConnectionCommands) this.delegate).startTransaction(handler);
+  }
+  /**
+   * Commits a transaction.
+   *
+   * @param resultHandler Callback if commit succeeded.
+   */
+  public void commit(Handler<AsyncResult<Void>> resultHandler) {
+    ((io.vertx.ext.asyncsql.ConnectionCommands) this.delegate).commit(resultHandler);
+  }
+  /**
+   * Rolls back a transaction.
+   *
+   * @param resultHandler Callback if rollback succeeded.
+   */
+  public void rollback(Handler<AsyncResult<Void>> resultHandler) {
+    ((io.vertx.ext.asyncsql.ConnectionCommands) this.delegate).rollback(resultHandler);
+  }
+  /**
+   * Frees the connection and puts it back into the pool.
+   *
+   * @param handler Callback to show whether it succeeded.
+   */
+  public void close(Handler<AsyncResult<Void>> handler) {
+    ((io.vertx.ext.asyncsql.ConnectionCommands) this.delegate).close(handler);
+  }
+  /**
    * Sends a raw command to the database.
    *
    * @param command       The command to send.
@@ -119,38 +151,6 @@ public class MysqlConnection implements ConnectionCommands,  DatabaseCommands {
         resultHandler.handle(f)
       }
     });
-  }
-  /**
-   * Starts a transaction on this connection.
-   *
-   * @param handler Tells the caller whether the transaction command was successful.
-   */
-  public void startTransaction(Handler<AsyncResult<Void>> handler) {
-    ((io.vertx.ext.asyncsql.ConnectionCommands) this.delegate).startTransaction(handler);
-  }
-  /**
-   * Commits a transaction.
-   *
-   * @param resultHandler Callback if commit succeeded.
-   */
-  public void commit(Handler<AsyncResult<Void>> resultHandler) {
-    ((io.vertx.ext.asyncsql.ConnectionCommands) this.delegate).commit(resultHandler);
-  }
-  /**
-   * Rolls back a transaction.
-   *
-   * @param resultHandler Callback if rollback succeeded.
-   */
-  public void rollback(Handler<AsyncResult<Void>> resultHandler) {
-    ((io.vertx.ext.asyncsql.ConnectionCommands) this.delegate).rollback(resultHandler);
-  }
-  /**
-   * Frees the connection and puts it back into the pool.
-   *
-   * @param handler Callback to show whether it succeeded.
-   */
-  public void close(Handler<AsyncResult<Void>> handler) {
-    ((io.vertx.ext.asyncsql.ConnectionCommands) this.delegate).close(handler);
   }
 
   static final java.util.function.Function<io.vertx.ext.asyncsql.mysql.MysqlConnection, MysqlConnection> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

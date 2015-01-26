@@ -38,6 +38,42 @@ var PostgresqlService = function(j_val) {
   DatabaseCommands.call(this, j_val);
 
   /**
+
+   @public
+   @param whenDone {function} 
+   */
+  this.start = function(whenDone) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'function') {
+      j_postgresqlService.start(function(ar) {
+      if (ar.succeeded()) {
+        whenDone(null, null);
+      } else {
+        whenDone(null, ar.cause());
+      }
+    });
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param whenDone {function} 
+   */
+  this.stop = function(whenDone) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'function') {
+      j_postgresqlService.stop(function(ar) {
+      if (ar.succeeded()) {
+        whenDone(null, null);
+      } else {
+        whenDone(null, ar.cause());
+      }
+    });
+    } else utils.invalidArgs();
+  };
+
+  /**
    Sends a raw command to the database.
 
    @public
@@ -119,42 +155,6 @@ var PostgresqlService = function(j_val) {
         resultHandler(utils.convReturnJson(ar.result()), null);
       } else {
         resultHandler(null, ar.cause());
-      }
-    });
-    } else utils.invalidArgs();
-  };
-
-  /**
-
-   @public
-   @param whenDone {function} 
-   */
-  this.start = function(whenDone) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_postgresqlService.start(function(ar) {
-      if (ar.succeeded()) {
-        whenDone(null, null);
-      } else {
-        whenDone(null, ar.cause());
-      }
-    });
-    } else utils.invalidArgs();
-  };
-
-  /**
-
-   @public
-   @param whenDone {function} 
-   */
-  this.stop = function(whenDone) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_postgresqlService.stop(function(ar) {
-      if (ar.succeeded()) {
-        whenDone(null, null);
-      } else {
-        whenDone(null, ar.cause());
       }
     });
     } else utils.invalidArgs();

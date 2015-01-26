@@ -36,6 +36,82 @@ var MysqlConnection = function(j_val) {
   DatabaseCommands.call(this, j_val);
 
   /**
+   Starts a transaction on this connection.
+
+   @public
+   @param handler {function} 
+   */
+  this.startTransaction = function(handler) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'function') {
+      j_mysqlConnection.startTransaction(function(ar) {
+      if (ar.succeeded()) {
+        handler(null, null);
+      } else {
+        handler(null, ar.cause());
+      }
+    });
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Commits a transaction.
+
+   @public
+   @param resultHandler {function} 
+   */
+  this.commit = function(resultHandler) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'function') {
+      j_mysqlConnection.commit(function(ar) {
+      if (ar.succeeded()) {
+        resultHandler(null, null);
+      } else {
+        resultHandler(null, ar.cause());
+      }
+    });
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Rolls back a transaction.
+
+   @public
+   @param resultHandler {function} 
+   */
+  this.rollback = function(resultHandler) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'function') {
+      j_mysqlConnection.rollback(function(ar) {
+      if (ar.succeeded()) {
+        resultHandler(null, null);
+      } else {
+        resultHandler(null, ar.cause());
+      }
+    });
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Frees the connection and puts it back into the pool.
+
+   @public
+   @param handler {function} 
+   */
+  this.close = function(handler) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'function') {
+      j_mysqlConnection.close(function(ar) {
+      if (ar.succeeded()) {
+        handler(null, null);
+      } else {
+        handler(null, ar.cause());
+      }
+    });
+    } else utils.invalidArgs();
+  };
+
+  /**
    Sends a raw command to the database.
 
    @public
@@ -117,82 +193,6 @@ var MysqlConnection = function(j_val) {
         resultHandler(utils.convReturnJson(ar.result()), null);
       } else {
         resultHandler(null, ar.cause());
-      }
-    });
-    } else utils.invalidArgs();
-  };
-
-  /**
-   Starts a transaction on this connection.
-
-   @public
-   @param handler {function} 
-   */
-  this.startTransaction = function(handler) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_mysqlConnection.startTransaction(function(ar) {
-      if (ar.succeeded()) {
-        handler(null, null);
-      } else {
-        handler(null, ar.cause());
-      }
-    });
-    } else utils.invalidArgs();
-  };
-
-  /**
-   Commits a transaction.
-
-   @public
-   @param resultHandler {function} 
-   */
-  this.commit = function(resultHandler) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_mysqlConnection.commit(function(ar) {
-      if (ar.succeeded()) {
-        resultHandler(null, null);
-      } else {
-        resultHandler(null, ar.cause());
-      }
-    });
-    } else utils.invalidArgs();
-  };
-
-  /**
-   Rolls back a transaction.
-
-   @public
-   @param resultHandler {function} 
-   */
-  this.rollback = function(resultHandler) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_mysqlConnection.rollback(function(ar) {
-      if (ar.succeeded()) {
-        resultHandler(null, null);
-      } else {
-        resultHandler(null, ar.cause());
-      }
-    });
-    } else utils.invalidArgs();
-  };
-
-  /**
-   Frees the connection and puts it back into the pool.
-
-   @public
-   @param handler {function} 
-   */
-  this.close = function(handler) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_mysqlConnection.close(function(ar) {
-      if (ar.succeeded()) {
-        handler(null, null);
-      } else {
-        handler(null, ar.cause());
       }
     });
     } else utils.invalidArgs();
