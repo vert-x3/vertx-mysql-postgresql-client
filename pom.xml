@@ -35,7 +35,6 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
       <classifier>sources</classifier>
     </dependency>
     <dependency>
@@ -56,42 +55,30 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-service-proxy</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-codegen</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-lang-groovy</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.groovy</groupId>
-      <artifactId>groovy-all</artifactId>
-      <version>2.3.6</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-lang-js</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-service-factory</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
