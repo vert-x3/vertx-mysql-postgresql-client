@@ -28,7 +28,7 @@ class PostgresqlServiceImpl(val vertx: Vertx, val config: JsonObject)
 
   override protected val defaultUser: String = "vertx"
 
-  override protected val defaultPassword: Option[String] = Some("test")
+  override protected val defaultPassword: Option[String] = Some("password")
 
   override protected def createTransactionProxy(connection: Connection, freeHandler: Connection => Future[_]): PostgresqlTransaction = {
     new PostgresqlTransactionImpl(vertx, connection, freeHandler)

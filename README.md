@@ -8,7 +8,7 @@ MySQL and PostgreSQL.
 * Vert.x 3
 * A working PostgreSQL or MySQL server
 * For testing PostgreSQL: A `testdb` database on a local PostgreSQL install and a user called `vertx`
-* For testing MySQL: A `testdb` database on a local MySQL install and a user called `root`
+* For testing MySQL: A `testdb` database on a local MySQL install and a user called `vertx` with password `password`
 
 ## Installation
 

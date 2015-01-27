@@ -26,9 +26,9 @@ class MysqlServiceImpl(val vertx: Vertx, val config: JsonObject)
 
   override protected val defaultDatabase: Option[String] = Some("testdb")
 
-  override protected val defaultUser: String = "root"
+  override protected val defaultUser: String = "vertx"
 
-  override protected val defaultPassword: Option[String] = None
+  override protected val defaultPassword: Option[String] = Some("password")
 
   override protected def createTransactionProxy(connection: Connection, freeHandler: Connection => Future[_]): MysqlTransaction = {
     new MysqlTransactionImpl(vertx, connection, freeHandler)
