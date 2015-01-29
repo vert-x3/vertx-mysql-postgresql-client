@@ -3,6 +3,7 @@ package io.vertx.ext.asyncsql
 import java.util.concurrent.CountDownLatch
 
 import io.vertx.core.{AsyncResult, Handler, DeploymentOptions}
+import org.junit.Test
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
@@ -33,14 +34,20 @@ abstract class VerticleTestBase extends SqlTestBase with ConfigProvider {
     awaitLatch(latch)
   }
 
-  override def tearDown(): Unit = {
-    log.info(s"Tearing down Service Verticle at $address -> ${getClass.getName}")
-    deploymentId.map(vertx.undeploy(_, new Handler[AsyncResult[Void]] {
-      override def handle(event: AsyncResult[Void]): Unit = {
-        log.info(s"Done tearing down Service Verticle at $address -> ${getClass.getName}")
-        VerticleTestBase.super.tearDown()
-        log.info(s"After super.tearDown()")
-      }
-    }))
+  @Test
+  def closingConnection(): Unit = {
+    (for {
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- arhToFuture(conn.close _)
+      res <- arhToFuture((conn.query _).curried("SELECT 1"))
+    } yield {
+      fail(s"Should not be able to use connection after closing, but got ${res.toJson.encode()}")
+    }) recover {
+      case ex: Throwable =>
+        log.info(s"closed connection stays closed $ex")
+        testComplete()
+    }
+    await()
   }
+
 }

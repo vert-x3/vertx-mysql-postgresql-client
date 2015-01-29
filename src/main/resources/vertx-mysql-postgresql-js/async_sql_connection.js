@@ -31,11 +31,11 @@ var AsyncSqlConnection = function(j_val) {
   var that = this;
 
   /**
-   Executes the given SQL statement
+   Executes the given SQL statement.
 
    @public
-   @param sql {string} 
-   @param resultHandler {function} 
+   @param sql {string} the SQL to execute. For example <code>CREATE TABLE IF EXISTS table ...</code> 
+   @param resultHandler {function} the handler which is called once this operation completes. 
    @return {AsyncSqlConnection}
    */
   this.execute = function(sql, resultHandler) {
@@ -56,15 +56,38 @@ var AsyncSqlConnection = function(j_val) {
    Executes the given SQL <code>SELECT</code> statement which returns the results of the query.
 
    @public
-   @param sql {string} 
-   @param params {todo} 
-   @param resultHandler {function} 
+   @param sql {string} The SQL to execute. For example <code>SELECT * FROM mytable</code>. 
+   @param resultHandler {function} The handler which is called once the operation completes. It will return a list of <code>JsonObject</code>'s which represent the ResultSet. So column names are keys, and values are of course values. 
    @return {AsyncSqlConnection}
    */
-  this.query = function(sql, params, resultHandler) {
+  this.query = function(sql, resultHandler) {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
+      j_asyncSqlConnection.query(sql, function(ar) {
+      if (ar.succeeded()) {
+        resultHandler(utils.convReturnJson(ar.result().toJson()), null);
+      } else {
+        resultHandler(null, ar.cause());
+      }
+    });
+      return that;
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Executes the given SQL <code>SELECT</code> statement which returns the results of the query. It will use a prepared
+   statement to pass the parameters.
+
+   @public
+   @param sql {string} The SQL to execute. For example <code>SELECT * FROM mytable WHERE id=?</code>. 
+   @param params {todo} These are the parameters to fill the statement. 
+   @param resultHandler {function} The handler which is called once the operation completes. It will return a list of <code>JsonObject</code>'s which represent the ResultSet. So column names are keys, and values are of course values. 
+   @return {AsyncSqlConnection}
+   */
+  this.queryWithParams = function(sql, params, resultHandler) {
     var __args = arguments;
     if (__args.length === 3 && typeof __args[0] === 'string' && typeof __args[1] === 'object' && __args[1] instanceof Array && typeof __args[2] === 'function') {
-      j_asyncSqlConnection.query(sql, utils.convParamJsonArray(params), function(ar) {
+      j_asyncSqlConnection.queryWithParams(sql, utils.convParamJsonArray(params), function(ar) {
       if (ar.succeeded()) {
         resultHandler(utils.convReturnJson(ar.result().toJson()), null);
       } else {
@@ -80,15 +103,38 @@ var AsyncSqlConnection = function(j_val) {
    statement.
 
    @public
-   @param sql {string} 
-   @param params {todo} 
-   @param resultHandler {function} 
+   @param sql {string} The SQL to execute. For example <code>INSERT INTO table ...</code> 
+   @param resultHandler {function} The handler which is called once the operation completes. 
    @return {AsyncSqlConnection}
    */
-  this.update = function(sql, params, resultHandler) {
+  this.update = function(sql, resultHandler) {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
+      j_asyncSqlConnection.update(sql, function(ar) {
+      if (ar.succeeded()) {
+        resultHandler(utils.convReturnJson(ar.result().toJson()), null);
+      } else {
+        resultHandler(null, ar.cause());
+      }
+    });
+      return that;
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Executes the given SQL statement which may be an <code>INSERT</code>, <code>UPDATE</code>, or <code>DELETE</code>
+   statement.
+
+   @public
+   @param sql {string} The SQL to execute. For example <code>INSERT INTO mytable ('name', 'age') VALUES (?, ?)</code> 
+   @param params {todo} These are the parameters to fill the statement. 
+   @param resultHandler {function} The handler which is called once the operation completes. 
+   @return {AsyncSqlConnection}
+   */
+  this.updateWithParams = function(sql, params, resultHandler) {
     var __args = arguments;
     if (__args.length === 3 && typeof __args[0] === 'string' && typeof __args[1] === 'object' && __args[1] instanceof Array && typeof __args[2] === 'function') {
-      j_asyncSqlConnection.update(sql, utils.convParamJsonArray(params), function(ar) {
+      j_asyncSqlConnection.updateWithParams(sql, utils.convParamJsonArray(params), function(ar) {
       if (ar.succeeded()) {
         resultHandler(utils.convReturnJson(ar.result().toJson()), null);
       } else {
@@ -103,7 +149,7 @@ var AsyncSqlConnection = function(j_val) {
    Closes the connection. Important to always close the connection when you are done so it's returned to the pool.
 
    @public
-   @param handler {function} 
+   @param handler {function} The handler which is called once the operation completes. 
    */
   this.close = function(handler) {
     var __args = arguments;
@@ -122,7 +168,7 @@ var AsyncSqlConnection = function(j_val) {
    Commits all changes made since the previous commit/rollback.
 
    @public
-   @param handler {function} 
+   @param handler {function} The handler which is called once the operation completes. 
    @return {AsyncSqlConnection}
    */
   this.commit = function(handler) {
@@ -143,7 +189,7 @@ var AsyncSqlConnection = function(j_val) {
    Rolls back all changes made since the previous commit/rollback.
 
    @public
-   @param handler {function} 
+   @param handler {function} The handler which is called once the operation completes. 
    @return {AsyncSqlConnection}
    */
   this.rollback = function(handler) {

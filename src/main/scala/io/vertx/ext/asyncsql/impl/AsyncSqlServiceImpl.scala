@@ -10,7 +10,6 @@ import io.vertx.ext.asyncsql.{AsyncSqlConnection, AsyncSqlService}
 class AsyncSqlServiceImpl(vertx: Vertx, config: JsonObject) extends AsyncSqlService {
 
   val baseService: BaseSqlService = {
-    println(s"CONFIG: ${config.encode}")
     Option(config.getJsonObject("postgresql")).map(c => new PostgresqlService(vertx, c)).orElse {
       Option(config.getJsonObject("mysql")).map(c => new MysqlService(vertx, c))
     }.getOrElse(throw new IllegalArgumentException(s"invalid configuration given: ${config.encode}"))

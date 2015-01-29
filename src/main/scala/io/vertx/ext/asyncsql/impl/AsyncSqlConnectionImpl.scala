@@ -22,16 +22,23 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     this
   }
 
-  override def query(sql: String, params: JsonArray, resultHandler: Handler[AsyncResult[ResultSet]]): AsyncSqlConnection = {
+  override def query(sql: String, resultHandler: Handler[AsyncResult[ResultSet]]): AsyncSqlConnection = {
     connection.sendQuery(sql) onComplete done(resultHandler, queryResultToResultSet)
     this
   }
 
-  override def update(sql: String, params: JsonArray, resultHandler: Handler[AsyncResult[UpdateResult]]): AsyncSqlConnection = {
-    (Option(params) match {
-      case Some(ps) => connection.sendPreparedStatement(sql, ps.getList.asScala)
-      case None => connection.sendQuery(sql)
-    }) onComplete done(resultHandler, queryResultToUpdateResult)
+  override def queryWithParams(sql: String, params: JsonArray, resultHandler: Handler[AsyncResult[ResultSet]]): AsyncSqlConnection = {
+    connection.sendPreparedStatement(sql, params.getList.asScala) onComplete done(resultHandler, queryResultToResultSet)
+    this
+  }
+
+  override def update(sql: String, resultHandler: Handler[AsyncResult[UpdateResult]]): AsyncSqlConnection = {
+    connection.sendQuery(sql) onComplete done(resultHandler, queryResultToUpdateResult)
+    this
+  }
+
+  override def updateWithParams(sql: String, params: JsonArray, resultHandler: Handler[AsyncResult[UpdateResult]]): AsyncSqlConnection = {
+    connection.sendPreparedStatement(sql, params.getList.asScala) onComplete done(resultHandler, queryResultToUpdateResult)
     this
   }
 
@@ -61,7 +68,9 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
       val results = rowDataSeqToJsonArray(rows)
 
       new ResultSet(names.asJava, results.asJava)
-    }).getOrElse(new ResultSet())
+    }) getOrElse {
+      new ResultSet(List.empty[String].asJava, List.empty[JsonArray].asJava)
+    }
   }
 
   private def rowDataSeqToJsonArray(set: db.ResultSet): List[JsonArray] = {

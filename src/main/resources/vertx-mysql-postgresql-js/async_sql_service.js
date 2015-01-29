@@ -76,7 +76,7 @@ var AsyncSqlService = function(j_val) {
    connection when you are done, so it is returned to the pool.
 
    @public
-   @param handler {function} 
+   @param handler {function} the handler which is called when the <code>JdbcConnection</code> object is ready for use. 
    */
   this.getConnection = function(handler) {
     var __args = arguments;

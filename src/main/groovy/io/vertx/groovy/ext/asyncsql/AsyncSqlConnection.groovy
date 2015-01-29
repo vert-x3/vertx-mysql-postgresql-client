@@ -17,8 +17,8 @@
 package io.vertx.groovy.ext.asyncsql;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
-import io.vertx.core.json.JsonArray
 import io.vertx.ext.asyncsql.ResultSet
+import io.vertx.core.json.JsonArray
 import io.vertx.ext.asyncsql.UpdateResult
 import io.vertx.core.AsyncResult
 import io.vertx.core.Handler
@@ -35,11 +35,10 @@ public class AsyncSqlConnection {
     return delegate;
   }
   /**
-   * Executes the given SQL statement
+   * Executes the given SQL statement.
    *
-   * @param sql the SQL to execute. For example <code>CREATE TABLE IF EXISTS table ...</code>
+   * @param sql           the SQL to execute. For example <code>CREATE TABLE IF EXISTS table ...</code>
    * @param resultHandler the handler which is called once this operation completes.
-   * @see java.sql.Statement#execute(String)
    */
   public AsyncSqlConnection execute(String sql, Handler<AsyncResult<Void>> resultHandler) {
     this.delegate.execute(sql, resultHandler);
@@ -48,39 +47,57 @@ public class AsyncSqlConnection {
   /**
    * Executes the given SQL <code>SELECT</code> statement which returns the results of the query.
    *
-   * @param sql the SQL to execute. For example <code>SELECT * FROM table ...</code>.
-   * @param params if the SQL statement is to be a prepared statement, these are the parameters to fill the statement. Pass null if
-   * the statement is not a prepared statement.
-   * @param resultHandler the handler which is called once the operation completes. It will return a list of <code>JsonObject</code>'s
-   * which represent the ResultSet. So column names are keys, and values are of course values.
-   *
-   * @see java.sql.Statement#executeQuery(String)
-   * @see java.sql.PreparedStatement#executeQuery(String)
+   * @param sql           The SQL to execute. For example <code>SELECT * FROM mytable</code>.
+   * @param resultHandler The handler which is called once the operation completes. It will return a list of
+   *                      <code>JsonObject</code>'s which represent the ResultSet. So column names are keys, and values
+   *                      are of course values.
    */
-  public AsyncSqlConnection query(String sql, List<Object> params, Handler<AsyncResult<ResultSet>> resultHandler) {
-    this.delegate.query(sql, params != null ? new io.vertx.core.json.JsonArray(params) : null, resultHandler);
+  public AsyncSqlConnection query(String sql, Handler<AsyncResult<ResultSet>> resultHandler) {
+    this.delegate.query(sql, resultHandler);
+    return this;
+  }
+  /**
+   * Executes the given SQL <code>SELECT</code> statement which returns the results of the query. It will use a prepared
+   * statement to pass the parameters.
+   *
+   * @param sql           The SQL to execute. For example <code>SELECT * FROM mytable WHERE id=?</code>.
+   * @param params        These are the parameters to fill the statement.
+   * @param resultHandler The handler which is called once the operation completes. It will return a list of
+   *                      <code>JsonObject</code>'s which represent the ResultSet. So column names are keys, and values
+   *                      are of course values.
+   */
+  public AsyncSqlConnection queryWithParams(String sql, List<Object> params, Handler<AsyncResult<ResultSet>> resultHandler) {
+    this.delegate.queryWithParams(sql, params != null ? new io.vertx.core.json.JsonArray(params) : null, resultHandler);
     return this;
   }
   /**
    * Executes the given SQL statement which may be an <code>INSERT</code>, <code>UPDATE</code>, or <code>DELETE</code>
    * statement.
    *
-   * @param sql the SQL to execute. For example <code>INSERT INTO table ...</code>
-   * @param params if the SQL statement is to be a prepared statement, these are the parameters to fill the statement. Pass null if
-   * the statement is not a prepared statement.
-   * @param resultHandler the handler which is called once the operation completes.
-   *
-   * @see java.sql.Statement#executeUpdate(String)
-   * @see java.sql.PreparedStatement#executeUpdate(String)
+   * @param sql           The SQL to execute. For example <code>INSERT INTO table ...</code>
+   * @param resultHandler The handler which is called once the operation completes.
    */
-  public AsyncSqlConnection update(String sql, List<Object> params, Handler<AsyncResult<UpdateResult>> resultHandler) {
-    this.delegate.update(sql, params != null ? new io.vertx.core.json.JsonArray(params) : null, resultHandler);
+  public AsyncSqlConnection update(String sql, Handler<AsyncResult<UpdateResult>> resultHandler) {
+    this.delegate.update(sql, resultHandler);
+    return this;
+  }
+  /**
+   * Executes the given SQL statement which may be an <code>INSERT</code>, <code>UPDATE</code>, or <code>DELETE</code>
+   * statement.
+   *
+   * @param sql           The SQL to execute. For example <code>INSERT INTO mytable ('name', 'age') VALUES (?,
+   *                      ?)</code>
+   * @param params        These are the parameters to fill the statement.
+   * @param resultHandler The handler which is called once the operation completes.
+   */
+  public AsyncSqlConnection updateWithParams(String sql, List<Object> params, Handler<AsyncResult<UpdateResult>> resultHandler) {
+    this.delegate.updateWithParams(sql, params != null ? new io.vertx.core.json.JsonArray(params) : null, resultHandler);
     return this;
   }
   /**
    * Closes the connection. Important to always close the connection when you are done so it's returned to the pool.
    *
-   * @param handler the handler called when this operation completes.
+   * @param handler The handler which is called once the operation completes.
    */
   public void close(Handler<AsyncResult<Void>> handler) {
     this.delegate.close(handler);
@@ -88,7 +105,7 @@ public class AsyncSqlConnection {
   /**
    * Commits all changes made since the previous commit/rollback.
    *
-   * @param handler the handler called when this operation completes.
+   * @param handler The handler which is called once the operation completes.
    */
   public AsyncSqlConnection commit(Handler<AsyncResult<Void>> handler) {
     this.delegate.commit(handler);
@@ -97,7 +114,7 @@ public class AsyncSqlConnection {
   /**
    * Rolls back all changes made since the previous commit/rollback.
    *
-   * @param handler the handler called when this operation completes.
+   * @param handler The handler which is called once the operation completes.
    */
   public AsyncSqlConnection rollback(Handler<AsyncResult<Void>> handler) {
     this.delegate.rollback(handler);
