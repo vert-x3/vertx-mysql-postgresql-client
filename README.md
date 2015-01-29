@@ -52,103 +52,46 @@ with strange errors.
 
 ### Commands
 
-There are only a few commands available currently, but in theory you should be able to invoke any command on the 
-database using the `raw` action.
+After starting or deploying the SQL service, you need to grab a connection from the pool. You can do that by using the
+`service.getConnection()` method, which gives you a connection back asynchronously.
 
-The database will always reply to your requests in the `replyHandler` provided with every message.
+On the connection, you have a few commands you can use to interact with your MySQL or PostgreSQL database.
 
-The module will expose a service proxy that you can use with your favorite language. Just create it with the same 
-address as you provided in the configuration, for example in Java for PostgreSQL:
+#### execute
 
-    PostgresqlService service = PostgresqlService.createEventBusProxy(vertx, address)
+To execute a simple database action without caring for the result, use `execute`. For example to create or drop tables.
 
-You will always get a `JsonObject` back. Depending on the sent SQL query, you will get you will get a result and fields
-back.
+#### update
 
-    {
-      "rows" : 3,
-      "fields" : ["id", "name"]
-      "results" : [
-        [1, "Albert"],
-        [2, "Bertram"],
-        [3, "Cornelius"]
-      ]
-    }
+To insert or update an entry in a database table, use one of the `update` methods. You'll receive the number of affected
+rows.
 
-#### raw
+#### updateWithParams
 
-The `raw(String sql, Handler<AsyncResult<JsonObject>> result)` command can be used to send an arbitrary command to the 
-database. If you did a query that returns a result set, you will get the fields `results` and `fields` inside the 
-returned `JsonObject`.
+Use this method if you need to pass parameters to your update statement. Just add strings or numbers into a JsonArray.
 
-The results are shown in a `JsonArray` containing `JsonArray`s. The outer array are the rows that were selected and the 
-inner array contains the values of each column. To find out which column is in which index, you can have a look into the
-`fields` `JsonArray`. It gives you the names of the columns that were selected in the query you've sent. It is in the 
-same order as the results provided in the `results` field.
+#### query
 
-#### prepared
+To query the database and fetch results from it, use one of the `query` methods. You'll receive a `ResultSet` which
+consists of a list of column names and a list of JsonArrays that contain the values.
 
-With the `prepared(String sql, JsonArray values, Handler<AsyncResult<JsonObject>> result)` method, you can create 
-prepared statements and run them directly. Put `?` into the sql String and use the `values` array to push values into 
-it.
+#### queryWithParams
 
-#### insert
+Use this method if you need to pass parameters to your query statement. Just add strings or numbers into a JsonArray.
 
-To insert a new row into a table, you can use the method 
-`insert(String table, JsonArray columns, JsonArray rows, Handler<AsyncResult<JsonObject>> result)`. The columns need 
-to be in the same order as you put the values into the `rows` array. The `rows` are an array of arrays, so you can 
-insert multiple rows with a single insert statement.
+#### commit
 
-#### select
+To commit a transaction, you can use this method. You can think of this method as an alias for `execute("COMMIT")`. As
+transactions are not created implicitly by the underlying driver, you need to explicitly begin a new one by starting it
+via `execute("BEGIN")`.
 
-For basic select statements you can use the convenient method 
-`select(String table, SelectOptions options, Handler<AsyncResult<JsonObject>> result)`. For the specified table, it will
-collect the list of rows with the specified columns in the given `options`.
+#### rollback
 
-`fields` is a list containing the columns that you want to select. If you don't provide any, it will select all 
-available fields / columns in the table.
+To roll back a transaction, you can use this method. You can think of this method as an alias for `execute("ROLLBACK")`.
+As transactions are not created implicitly by the underlying driver, you need to explicitly begin a new one by starting
+it via `execute("BEGIN")`.
 
-`limit` is used when you want to select only a maximum amount of rows.
+#### close
 
-`offset` can be used to select only from a specific row. If you want to paginate your results, you need to use `limit`
-and `offset`.
-
-### Ways to access the commands
-
-On the service, you have various ways that you can use to talk with the database. Each of these will let you call the 
-above commands.
-
-#### Connections
-
-To get a connection and use it, you need to use the `take()` method on the `MysqlService` or `PostgresqlService` 
-instance. To free the connection, call the `close()` method.
-
-A connection provides three additional methods, to do transactions on it.
-
-##### startTransaction
-
-If you need to use transactions while on a specific connection, you can use the `startTransaction()` method to start 
-one.
-
-##### commit
-
-To commit a previously started transaction, use the `commit()` method on the connection.
-
-##### rollback
-
-To roll back a previously started transaction, use the `rollback()` method on the connection.
-
-#### Transactions
-
-If you don't need the flexibility of a connection and just want to make a single transaction, you can use the `begin()`
-method to start one.
-
-A transaction provides the two methods `commit()` and `rollback()` to close the transaction again and free the 
-underlying connection. If you commit, the transaction will commit everything and the database will make the changes 
-according to your inputs on the transactions. If you roll back, the changes the transaction made will be rolled back and
-all values in the database will be the same as they were before starting the transaction.
-
-#### Direct access via service
-
-If you don't need any ordering promises for your query or transactions, you can use the commands provided by the
-service directly. Just call the commands as you would on a connection or transaction.
+When you're done dealing with the database, you need to close the connection. It will free it and put it back into the
+pool of connections.
