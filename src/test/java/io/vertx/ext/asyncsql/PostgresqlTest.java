@@ -21,7 +21,9 @@ public class PostgresqlTest extends VertxTestBase {
 
   final JsonObject config = new JsonObject().put("postgresql", new JsonObject().put("address", address));
 
+  @Override
   public void setUp() throws Exception {
+    super.setUp();
     asyncSqlService = AsyncSqlService.create(vertx, config);
 
     CountDownLatch latch = new CountDownLatch(1);
@@ -43,6 +45,7 @@ public class PostgresqlTest extends VertxTestBase {
         assertNotNull(resultSet);
         assertNotNull(resultSet.getColumnNames());
         assertNotNull(resultSet.getResults());
+        assertEquals(new JsonArray().add(1), resultSet.getResults().get(0));
         testComplete();
       }));
     }));
