@@ -20,6 +20,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 /**
+ * A verticle that starts an instance of a MySQL service
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */

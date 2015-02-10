@@ -7,6 +7,8 @@ import io.vertx.serviceproxy.ProxyHelper;
 import java.util.concurrent.CountDownLatch;
 
 /**
+ * Base class for async SQL service verticles.
+ *
  * @author <a href="http://www.campudus.com/">Joern Bernhardt</a>
  */
 public abstract class AsyncSqlServiceVerticle extends AbstractVerticle {
