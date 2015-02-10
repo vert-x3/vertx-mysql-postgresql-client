@@ -16,9 +16,12 @@ MySQL and PostgreSQL.
 
 ## Usage
 
-To use this service, deploy it like other services, using `io.vertx:mysql-postgresql-service` as the verticle id:
+To use this service, deploy it like other services, using `io.vertx:mysql-service` or `io.vertx:postgresql-service`as
+the verticle id:
 
-    vertx.deployVerticle("service:io.vertx:mysql-postgresql-service", deployOptions, resultHandler);
+    vertx.deployVerticle("service:io.vertx:mysql-service", deployOptions, resultHandler);
+
+    vertx.deployVerticle("service:io.vertx:postgresql-service", deployOptions, resultHandler);
 
 Keep in mind that the service is only ready as soon as the resultHandler got called. If you try to use it before it 
 was called, you might get errors. 
@@ -26,21 +29,16 @@ was called, you might get errors.
 ### Configuration
 
     {
-      "postgresql" : {
-        "address" : <event-bus-address-to-listen-on>,
-        "host" : <your-host>,
-        "port" : <your-port>,
-        "maxPoolSize" : <maximum-number-of-open-connections>,
-        "username" : <your-username>,
-        "password" : <your-password>,
-        "database" : <name-of-your-database>
-      }
+      "address" : <event-bus-address-to-listen-on>,
+      "host" : <your-host>,
+      "port" : <your-port>,
+      "maxPoolSize" : <maximum-number-of-open-connections>,
+      "username" : <your-username>,
+      "password" : <your-password>,
+      "database" : <name-of-your-database>
     }
 
-The configuration you put into the deployOptions object should have a `postgresql` or `mysql` object in it. Both have 
-the same configuration options:
-
-* `address` - The address this module should register on the event bus. Defaults to `vertx.postgresql` or `vertx.mysql` 
+* `address` - The address this module should register on the event bus. Defaults to `vertx.postgresql` or `vertx.mysql`
 respectively. If you provide both PostgreSQL and MySQL, use different addresses for them - otherwise you'll end up 
 with strange errors.
 * `host` - The host of the database. Defaults to `localhost`.

@@ -1,9 +1,6 @@
 package io.vertx.ext.asyncsql;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
+import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ProxyHelper;
 
@@ -12,7 +9,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * @author <a href="http://www.campudus.com/">Joern Bernhardt</a>
  */
-public class AsyncSqlServiceVerticle extends AbstractVerticle {
+public abstract class AsyncSqlServiceVerticle extends AbstractVerticle {
 
   AsyncSqlService service;
 
@@ -32,11 +29,11 @@ public class AsyncSqlServiceVerticle extends AbstractVerticle {
     };
 
     // Create the service object
-    final String address = conf.getJsonObject("postgresql", conf.getJsonObject("mysql")).getString("address");
+    final String address = conf.getString("address");
     if (address == null) {
       throw new IllegalStateException("address field must be specified in config for service verticle");
     }
-    service = AsyncSqlService.create(vertx, conf);
+    service = createService(vertx, conf);
     ProxyHelper.registerService(AsyncSqlService.class, vertx, service, address);
     service.start(simpleEndHandler);
   }
@@ -53,4 +50,6 @@ public class AsyncSqlServiceVerticle extends AbstractVerticle {
       });
     }
   }
+
+  protected abstract AsyncSqlService createService(Vertx vertx, JsonObject config);
 }

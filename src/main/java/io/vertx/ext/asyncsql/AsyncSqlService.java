@@ -18,8 +18,12 @@ import io.vertx.serviceproxy.ProxyHelper;
 @ProxyGen
 public interface AsyncSqlService {
 
-  static AsyncSqlService create(Vertx vertx, JsonObject config) {
-    return new AsyncSqlServiceImpl(vertx, config);
+  static AsyncSqlService createMySqlService(Vertx vertx, JsonObject config) {
+    return new AsyncSqlServiceImpl(vertx, config, true);
+  }
+
+  static AsyncSqlService createPostgreSqlService(Vertx vertx, JsonObject config) {
+    return new AsyncSqlServiceImpl(vertx, config, false);
   }
 
   static AsyncSqlService createEventBusProxy(Vertx vertx, String address) {

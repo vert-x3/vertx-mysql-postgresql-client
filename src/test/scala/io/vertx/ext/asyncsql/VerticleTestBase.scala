@@ -12,6 +12,7 @@ abstract class VerticleTestBase extends SqlTestBase with ConfigProvider {
 
   override lazy val asyncSqlService = AsyncSqlService.createEventBusProxy(vertx, address)
   var deploymentId: Option[String] = None
+  def serviceName: String
 
   override def setUp(): Unit = {
     super.setUp()
@@ -19,7 +20,7 @@ abstract class VerticleTestBase extends SqlTestBase with ConfigProvider {
     val latch: CountDownLatch = new CountDownLatch(1)
     val options: DeploymentOptions = new DeploymentOptions().setConfig(config)
 
-    vertx.deployVerticle("service:io.vertx:mysql-postgresql-service", options, new Handler[AsyncResult[String]] {
+    vertx.deployVerticle("service:" + serviceName, options, new Handler[AsyncResult[String]] {
       override def handle(event: AsyncResult[String]): Unit = {
         if (event.succeeded()) {
           deploymentId = Some(event.result())
