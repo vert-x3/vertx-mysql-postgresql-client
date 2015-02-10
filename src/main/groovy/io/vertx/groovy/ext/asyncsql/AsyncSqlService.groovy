@@ -23,6 +23,9 @@ import io.vertx.core.json.JsonObject
 import io.vertx.core.AsyncResult
 import io.vertx.core.Handler
 /**
+ *
+ * Represents an asynchronous MySQL or PostgreSQL service.
+ *
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
 @CompileStatic
@@ -34,28 +37,48 @@ public class AsyncSqlService {
   public Object getDelegate() {
     return delegate;
   }
+  /**
+   * Create a MySQL service
+   *
+   * @param vertx  the Vert.x instance
+   * @param config  the config
+   * @return the service
+   */
   public static AsyncSqlService createMySqlService(Vertx vertx, Map<String, Object> config) {
     def ret= AsyncSqlService.FACTORY.apply(io.vertx.ext.asyncsql.AsyncSqlService.createMySqlService((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null));
     return ret;
   }
+  /**
+   * Create a PostgreSQL service
+   *
+   * @param vertx  the Vert.x instance
+   * @param config  the config
+   * @return the service
+   */
   public static AsyncSqlService createPostgreSqlService(Vertx vertx, Map<String, Object> config) {
     def ret= AsyncSqlService.FACTORY.apply(io.vertx.ext.asyncsql.AsyncSqlService.createPostgreSqlService((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null));
     return ret;
   }
+  /**
+   * Create an event bus proxy to a service which lives somewhere on the network and is listening on the specified
+   * event bus address
+   *
+   * @param vertx  the Vert.x instance
+   * @param address  the address on the event bus where the service is listening
+   * @return
+   */
   public static AsyncSqlService createEventBusProxy(Vertx vertx, String address) {
     def ret= AsyncSqlService.FACTORY.apply(io.vertx.ext.asyncsql.AsyncSqlService.createEventBusProxy((io.vertx.core.Vertx)vertx.getDelegate(), address));
     return ret;
   }
   /**
-   * Normally invoked by the <code>AsyncSqlServiceVerticle</code> to start the service when deployed. This is usually
-   * not called by the user.
+   * Called to start the service
    */
   public void start(Handler<AsyncResult<Void>> whenDone) {
     this.delegate.start(whenDone);
   }
   /**
-   * Normally invoked by the <code>AsyncSqlServiceVerticle</code> to stop the service when the verticle is
-   * stopped/undeployed. This is usually not called by the user.
+   * Called to stop the service
    */
   public void stop(Handler<AsyncResult<Void>> whenDone) {
     this.delegate.stop(whenDone);

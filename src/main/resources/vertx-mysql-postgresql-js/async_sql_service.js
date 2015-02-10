@@ -24,6 +24,8 @@ var JAsyncSqlService = io.vertx.ext.asyncsql.AsyncSqlService;
 
 /**
 
+ Represents an asynchronous MySQL or PostgreSQL service.
+
  @class
 */
 var AsyncSqlService = function(j_val) {
@@ -32,8 +34,7 @@ var AsyncSqlService = function(j_val) {
   var that = this;
 
   /**
-   Normally invoked by the <code>AsyncSqlServiceVerticle</code> to start the service when deployed. This is usually
-   not called by the user.
+   Called to start the service
 
    @public
    @param whenDone {function} 
@@ -52,8 +53,7 @@ var AsyncSqlService = function(j_val) {
   };
 
   /**
-   Normally invoked by the <code>AsyncSqlServiceVerticle</code> to stop the service when the verticle is
-   stopped/undeployed. This is usually not called by the user.
+   Called to stop the service
 
    @public
    @param whenDone {function} 
@@ -98,11 +98,12 @@ var AsyncSqlService = function(j_val) {
 };
 
 /**
+ Create a MySQL service
 
  @memberof module:vertx-mysql-postgresql-js/async_sql_service
- @param vertx {Vertx} 
- @param config {Object} 
- @return {AsyncSqlService}
+ @param vertx {Vertx} the Vert.x instance 
+ @param config {Object} the config 
+ @return {AsyncSqlService} the service
  */
 AsyncSqlService.createMySqlService = function(vertx, config) {
   var __args = arguments;
@@ -112,11 +113,12 @@ AsyncSqlService.createMySqlService = function(vertx, config) {
 };
 
 /**
+ Create a PostgreSQL service
 
  @memberof module:vertx-mysql-postgresql-js/async_sql_service
- @param vertx {Vertx} 
- @param config {Object} 
- @return {AsyncSqlService}
+ @param vertx {Vertx} the Vert.x instance 
+ @param config {Object} the config 
+ @return {AsyncSqlService} the service
  */
 AsyncSqlService.createPostgreSqlService = function(vertx, config) {
   var __args = arguments;
@@ -126,11 +128,13 @@ AsyncSqlService.createPostgreSqlService = function(vertx, config) {
 };
 
 /**
+ Create an event bus proxy to a service which lives somewhere on the network and is listening on the specified
+ event bus address
 
  @memberof module:vertx-mysql-postgresql-js/async_sql_service
- @param vertx {Vertx} 
- @param address {string} 
- @return {AsyncSqlService}
+ @param vertx {Vertx} the Vert.x instance 
+ @param address {string} the address on the event bus where the service is listening 
+ @return {AsyncSqlService} 
  */
 AsyncSqlService.createEventBusProxy = function(vertx, address) {
   var __args = arguments;
