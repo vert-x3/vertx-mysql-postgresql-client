@@ -77,8 +77,6 @@
  *
  * Both the PostgreSql and MySql services take the same configuration:
  *
- * ### Configuration
- *
  * {
  *   "address" : <event-bus-address-to-listen-on>,
  *   "host" : <your-host>,
@@ -89,7 +87,7 @@
  *   "database" : <name-of-your-database>
  * }
  *
- * `address` - The address this module should register on the event bus. Defaults to `vertx.postgresql` or `vertx.mysql`.
+ * `address` - The address this service should register on the event bus. Defaults to `vertx.postgresql` or `vertx.mysql`.
  *
  * `host` - The host of the database. Defaults to `localhost`.
  * `port` - The port of the database. Defaults to `5432` for PostgreSQL and `3306` for MySQL.

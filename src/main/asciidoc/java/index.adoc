@@ -15,7 +15,17 @@ Somewhere you deploy it:
 
 [source,java]
 ----
-`link:apidocs/examples/Examples.html#example1-io.vertx.core.Vertx-[example1]`
+JsonObject config = new JsonObject().put("host", "mymysqldb.mycompany");
+DeploymentOptions options = new DeploymentOptions().setConfig(config);
+
+// Service name is "io.vertx:postgresql-service" if you want postgreSql
+vertx.deployVerticle("io.vertx:mysql-service", options, res -> {
+  if (res.succeeded()) {
+    // Deployed ok
+  } else {
+    // Failed to deploy
+  }
+});
 ----
 
 Now you can either send messages to it directly over the event bus, or you can create a proxy to the service
@@ -23,14 +33,44 @@ from wherever you are and just use that:
 
 [source,java]
 ----
-`link:apidocs/examples/Examples.html#example2-io.vertx.core.Vertx-[example2]`
+AsyncSqlService proxy = AsyncSqlService.createEventBusProxy(vertx, "vertx.mysql");
+
+// Now do stuff with it:
+
+proxy.getConnection(res -> {
+  if (res.succeeded()) {
+
+    SqlConnection connection = res.result();
+
+    connection.query("SELECT * FROM some_table", res2 -> {
+      if (res2.succeeded()) {
+
+        ResultSet rs = res2.result();
+        // Do something with results
+      }
+    });
+  } else {
+    // Failed to get connection - deal with it
+  }
+});
 ----
 
 Alternatively you can create an instance of the service directly and just use that locally:
 
 [source,java]
 ----
-`link:apidocs/examples/Examples.html#example3-io.vertx.core.Vertx-[example3]`
+JsonObject config = new JsonObject().put("host", "mymysqldb.mycompany");
+
+AsyncSqlService mySqlService = AsyncSqlService.createMySqlService(vertx, config);
+
+mySqlService.start(res -> {
+  if (res.succeeded()) {
+
+    // Started OK - now ready to use!
+  } else {
+    // Failed to start
+  }
+});
 ----
 
 If you create an instance this way you should make sure you start it with `link:apidocs/io/vertx/ext/asyncsql/AsyncSqlService.html#start-io.vertx.core.Handler-[start]`
@@ -46,7 +86,17 @@ This will return the connection in the handler when one is ready from the pool.
 
 * [source,java]
 ----
-`link:apidocs/examples/Examples.html#example4-io.vertx.ext.asyncsql.AsyncSqlService-[example4]`
+service.getConnection(res -> {
+  if (res.succeeded()) {
+
+    SqlConnection connection = res.result();
+
+    // Got a connection
+
+  } else {
+    // Failed to get connection - deal with it
+  }
+});
 ----
 
 Once you've finished with the connection make sure you close it afterwards.

@@ -3,8 +3,7 @@
 This Vert.x service uses the https://github.com/mauricio/postgresql-async[Mauricio Linhares driver] to support
 a fully async service for MySQL and PostgreSQL.
 
-Please see the in source asciidoc documentation or the main documentation on the web-site for a full description
-of Apex:
+Please see the in source asciidoc documentation or the main documentation on the web-site for a full description:
 
 * Web-site docs
 * link:src/main/asciidoc/java/index.adoc[Java in-source docs]
