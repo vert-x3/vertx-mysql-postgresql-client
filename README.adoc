@@ -1,0 +1,18 @@
+= Vert.x MySQL PostgreSQL Service
+
+This Vert.x service uses the https://github.com/mauricio/postgresql-async[Mauricio Linhares driver] to support
+a fully async service for MySQL and PostgreSQL.
+
+Please see the in source asciidoc documentation or the main documentation on the web-site for a full description
+of Apex:
+
+* Web-site docs
+* link:src/main/asciidoc/java/index.adoc[Java in-source docs]
+* link:src/main/asciidoc/js/index.adoc[JavaScript in-source docs]
+* link:src/main/asciidoc/groovy/index.adoc[Groovy in-source docs]
+
+== Requirements for running test suite
+
+* A working PostgreSQL or MySQL server
+* For testing PostgreSQL: A `testdb` database on a local PostgreSQL install and a user called `vertx` with password `password`
+* For testing MySQL: A `testdb` database on a local MySQL install and a user called `vertx` with password `password`
