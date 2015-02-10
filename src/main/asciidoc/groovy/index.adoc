@@ -1,0 +1,82 @@
+= Vert.x MySQL / PostgreSQL service
+
+The `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSqlService.html[MySQL / PostgreSQL Service]` is responsible for providing an
+interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
+
+It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[open source driver] to interact with the MySQL
+or PostgreSQL databases in a non blocking way
+
+== Setting up the service
+
+As with other services you can use the service either by deploying it as a verticle somewhere on your network and
+interacting with it over the event bus, either directly by sending messages, or using a service proxy, e.g.
+
+Somewhere you deploy it:
+
+[source,java]
+----
+`link:groovydoc/examples/Examples.html#example1(io.vertx.core.Vertx)[example1]`
+----
+
+Now you can either send messages to it directly over the event bus, or you can create a proxy to the service
+from wherever you are and just use that:
+
+[source,java]
+----
+`link:groovydoc/examples/Examples.html#example2(io.vertx.core.Vertx)[example2]`
+----
+
+Alternatively you can create an instance of the service directly and just use that locally:
+
+[source,java]
+----
+`link:groovydoc/examples/Examples.html#example3(io.vertx.core.Vertx)[example3]`
+----
+
+If you create an instance this way you should make sure you start it with `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSqlService.html#start(io.vertx.core.Handler)[start]`
+before you use it.
+
+However you do it, once you've got your service you can start using it.
+
+== Getting a connection
+
+Use `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSqlService.html#getConnection(io.vertx.core.Handler)[getConnection]` to get a connection.
+
+This will return the connection in the handler when one is ready from the pool.
+
+* [source,java]
+----
+`link:groovydoc/examples/Examples.html#example4(io.vertx.ext.asyncsql.AsyncSqlService)[example4]`
+----
+
+Once you've finished with the connection make sure you close it afterwards.
+
+The connection is an instance of `link:groovydoc/io/vertx/groovy/ext/sql/SqlConnection.html[SqlConnection]` which is a common interface used by
+more than Vert.x sql service.
+
+You can learn how to use it in the http://foobar[common sql interface] documentation.
+
+== Configuration
+
+Both the PostgreSql and MySql services take the same configuration:
+
+### Configuration
+
+{
+  "address" : <event-bus-address-to-listen-on>,
+  "host" : <your-host>,
+  "port" : <your-port>,
+  "maxPoolSize" : <maximum-number-of-open-connections>,
+  "username" : <your-username>,
+  "password" : <your-password>,
+  "database" : <name-of-your-database>
+}
+
+`address` - The address this module should register on the event bus. Defaults to `vertx.postgresql` or `vertx.mysql`.
+
+`host` - The host of the database. Defaults to `localhost`.
+`port` - The port of the database. Defaults to `5432` for PostgreSQL and `3306` for MySQL.
+`maxPoolSize` - The number of connections that may be kept open. Defaults to `10`.
+`username` - The username to connect to the database. Defaults to `postgres` for PostgreSQL and `root` for MySQL.
+`password` - The password to connect to the database. Default is not set, i.e. it uses no password.
+`database` - The name of the database you want to connect to. Defaults to `test`.
