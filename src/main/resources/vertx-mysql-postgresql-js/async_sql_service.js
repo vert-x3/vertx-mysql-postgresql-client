@@ -16,7 +16,7 @@
 
 /** @module vertx-mysql-postgresql-js/async_sql_service */
 var utils = require('vertx-js/util/utils');
-var AsyncSqlConnection = require('vertx-mysql-postgresql-js/async_sql_connection');
+var SqlConnection = require('vertx-sql-js/sql_connection');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -83,7 +83,7 @@ var AsyncSqlService = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_asyncSqlService.getConnection(function(ar) {
       if (ar.succeeded()) {
-        handler(new AsyncSqlConnection(ar.result()), null);
+        handler(new SqlConnection(ar.result()), null);
       } else {
         handler(null, ar.cause());
       }

@@ -2,7 +2,8 @@ package io.vertx.ext.asyncsql.impl
 
 import io.vertx.core.{AsyncResult, Handler, Vertx}
 import io.vertx.core.json.JsonObject
-import io.vertx.ext.asyncsql.{AsyncSqlConnection, AsyncSqlService}
+import io.vertx.ext.asyncsql.AsyncSqlService
+import io.vertx.ext.sql.SqlConnection
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
@@ -19,7 +20,7 @@ class AsyncSqlServiceImpl(vertx: Vertx, config: JsonObject) extends AsyncSqlServ
 
   override def stop(whenDone: Handler[AsyncResult[Void]]): Unit = baseService.stop(whenDone)
 
-  override def getConnection(handler: Handler[AsyncResult[AsyncSqlConnection]]): Unit = {
+  override def getConnection(handler: Handler[AsyncResult[SqlConnection]]): Unit = {
     baseService.getConnection(handler)
   }
 }

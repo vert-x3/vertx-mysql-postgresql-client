@@ -8,6 +8,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.impl.AsyncSqlServiceImpl;
+import io.vertx.ext.sql.SqlConnection;
 import io.vertx.serviceproxy.ProxyHelper;
 
 /**
@@ -45,6 +46,6 @@ public interface AsyncSqlService {
    *
    * @param handler the handler which is called when the <code>JdbcConnection</code> object is ready for use.
    */
-  void getConnection(Handler<AsyncResult<AsyncSqlConnection>> handler);
+  void getConnection(Handler<AsyncResult<SqlConnection>> handler);
 
 }

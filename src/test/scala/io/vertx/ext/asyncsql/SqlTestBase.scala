@@ -5,6 +5,7 @@ import io.vertx.core.logging.Logger
 import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{AsyncResult, Handler}
 import io.vertx.ext.asyncsql.impl.pool.SimpleExecutionContext
+import io.vertx.ext.sql.SqlConnection
 import io.vertx.test.core.VertxTestBase
 import org.junit.Test
 
@@ -219,7 +220,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     p.future
   }
 
-  private def completeTest(f: Future[AsyncSqlConnection]): Unit = {
+  private def completeTest(f: Future[SqlConnection]): Unit = {
     (for {
       conn <- f
       _ <- arhToFuture(conn.close _)
@@ -235,7 +236,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     await()
   }
 
-  private def setupSimpleTestTable(conn: AsyncSqlConnection): Future[AsyncSqlConnection] = {
+  private def setupSimpleTestTable(conn: SqlConnection): Future[SqlConnection] = {
     for {
       _ <- arhToFuture((conn.execute _).curried("BEGIN"))
       _ <- arhToFuture((conn.execute _).curried("DROP TABLE IF EXISTS test_table"))
