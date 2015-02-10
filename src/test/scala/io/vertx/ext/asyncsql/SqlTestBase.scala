@@ -13,246 +13,204 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionCommands, Connection <: DatabaseCommands with ConnectionCommands, SqlService <: BaseSqlService with DatabaseCommands {
-  def begin(transaction : Handler[AsyncResult[Transaction]])
-  def take(connection : Handler[AsyncResult[Connection]])
-}] extends VertxTestBase with TestData {
+abstract class SqlTestBase extends VertxTestBase with TestData {
 
   protected val log: Logger = LoggerFactory.getLogger(super.getClass)
   implicit val executionContext: ExecutionContext = SimpleExecutionContext.apply(log)
 
-  def asyncsqlService: SqlService
+  import scala.collection.JavaConverters._
+
+  def config: JsonObject
+
+  def asyncSqlService: AsyncSqlService
 
   @Test
   def simpleConnection(): Unit = completeTest {
     for {
-      res <- arhToFuture((asyncsqlService.raw _).curried("SELECT 1 AS one"))
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      res <- arhToFuture((conn.query _).curried("SELECT 1 AS something"))
     } yield {
       assertNotNull(res)
       val expected = new JsonObject()
-        .put("rows", 1)
+        .put("columnNames", new JsonArray().add("something"))
         .put("results", new JsonArray().add(new JsonArray().add(1)))
-        .put("fields", new JsonArray().add("one"))
-      res.remove("message")
-      assertEquals(expected, res)
+      assertEquals(expected, res.toJson)
+      conn
     }
   }
 
   @Test
-  def simpleTransaction(): Unit = completeTest {
+  def simpleSelect(): Unit = completeTest {
     for {
-      transaction <- beginTransaction()
-      res <- arhToFuture((transaction.raw _).curried("SELECT 1 AS one"))
-      commit <- {
-        log.info(s"got a result from first select: ${res.encode()}")
-        arhToFuture(transaction.commit)
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(conn)
+      res <- arhToFuture((conn.queryWithParams _).curried("SELECT name FROM test_table WHERE id=?")(new JsonArray().add(2)))
+    } yield {
+      assertNotNull(res)
+      assertEquals(List("name"), res.getColumnNames.asScala)
+      assertEquals(names(2), res.getResults.get(0).getString(0))
+      conn
+    }
+  }
+
+  @Test
+  def updateRow(): Unit = completeTest {
+    val id = 0
+    val name = "Adele"
+    for {
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(conn)
+      updateRes <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
+      selectRes <- arhToFuture((conn.query _).curried("SELECT name FROM test_table ORDER BY id"))
+    } yield {
+      assertNotNull(updateRes)
+      assertNotNull(selectRes)
+      assertEquals(1, updateRes.getUpdated)
+      assertEquals(names.map(n => new JsonArray().add(if (n == "Albert") name else n)), selectRes.getResults.asScala)
+      conn
+    }
+  }
+
+  @Test
+  def rollingBack(): Unit = completeTest {
+    val id = 0
+    val name = "Adele"
+
+    for {
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(conn)
+      _ <- arhToFuture((conn.setAutoCommit _).curried(false))
+      updateRes <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
+      selectRes <- arhToFuture((conn.query _).curried("SELECT name FROM test_table ORDER BY id"))
+      _ <- Future.successful {
+        assertNotNull(updateRes)
+        assertNotNull(selectRes)
+        assertEquals(1, updateRes.getUpdated)
+        assertEquals(names.map(n => new JsonArray().add(if (n == names(id)) name else n)), selectRes.getResults.asScala)
+      }
+      _ <- arhToFuture(conn.rollback _)
+      res <- arhToFuture((conn.query _).curried("SELECT name FROM test_table ORDER BY id"))
+    } yield {
+      assertNotNull(res)
+      assertEquals(names.map(n => new JsonArray().add(n)), res.getResults.asScala)
+      conn
+    }
+  }
+
+  @Test
+  def multipleConnections(): Unit = completeTest {
+    val id = 0
+    val name = "Adele"
+
+    for {
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(conn)
+      c1 <- arhToFuture(asyncSqlService.getConnection _)
+      c2 <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- arhToFuture((c1.setAutoCommit _).curried(false))
+      c1Update <- arhToFuture((c1.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
+      c2Select <- arhToFuture((c2.query _).curried("SELECT name FROM test_table ORDER BY id"))
+      _ <- arhToFuture(c1.rollback _)
+      _ <- arhToFuture(c1.close _)
+      _ <- arhToFuture(c2.close _)
+    } yield {
+      assertEquals(1, c1Update.getUpdated)
+      assertEquals(names.map(n => new JsonArray().add(n)), c2Select.getResults.asScala)
+      conn
+    }
+  }
+
+  @Test
+  def useSetAutoCommitWhileInTransaction(): Unit = completeTest {
+    val id = 0
+    val name = "Adele"
+
+    for {
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(conn)
+      c1 <- arhToFuture(asyncSqlService.getConnection _)
+      c2 <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- arhToFuture((c1.setAutoCommit _).curried(false))
+      c1Update <- arhToFuture((c1.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
+      _ <- arhToFuture((c1.setAutoCommit _).curried(true))
+      c2Select <- arhToFuture((c2.query _).curried("SELECT name FROM test_table ORDER BY id"))
+      _ <- arhToFuture(c1.close _)
+      _ <- arhToFuture(c2.close _)
+    } yield {
+      assertEquals(1, c1Update.getUpdated)
+      assertEquals(name, c2Select.getResults.asScala.head.getString(0))
+      conn
+    }
+  }
+
+  @Test
+  def rollingBackWhenNotInTransaction(): Unit = completeTest {
+    val id = 0
+    val name = "Adele"
+
+    for {
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(conn)
+      _ <- arhToFuture((conn.setAutoCommit _).curried(false))
+      _ <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
+      _ <- arhToFuture((conn.setAutoCommit _).curried(true))
+      rollbackResult <- arhToFuture(conn.rollback _) map { sth =>
+        fail("Should get an exception when rolling back with autocommit = true")
+        sth
+      } recoverWith {
+        case ex: Throwable => Future.successful("rolled back with error")
       }
     } yield {
-      log.info(s"res=${res.encode()}")
-      assertNotNull(res)
-      val expected = new JsonObject()
-        .put("rows", 1)
-        .put("results", new JsonArray().add(new JsonArray().add(1)))
-        .put("fields", new JsonArray().add("one"))
-      res.remove("message")
-      assertEquals(expected, res)
+      assertEquals("rolled back with error", rollbackResult)
+      conn
     }
   }
 
   @Test
-  def simpleUseConnection(): Unit = completeTest {
+  def commitWhenNotInTransaction(): Unit = completeTest {
+    val id = 0
+    val name = "Adele"
+
     for {
-      connection <- takeConnection()
-      res <- arhToFuture((connection.raw _).curried("SELECT 1 AS one"))
-      commit <- {
-        log.info(s"got a result from first select: ${res.encode()}")
-        arhToFuture(connection.close)
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(conn)
+      _ <- arhToFuture((conn.setAutoCommit _).curried(false))
+      _ <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
+      _ <- arhToFuture((conn.setAutoCommit _).curried(true))
+      commitResult <- arhToFuture(conn.commit _) map { sth =>
+        fail("Should get an exception when commit() with autocommit = true")
+        sth
+      } recoverWith {
+        case ex: Throwable => Future.successful("commit with error")
       }
     } yield {
-      log.info(s"res=${res.encode()}")
-      assertNotNull(res)
-      val expected = new JsonObject()
-        .put("rows", 1)
-        .put("results", new JsonArray().add(new JsonArray().add(1)))
-        .put("fields", new JsonArray().add("one"))
-      res.remove("message")
-      assertEquals(expected, res)
-    }
-  }
-
-  @Test
-  def selectWithEmptyOptions(): Unit = completeTest {
-    for {
-      _ <- setupSimpleTestTable
-      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions()))
-    } yield {
-      val json = s.getJsonArray("results")
-      assertEquals(26, json.size())
-    }
-  }
-
-  @Test
-  def selectWithFields(): Unit = completeTest {
-    import scala.collection.JavaConverters._
-
-    for {
-      _ <- setupSimpleTestTable
-      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("name"))))
-    } yield {
-      assertEquals(26, s.getInteger("rows"))
-      val results = s.getJsonArray("results")
-      assertEquals(26, results.size())
-      assertEquals(names, results.getList.asScala.map(_.asInstanceOf[JsonArray].getString(0)))
-    }
-  }
-
-  @Test
-  def selectWithLimit(): Unit = completeTest {
-    import scala.collection.JavaConverters._
-    val expectedResults = 10
-
-    for {
-      _ <- setupSimpleTestTable
-      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setLimit(expectedResults)))
-    } yield {
-      log.info(s"result = ${s.encodePrettily()}")
-      assertEquals(expectedResults, s.getInteger("rows"))
-      val results = s.getJsonArray("results")
-      assertEquals(expectedResults, results.size())
-      val fields = s.getJsonArray("fields").getList.asScala
-      assertEquals(2, fields.length)
-      val idIdx = fields.indexOf("id")
-      val nameIdx = fields.indexOf("name")
-      val expected = names.zipWithIndex.take(expectedResults)
-      assertEquals(expected, results.getList.asScala.map { x =>
-        val arr = x.asInstanceOf[JsonArray]
-        (arr.getString(nameIdx), arr.getLong(idIdx))
-      }.toList)
-    }
-  }
-
-  @Test
-  def selectWithOffset(): Unit = completeTest {
-    import scala.collection.JavaConverters._
-    val expectedOffset = 10
-
-    for {
-      _ <- setupSimpleTestTable
-      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setOffset(expectedOffset)))
-    } yield {
-      log.info(s"result = ${s.encodePrettily()}")
-      assertEquals(names.length - expectedOffset, s.getInteger("rows"))
-      val results = s.getJsonArray("results")
-      assertEquals(names.length - expectedOffset, results.size())
-      val fields = s.getJsonArray("fields").getList.asScala
-      assertEquals(2, fields.length)
-      val idIdx = fields.indexOf("id")
-      val nameIdx = fields.indexOf("name")
-      val expected = names.zipWithIndex.drop(expectedOffset)
-      assertEquals(expected, results.getList.asScala.map { x =>
-        val arr = x.asInstanceOf[JsonArray]
-        (arr.getString(nameIdx), arr.getLong(idIdx))
-      }.toList)
-    }
-  }
-
-  @Test
-  def selectWithLimitAndOffset(): Unit = completeTest {
-    import scala.collection.JavaConverters._
-    val expectedLimit = 10
-    val expectedOffset = 10
-
-    for {
-      _ <- setupSimpleTestTable
-      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setLimit(expectedLimit).setOffset(expectedOffset)))
-    } yield {
-      log.info(s"result = ${s.encodePrettily()}")
-      assertEquals(expectedLimit, s.getInteger("rows"))
-      val results = s.getJsonArray("results")
-      assertEquals(expectedLimit, results.size())
-      val fields = s.getJsonArray("fields").getList.asScala
-      assertEquals(2, fields.length)
-      val idIdx = fields.indexOf("id")
-      val nameIdx = fields.indexOf("name")
-      val expected = names.zipWithIndex.drop(expectedOffset).take(expectedLimit)
-      assertEquals(expected, results.getList.asScala.map { x =>
-        val arr = x.asInstanceOf[JsonArray]
-        (arr.getString(nameIdx), arr.getLong(idIdx))
-      }.toList)
-    }
-  }
-
-  @Test
-  def selectWithFieldsAndLimitAndOffset(): Unit = completeTest {
-    import scala.collection.JavaConverters._
-    val expectedLimit = 10
-    val expectedOffset = 10
-
-    for {
-      _ <- setupSimpleTestTable
-      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("name")).setLimit(expectedLimit).setOffset(expectedOffset)))
-    } yield {
-      log.info(s"result = ${s.encodePrettily()}")
-      assertEquals(expectedLimit, s.getInteger("rows"))
-      val results = s.getJsonArray("results")
-      assertEquals(expectedLimit, results.size())
-      val fields = s.getJsonArray("fields").getList.asScala
-      assertEquals(1, fields.length)
-      val expected = names.drop(expectedOffset).take(expectedLimit)
-      assertEquals(expected, results.getList.asScala.map { x =>
-        val arr = x.asInstanceOf[JsonArray]
-        arr.getString(0)
-      }.toList)
+      assertEquals("commit with error", commitResult)
+      conn
     }
   }
 
   @Test
   def insert(): Unit = completeTest {
-    import scala.collection.JavaConverters._
     val id = 27L
     val name = "Adele"
 
     for {
-      _ <- setupSimpleTestTable
-      i <- arhToFuture((asyncsqlService.insert _).curried("test_table")(List("id", "name").asJava)(List(new JsonArray().add(id).add(name)).asJava))
-      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("id").add("name"))))
+      c <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(c)
+      i <- arhToFuture((c.updateWithParams _).curried("INSERT INTO test_table (id, name) VALUES (?, ?)")(new JsonArray().add(id).add(name)))
+      s <- arhToFuture((c.query _).curried("SELECT id, name FROM test_table ORDER BY id"))
     } yield {
-      log.info(s"result = ${s.encodePrettily()}")
-      val results = s.getJsonArray("results")
-      val fields = s.getJsonArray("fields").getList.asScala
-      assertTrue("Should have an id field", fields.contains("id"))
-      assertTrue("Should have a name field", fields.contains("name"))
-      assertEquals(names.zipWithIndex.map(_.swap) ++ List((id, name)), results.getList.asScala.map { x =>
-        val arr = x.asInstanceOf[JsonArray]
+      val results = s.getResults
+      val fields = s.getColumnNames.asScala
+      assertEquals(List("id", "name"), fields)
+      assertEquals(names.zipWithIndex.map(_.swap) ++ List((id, name)), results.asScala.map { arr =>
         (arr.getLong(0), arr.getString(1))
       }.toList)
+      c
     }
   }
 
-  @Test
-  def prepared(): Unit = completeTest {
-    import scala.collection.JavaConverters._
-    val id = 27
-    val name = "Adele"
-
-    for {
-      _ <- setupSimpleTestTable
-      p <- arhToFuture((asyncsqlService.prepared _).curried("INSERT INTO test_table (id, name) VALUES (?, ?)")(new JsonArray().add(id).add(name)))
-      s <- arhToFuture((asyncsqlService.select _).curried("test_table")(new SelectOptions().setFields(new JsonArray().add("id").add("name"))))
-    } yield {
-      log.info(s"result = ${s.encodePrettily()}")
-      val results = s.getJsonArray("results")
-      val fields = s.getJsonArray("fields").getList.asScala
-      assertTrue("Should have an id field", fields.contains("id"))
-      assertTrue("Should have a name field", fields.contains("name"))
-      assertEquals(names.zipWithIndex.map(_.swap) ++ List((id, name)), results.getList.asScala.map { x =>
-        val arr = x.asInstanceOf[JsonArray]
-        (arr.getLong(0), arr.getString(1))
-      }.toList)
-    }
-  }
-
-  private def arhToFuture[T](fn: Handler[AsyncResult[T]] => Unit): Future[T] = {
+  protected def arhToFuture[T](fn: Handler[AsyncResult[T]] => _): Future[T] = {
     val p = Promise[T]()
     fn(new Handler[AsyncResult[T]] {
       override def handle(event: AsyncResult[T]): Unit =
@@ -261,31 +219,36 @@ abstract class SqlTestBase[Transaction <: DatabaseCommands with TransactionComma
     p.future
   }
 
-  private def takeConnection(): Future[Connection] = arhToFuture(asyncsqlService.take)
-
-  private def beginTransaction(): Future[Transaction] = arhToFuture(asyncsqlService.begin)
-
-  private def completeTest(f: Future[_]): Unit = {
-    f map (_ => testComplete()) recover {
-      case ex: Throwable =>
+  private def completeTest(f: Future[AsyncSqlConnection]): Unit = {
+    (for {
+      conn <- f
+      _ <- arhToFuture(conn.close _)
+    } yield {
+      log.info("closed connection -> done")
+      testComplete()
+    }) recover {
+      case ex =>
         log.error("should not get this exception", ex)
         fail("got exception")
     }
+
     await()
   }
 
-  private def setupSimpleTestTable: Future[Unit] = {
+  private def setupSimpleTestTable(conn: AsyncSqlConnection): Future[AsyncSqlConnection] = {
     for {
-      t <- arhToFuture(asyncsqlService.begin)
-      _ <- arhToFuture((t.raw _).curried("DROP TABLE IF EXISTS test_table;"))
-      _ <- arhToFuture((t.raw _).curried(
+      _ <- arhToFuture((conn.execute _).curried("BEGIN"))
+      _ <- arhToFuture((conn.execute _).curried("DROP TABLE IF EXISTS test_table"))
+      _ <- arhToFuture((conn.execute _).curried(
         """CREATE TABLE test_table (
           |  id BIGINT,
           |  name VARCHAR(255)
-          |);""".stripMargin))
-      _ <- arhToFuture((t.raw _).curried(s"INSERT INTO test_table (id, name) VALUES ${simpleTestTable.mkString(",")};"))
-      _ <- arhToFuture(t.commit)
-    } yield ()
+          |)""".stripMargin))
+      _ <- arhToFuture((conn.update _).curried(s"INSERT INTO test_table (id, name) VALUES ${
+        simpleTestTable.mkString(",")
+      }"))
+      _ <- arhToFuture((conn.execute _).curried("COMMIT"))
+    } yield conn
   }
 
 }

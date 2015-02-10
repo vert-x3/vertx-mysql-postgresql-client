@@ -17,6 +17,8 @@
 
   <properties>
     <stack.version>3.0.0-SNAPSHOT</stack.version>
+    <scala.version>2.11.4</scala.version>
+    <asyncdriver.version>0.2.15</asyncdriver.version>
   </properties>
 
   <dependencyManagement>
@@ -40,17 +42,17 @@
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-      <version>2.11.4</version>
+      <version>${scala.version}</version>
     </dependency>
     <dependency>
       <groupId>com.github.mauricio</groupId>
       <artifactId>postgresql-async_2.11</artifactId>
-      <version>0.2.15</version>
+      <version>${asyncdriver.version}</version>
     </dependency>
     <dependency>
       <groupId>com.github.mauricio</groupId>
       <artifactId>mysql-async_2.11</artifactId>
-      <version>0.2.15</version>
+      <version>${asyncdriver.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -68,6 +70,11 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-lang-js</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-docgen</artifactId>
       <optional>true</optional>
     </dependency>
     <dependency>

@@ -111,7 +111,7 @@ trait AsyncConnectionPool {
 
 object AsyncConnectionPool {
 
-  def apply[T <: AsyncConnectionPool](vertx: Vertx, maxPoolSize: Int, config: Configuration, factoryFn: (Vertx, Configuration, EventLoop, Int) => T) = {
+  def apply(vertx: Vertx, maxPoolSize: Int, config: Configuration, factoryFn: (Vertx, Configuration, EventLoop, Int) => AsyncConnectionPool) = {
     factoryFn(vertx,
       config,
       vertx.getOrCreateContext.asInstanceOf[EventLoopContext].getEventLoop,
