@@ -13,12 +13,6 @@ abstract class DirectTestBase extends SqlTestBase with ConfigProvider {
 
   override def await() = super.await()
 
-  override def assertEquals(a: Any, b: Any) = super.assertEquals(a, b)
-
-  override def assertNotNull(x: AnyRef) = super.assertNotNull(x)
-
-  override def fail(msg: String) = super.fail(msg)
-
   override def setUp(): Unit = {
     super.setUp()
     log.info(s"Setting up service at $address")

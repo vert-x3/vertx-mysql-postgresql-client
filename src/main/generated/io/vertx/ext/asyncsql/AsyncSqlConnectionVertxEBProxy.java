@@ -45,6 +45,25 @@ public class AsyncSqlConnectionVertxEBProxy implements AsyncSqlConnection {
     this._address = address;
   }
 
+  public AsyncSqlConnection setAutoCommit(boolean autoCommit, Handler<AsyncResult<Void>> resultHandler) {
+    if (closed) {
+      resultHandler.handle(Future.failedFuture(new IllegalStateException("Proxy is closed")));
+      return this;
+    }
+    JsonObject _json = new JsonObject();
+    _json.put("autoCommit", autoCommit);
+    DeliveryOptions _deliveryOptions = new DeliveryOptions();
+    _deliveryOptions.addHeader("action", "setAutoCommit");
+    _vertx.eventBus().<Void>send(_address, _json, _deliveryOptions, res -> {
+      if (res.failed()) {
+        resultHandler.handle(Future.failedFuture(res.cause()));
+      } else {
+        resultHandler.handle(Future.succeededFuture(res.result().body()));
+      }
+    });
+    return this;
+  }
+
   public AsyncSqlConnection execute(String sql, Handler<AsyncResult<Void>> resultHandler) {
     if (closed) {
       resultHandler.handle(Future.failedFuture(new IllegalStateException("Proxy is closed")));

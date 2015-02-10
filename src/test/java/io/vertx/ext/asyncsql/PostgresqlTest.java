@@ -36,21 +36,21 @@ public class PostgresqlTest extends VertxTestBase {
     awaitLatch(latch);
   }
 
-  @Test
-  public void someTest() throws Exception {
-    log.info("before getConnection");
-    asyncSqlService.getConnection(onSuccess(conn -> {
-      log.info("in getConnection");
-      conn.query("SELECT 1 AS something", onSuccess(resultSet -> {
-        assertNotNull(resultSet);
-        assertNotNull(resultSet.getColumnNames());
-        assertNotNull(resultSet.getResults());
-        assertEquals(new JsonArray().add(1), resultSet.getResults().get(0));
-        testComplete();
-      }));
-    }));
-
-    await();
-  }
+//  @Test
+//  public void someTest() throws Exception {
+//    log.info("before getConnection");
+//    asyncSqlService.getConnection(onSuccess(conn -> {
+//      log.info("in getConnection");
+//      conn.query("SELECT 1 AS something", onSuccess(resultSet -> {
+//        assertNotNull(resultSet);
+//        assertNotNull(resultSet.getColumnNames());
+//        assertNotNull(resultSet.getResults());
+//        assertEquals(new JsonArray().add(1), resultSet.getResults().get(0));
+//        testComplete();
+//      }));
+//    }));
+//
+//    await();
+//  }
 
 }

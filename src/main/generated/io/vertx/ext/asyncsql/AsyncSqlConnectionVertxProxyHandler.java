@@ -58,6 +58,10 @@ public class AsyncSqlConnectionVertxProxyHandler extends ProxyHandler {
       throw new IllegalStateException("action not specified");
     }
     switch (action) {
+      case "setAutoCommit": {
+        service.setAutoCommit((boolean)json.getValue("autoCommit"), createHandler(msg));
+        break;
+      }
       case "execute": {
         service.execute((java.lang.String)json.getValue("sql"), createHandler(msg));
         break;

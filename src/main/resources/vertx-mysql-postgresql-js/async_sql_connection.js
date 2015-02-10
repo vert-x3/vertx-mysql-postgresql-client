@@ -31,11 +31,37 @@ var AsyncSqlConnection = function(j_val) {
   var that = this;
 
   /**
+   Sets the auto commit flag for this connection. True by default. Set to false if you want to start a transaction.
+   <p>
+   If you change autoCommit from false to true, it will commit the running transaction. If you change it from false to
+   true, it will start a new transaction. If the autoCommit flag doesn't change, it will just call the resultHandler
+   with a success.
+
+   @public
+   @param autoCommit {boolean} the autoCommit flag, true by default. 
+   @param resultHandler {function} The handler which is called once this operation completes. 
+   @return {AsyncSqlConnection}
+   */
+  this.setAutoCommit = function(autoCommit, resultHandler) {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] ==='boolean' && typeof __args[1] === 'function') {
+      j_asyncSqlConnection.setAutoCommit(autoCommit, function(ar) {
+      if (ar.succeeded()) {
+        resultHandler(null, null);
+      } else {
+        resultHandler(null, ar.cause());
+      }
+    });
+      return that;
+    } else utils.invalidArgs();
+  };
+
+  /**
    Executes the given SQL statement.
 
    @public
-   @param sql {string} the SQL to execute. For example <code>CREATE TABLE IF EXISTS table ...</code> 
-   @param resultHandler {function} the handler which is called once this operation completes. 
+   @param sql {string} The SQL to execute. For example <code>CREATE TABLE IF EXISTS table ...</code> 
+   @param resultHandler {function} The handler which is called once this operation completes. 
    @return {AsyncSqlConnection}
    */
   this.execute = function(sql, resultHandler) {

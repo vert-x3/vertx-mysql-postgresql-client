@@ -79,7 +79,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     for {
       conn <- arhToFuture(asyncSqlService.getConnection _)
       _ <- setupSimpleTestTable(conn)
-      _ <- arhToFuture((conn.execute _).curried("BEGIN"))
+      _ <- arhToFuture((conn.setAutoCommit _).curried(false))
       updateRes <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
       selectRes <- arhToFuture((conn.query _).curried("SELECT name FROM test_table ORDER BY id"))
       _ <- Future.successful {
@@ -107,7 +107,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
       _ <- setupSimpleTestTable(conn)
       c1 <- arhToFuture(asyncSqlService.getConnection _)
       c2 <- arhToFuture(asyncSqlService.getConnection _)
-      _ <- arhToFuture((c1.execute _).curried("BEGIN"))
+      _ <- arhToFuture((c1.setAutoCommit _).curried(false))
       c1Update <- arhToFuture((c1.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
       c2Select <- arhToFuture((c2.query _).curried("SELECT name FROM test_table ORDER BY id"))
       _ <- arhToFuture(c1.rollback _)
@@ -116,6 +116,75 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     } yield {
       assertEquals(1, c1Update.getUpdated)
       assertEquals(names.map(n => new JsonArray().add(n)), c2Select.getResults.asScala)
+      conn
+    }
+  }
+
+  @Test
+  def useSetAutoCommitWhileInTransaction(): Unit = completeTest {
+    val id = 0
+    val name = "Adele"
+
+    for {
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(conn)
+      c1 <- arhToFuture(asyncSqlService.getConnection _)
+      c2 <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- arhToFuture((c1.setAutoCommit _).curried(false))
+      c1Update <- arhToFuture((c1.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
+      _ <- arhToFuture((c1.setAutoCommit _).curried(true))
+      c2Select <- arhToFuture((c2.query _).curried("SELECT name FROM test_table ORDER BY id"))
+      _ <- arhToFuture(c1.close _)
+      _ <- arhToFuture(c2.close _)
+    } yield {
+      assertEquals(1, c1Update.getUpdated)
+      assertEquals(name, c2Select.getResults.asScala.head.getString(0))
+      conn
+    }
+  }
+
+  @Test
+  def rollingBackWhenNotInTransaction(): Unit = completeTest {
+    val id = 0
+    val name = "Adele"
+
+    for {
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(conn)
+      _ <- arhToFuture((conn.setAutoCommit _).curried(false))
+      _ <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
+      _ <- arhToFuture((conn.setAutoCommit _).curried(true))
+      rollbackResult <- arhToFuture(conn.rollback _) map { sth =>
+        fail("Should get an exception when rolling back with autocommit = true")
+        sth
+      } recoverWith {
+        case ex: Throwable => Future.successful("rolled back with error")
+      }
+    } yield {
+      assertEquals("rolled back with error", rollbackResult)
+      conn
+    }
+  }
+
+  @Test
+  def commitWhenNotInTransaction(): Unit = completeTest {
+    val id = 0
+    val name = "Adele"
+
+    for {
+      conn <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- setupSimpleTestTable(conn)
+      _ <- arhToFuture((conn.setAutoCommit _).curried(false))
+      _ <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
+      _ <- arhToFuture((conn.setAutoCommit _).curried(true))
+      commitResult <- arhToFuture(conn.commit _) map { sth =>
+        fail("Should get an exception when commit() with autocommit = true")
+        sth
+      } recoverWith {
+        case ex: Throwable => Future.successful("commit with error")
+      }
+    } yield {
+      assertEquals("commit with error", commitResult)
       conn
     }
   }
@@ -151,14 +220,14 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
   }
 
   private def completeTest(f: Future[AsyncSqlConnection]): Unit = {
-    f flatMap {
-      conn =>
-        arhToFuture(conn.close _) map {
-          _ =>
-            testComplete()
-        }
-    } recover {
-      case ex: Throwable =>
+    (for {
+      conn <- f
+      _ <- arhToFuture(conn.close _)
+    } yield {
+      log.info("closed connection -> done")
+      testComplete()
+    }) recover {
+      case ex =>
         log.error("should not get this exception", ex)
         fail("got exception")
     }
@@ -168,17 +237,17 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
 
   private def setupSimpleTestTable(conn: AsyncSqlConnection): Future[AsyncSqlConnection] = {
     for {
-      _ <- arhToFuture((conn.execute _).curried("BEGIN;"))
-      _ <- arhToFuture((conn.execute _).curried("DROP TABLE IF EXISTS test_table;"))
+      _ <- arhToFuture((conn.execute _).curried("BEGIN"))
+      _ <- arhToFuture((conn.execute _).curried("DROP TABLE IF EXISTS test_table"))
       _ <- arhToFuture((conn.execute _).curried(
         """CREATE TABLE test_table (
           |  id BIGINT,
           |  name VARCHAR(255)
-          |);""".stripMargin))
+          |)""".stripMargin))
       _ <- arhToFuture((conn.update _).curried(s"INSERT INTO test_table (id, name) VALUES ${
         simpleTestTable.mkString(",")
-      };"))
-      _ <- arhToFuture(conn.commit _)
+      }"))
+      _ <- arhToFuture((conn.execute _).curried("COMMIT"))
     } yield conn
   }
 

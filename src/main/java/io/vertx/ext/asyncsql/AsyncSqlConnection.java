@@ -14,11 +14,26 @@ import io.vertx.core.json.JsonArray;
 @VertxGen
 @ProxyGen
 public interface AsyncSqlConnection {
+
+  /**
+   * Sets the auto commit flag for this connection. True by default. Set to false if you want to start a transaction.
+   * <p>
+   * If you change autoCommit from false to true, it will commit the running transaction. If you change it from false to
+   * true, it will start a new transaction. If the autoCommit flag doesn't change, it will just call the resultHandler
+   * with a success.
+   *
+   * @param autoCommit    the autoCommit flag, true by default.
+   * @param resultHandler The handler which is called once this operation completes.
+   * @see java.sql.Connection#setAutoCommit(boolean)
+   */
+  @Fluent
+  AsyncSqlConnection setAutoCommit(boolean autoCommit, Handler<AsyncResult<Void>> resultHandler);
+
   /**
    * Executes the given SQL statement.
    *
-   * @param sql           the SQL to execute. For example <code>CREATE TABLE IF EXISTS table ...</code>
-   * @param resultHandler the handler which is called once this operation completes.
+   * @param sql           The SQL to execute. For example <code>CREATE TABLE IF EXISTS table ...</code>
+   * @param resultHandler The handler which is called once this operation completes.
    */
   @Fluent
   AsyncSqlConnection execute(String sql, Handler<AsyncResult<Void>> resultHandler);
