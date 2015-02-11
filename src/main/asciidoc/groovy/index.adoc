@@ -1,6 +1,6 @@
 = Vert.x MySQL / PostgreSQL service
 
-The `link:apidocs/io/vertx/ext/asyncsql/AsyncSqlService.html[MySQL / PostgreSQL Service]` is responsible for providing an
+The `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSqlService.html[MySQL / PostgreSQL Service]` is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
 It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[open source driver] to interact with the MySQL
@@ -15,7 +15,7 @@ Somewhere you deploy it:
 
 [source,java]
 ----
-`link:apidocs/examples/Examples.html#example1-io.vertx.core.Vertx-[example1]`
+`link:groovydoc/examples/Examples.html#example1(io.vertx.core.Vertx)[example1]`
 ----
 
 Now you can either send messages to it directly over the event bus, or you can create a proxy to the service
@@ -23,35 +23,35 @@ from wherever you are and just use that:
 
 [source,java]
 ----
-`link:apidocs/examples/Examples.html#example2-io.vertx.core.Vertx-[example2]`
+`link:groovydoc/examples/Examples.html#example2(io.vertx.core.Vertx)[example2]`
 ----
 
 Alternatively you can create an instance of the service directly and just use that locally:
 
 [source,java]
 ----
-`link:apidocs/examples/Examples.html#example3-io.vertx.core.Vertx-[example3]`
+`link:groovydoc/examples/Examples.html#example3(io.vertx.core.Vertx)[example3]`
 ----
 
-If you create an instance this way you should make sure you start it with `link:apidocs/io/vertx/ext/asyncsql/AsyncSqlService.html#start-io.vertx.core.Handler-[start]`
+If you create an instance this way you should make sure you start it with `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSqlService.html#start(io.vertx.core.Handler)[start]`
 before you use it.
 
 However you do it, once you've got your service you can start using it.
 
 == Getting a connection
 
-Use `link:apidocs/io/vertx/ext/asyncsql/AsyncSqlService.html#getConnection-io.vertx.core.Handler-[getConnection]` to get a connection.
+Use `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSqlService.html#getConnection(io.vertx.core.Handler)[getConnection]` to get a connection.
 
 This will return the connection in the handler when one is ready from the pool.
 
 * [source,java]
 ----
-`link:apidocs/examples/Examples.html#example4-io.vertx.ext.asyncsql.AsyncSqlService-[example4]`
+`link:groovydoc/examples/Examples.html#example4(io.vertx.ext.asyncsql.AsyncSqlService)[example4]`
 ----
 
 Once you've finished with the connection make sure you close it afterwards.
 
-The connection is an instance of `link:apidocs/io/vertx/ext/sql/SqlConnection.html[SqlConnection]` which is a common interface used by
+The connection is an instance of `link:groovydoc/io/vertx/groovy/ext/sql/SqlConnection.html[SqlConnection]` which is a common interface used by
 more than Vert.x sql service.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.
