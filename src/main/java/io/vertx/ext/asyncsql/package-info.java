@@ -77,6 +77,7 @@
  *
  * Both the PostgreSql and MySql services take the same configuration:
  *
+ * ----
  * {
  *   "address" : <event-bus-address-to-listen-on>,
  *   "host" : <your-host>,
@@ -86,15 +87,15 @@
  *   "password" : <your-password>,
  *   "database" : <name-of-your-database>
  * }
+ * ----
  *
- * `address` - The address this service should register on the event bus. Defaults to `vertx.postgresql` or `vertx.mysql`.
- *
- * `host` - The host of the database. Defaults to `localhost`.
- * `port` - The port of the database. Defaults to `5432` for PostgreSQL and `3306` for MySQL.
- * `maxPoolSize` - The number of connections that may be kept open. Defaults to `10`.
- * `username` - The username to connect to the database. Defaults to `postgres` for PostgreSQL and `root` for MySQL.
- * `password` - The password to connect to the database. Default is not set, i.e. it uses no password.
- * `database` - The name of the database you want to connect to. Defaults to `test`.
+ * `address`:: The address this service should register on the event bus. Defaults to `vertx.postgresql` or `vertx.mysql`.
+ * `host`:: The host of the database. Defaults to `localhost`.
+ * `port`:: The port of the database. Defaults to `5432` for PostgreSQL and `3306` for MySQL.
+ * `maxPoolSize`:: The number of connections that may be kept open. Defaults to `10`.
+ * `username`:: The username to connect to the database. Defaults to `postgres` for PostgreSQL and `root` for MySQL.
+ * `password`:: The password to connect to the database. Default is not set, i.e. it uses no password.
+ * `database`:: The name of the database you want to connect to. Defaults to `test`.
  */
 @Document(fileName = "index.adoc")
 @GenModule(name = "vertx-mysql-postgresql")
