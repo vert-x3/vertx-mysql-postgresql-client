@@ -9,7 +9,7 @@ import io.vertx.core.{AsyncResult, Handler}
  */
 abstract class DirectTestBase extends SqlTestBase with ConfigProvider {
 
-  override lazy val asyncSqlService = AsyncSqlService.create(vertx, config)
+  def asyncSqlService: AsyncSqlService
 
   override def await() = super.await()
 

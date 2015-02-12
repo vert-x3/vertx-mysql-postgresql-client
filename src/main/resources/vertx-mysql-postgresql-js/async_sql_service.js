@@ -24,6 +24,8 @@ var JAsyncSqlService = io.vertx.ext.asyncsql.AsyncSqlService;
 
 /**
 
+ Represents an asynchronous MySQL or PostgreSQL service.
+
  @class
 */
 var AsyncSqlService = function(j_val) {
@@ -32,8 +34,7 @@ var AsyncSqlService = function(j_val) {
   var that = this;
 
   /**
-   Normally invoked by the <code>AsyncSqlServiceVerticle</code> to start the service when deployed. This is usually
-   not called by the user.
+   Called to start the service
 
    @public
    @param whenDone {function} 
@@ -52,8 +53,7 @@ var AsyncSqlService = function(j_val) {
   };
 
   /**
-   Normally invoked by the <code>AsyncSqlServiceVerticle</code> to stop the service when the verticle is
-   stopped/undeployed. This is usually not called by the user.
+   Called to stop the service
 
    @public
    @param whenDone {function} 
@@ -98,25 +98,43 @@ var AsyncSqlService = function(j_val) {
 };
 
 /**
+ Create a MySQL service
 
  @memberof module:vertx-mysql-postgresql-js/async_sql_service
- @param vertx {Vertx} 
- @param config {Object} 
- @return {AsyncSqlService}
+ @param vertx {Vertx} the Vert.x instance 
+ @param config {Object} the config 
+ @return {AsyncSqlService} the service
  */
-AsyncSqlService.create = function(vertx, config) {
+AsyncSqlService.createMySqlService = function(vertx, config) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object') {
-    return new AsyncSqlService(JAsyncSqlService.create(vertx._jdel, utils.convParamJsonObject(config)));
+    return new AsyncSqlService(JAsyncSqlService.createMySqlService(vertx._jdel, utils.convParamJsonObject(config)));
   } else utils.invalidArgs();
 };
 
 /**
+ Create a PostgreSQL service
 
  @memberof module:vertx-mysql-postgresql-js/async_sql_service
- @param vertx {Vertx} 
- @param address {string} 
- @return {AsyncSqlService}
+ @param vertx {Vertx} the Vert.x instance 
+ @param config {Object} the config 
+ @return {AsyncSqlService} the service
+ */
+AsyncSqlService.createPostgreSqlService = function(vertx, config) {
+  var __args = arguments;
+  if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object') {
+    return new AsyncSqlService(JAsyncSqlService.createPostgreSqlService(vertx._jdel, utils.convParamJsonObject(config)));
+  } else utils.invalidArgs();
+};
+
+/**
+ Create an event bus proxy to a service which lives somewhere on the network and is listening on the specified
+ event bus address
+
+ @memberof module:vertx-mysql-postgresql-js/async_sql_service
+ @param vertx {Vertx} the Vert.x instance 
+ @param address {string} the address on the event bus where the service is listening 
+ @return {AsyncSqlService} 
  */
 AsyncSqlService.createEventBusProxy = function(vertx, address) {
   var __args = arguments;

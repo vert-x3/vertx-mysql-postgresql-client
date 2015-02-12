@@ -8,5 +8,5 @@ import io.vertx.core.json.JsonObject
 trait PostgresqlConfig extends ConfigProvider {
   override val address = "campudus.postgresql"
 
-  override val config: JsonObject = super.config.mergeIn(new JsonObject().put("postgresql", new JsonObject().put("address", address)))
+  override val config: JsonObject = new JsonObject().put("address", address)
 }

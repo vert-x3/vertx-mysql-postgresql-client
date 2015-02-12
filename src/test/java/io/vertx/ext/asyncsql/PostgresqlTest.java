@@ -24,7 +24,7 @@ public class PostgresqlTest extends VertxTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    asyncSqlService = AsyncSqlService.create(vertx, config);
+    asyncSqlService = AsyncSqlService.createPostgreSqlService(vertx, config);
 
     CountDownLatch latch = new CountDownLatch(1);
 

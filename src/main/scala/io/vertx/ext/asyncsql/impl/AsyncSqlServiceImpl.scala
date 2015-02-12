@@ -8,12 +8,14 @@ import io.vertx.ext.sql.SqlConnection
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-class AsyncSqlServiceImpl(vertx: Vertx, config: JsonObject) extends AsyncSqlService {
+class AsyncSqlServiceImpl(vertx: Vertx, config: JsonObject, mysql: Boolean) extends AsyncSqlService {
 
   val baseService: BaseSqlService = {
-    Option(config.getJsonObject("postgresql")).map(c => new PostgresqlService(vertx, c)).orElse {
-      Option(config.getJsonObject("mysql")).map(c => new MysqlService(vertx, c))
-    }.getOrElse(throw new IllegalArgumentException(s"invalid configuration given: ${config.encode}"))
+    if (mysql) {
+      new MysqlService(vertx, config)
+    } else {
+      new PostgresqlService(vertx, config)
+    }
   }
 
   override def start(whenDone: Handler[AsyncResult[Void]]): Unit = baseService.start(whenDone)

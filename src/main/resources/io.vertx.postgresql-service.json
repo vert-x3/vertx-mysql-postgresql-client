@@ -1,0 +1,9 @@
+{
+  "main" : "io.vertx.ext.asyncsql.PostgreSqlServiceVerticle",
+  "options" : {
+    "worker" : false,
+    "config" : {
+      "address": "vertx.postgresql"
+    }
+  }
+}

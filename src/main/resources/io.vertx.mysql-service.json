@@ -1,0 +1,9 @@
+{
+  "main" : "io.vertx.ext.asyncsql.MySqlServiceVerticle",
+  "options" : {
+    "worker" : false,
+    "config" : {
+      "address": "vertx.mysql"
+    }
+  }
+}
