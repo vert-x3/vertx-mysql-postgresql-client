@@ -86,7 +86,7 @@ public class Examples {
 
   }
 
-  public void example4( AsyncSqlService service) {
+  public void example4(AsyncSqlService service) {
 
     // Now do stuff with it:
 
