@@ -147,7 +147,11 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     for {
       elem <- row
     } yield {
-      json.add(elem)
+      if (elem == null) {
+        json.addNull()
+      } else {
+        json.add(elem)
+      }
     }
     json
   }
