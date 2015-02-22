@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonArray
 import io.vertx.core.{AsyncResult, Future => VFuture, Handler}
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool
 import io.vertx.ext.sql.{UpdateResult, ResultSet, SqlConnection}
+import org.joda.time.format.ISODateTimeFormat
 
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
@@ -147,10 +148,11 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     for {
       elem <- row
     } yield {
-      if (elem == null) {
-        json.addNull()
-      } else {
-        json.add(elem)
+      elem match {
+        case null => json.addNull()
+        case localDateTime: org.joda.time.LocalDateTime => json.add(localDateTime.toString)
+        case localDate: org.joda.time.LocalDate => json.add(localDate.toString)
+        case other => json.add(other)
       }
     }
     json
