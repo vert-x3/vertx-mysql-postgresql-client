@@ -211,6 +211,29 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     }
   }
 
+  @Test
+  def selectNullValues(): Unit = completeTest {
+    for {
+      c <- arhToFuture(asyncSqlService.getConnection _)
+      _ <- arhToFuture((c.execute _).curried("DROP TABLE IF EXISTS test_nulls_table"))
+      _ <- arhToFuture((c.execute _).curried(
+        """CREATE TABLE test_nulls_table (
+          |  id BIGINT,
+          |  name VARCHAR(255) NULL
+          |)""".stripMargin))
+      i <- arhToFuture((c.update _).curried("INSERT INTO test_nulls_table (id, name) VALUES (1, NULL)"))
+      s <- arhToFuture((c.query _).curried("SELECT id, name FROM test_nulls_table ORDER BY id"))
+    } yield {
+      val results = s.getResults
+      val fields = s.getColumnNames.asScala
+      assertEquals(List("id", "name"), fields)
+      assertEquals(List((1, null)), results.asScala.map { arr =>
+        (arr.getLong(0), arr.getString(1))
+      }.toList)
+      c
+    }
+  }
+
   protected def arhToFuture[T](fn: Handler[AsyncResult[T]] => _): Future[T] = {
     val p = Promise[T]()
     fn(new Handler[AsyncResult[T]] {
