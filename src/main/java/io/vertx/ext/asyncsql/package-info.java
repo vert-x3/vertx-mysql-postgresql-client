@@ -73,6 +73,11 @@
  *
  * You can learn how to use it in the http://foobar[common sql interface] documentation.
  *
+ * === Note about date and timestamps
+ *
+ * Whenever you get dates back from the database, this service will implicitly convert them into ISO 8601
+ * (`yyyy-MM-ddTHH:mm:ss.SSS`) formatted strings. MySQL usually discards milliseconds, so you will regularly see `.000`.
+ *
  * == Configuration
  *
  * Both the PostgreSql and MySql services take the same configuration:
@@ -98,8 +103,7 @@
  * `database`:: The name of the database you want to connect to. Defaults to `test`.
  */
 @Document(fileName = "index.adoc")
-@GenModule(name = "vertx-mysql-postgresql")
-package io.vertx.ext.asyncsql;
+@GenModule(name = "vertx-mysql-postgresql") package io.vertx.ext.asyncsql;
 
 import io.vertx.codegen.annotations.GenModule;
 import io.vertx.docgen.Document;

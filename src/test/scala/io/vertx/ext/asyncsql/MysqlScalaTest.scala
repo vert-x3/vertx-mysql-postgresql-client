@@ -7,5 +7,4 @@ class MysqlScalaTest extends DirectTestBase with MysqlConfig {
 
   override lazy val asyncSqlService = AsyncSqlService.createMySqlService(vertx, config)
 
-
 }
