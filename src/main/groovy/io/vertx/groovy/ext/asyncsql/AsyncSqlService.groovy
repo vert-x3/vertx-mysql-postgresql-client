@@ -25,9 +25,7 @@ import io.vertx.core.Handler
 /**
  *
  * Represents an asynchronous MySQL or PostgreSQL service.
- *
- * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
- */
+*/
 @CompileStatic
 public class AsyncSqlService {
   final def io.vertx.ext.asyncsql.AsyncSqlService delegate;
@@ -39,9 +37,8 @@ public class AsyncSqlService {
   }
   /**
    * Create a MySQL service
-   *
-   * @param vertx  the Vert.x instance
-   * @param config  the config
+   * @param vertx the Vert.x instance
+   * @param config the config
    * @return the service
    */
   public static AsyncSqlService createMySqlService(Vertx vertx, Map<String, Object> config) {
@@ -50,9 +47,8 @@ public class AsyncSqlService {
   }
   /**
    * Create a PostgreSQL service
-   *
-   * @param vertx  the Vert.x instance
-   * @param config  the config
+   * @param vertx the Vert.x instance
+   * @param config the config
    * @return the service
    */
   public static AsyncSqlService createPostgreSqlService(Vertx vertx, Map<String, Object> config) {
@@ -62,10 +58,9 @@ public class AsyncSqlService {
   /**
    * Create an event bus proxy to a service which lives somewhere on the network and is listening on the specified
    * event bus address
-   *
-   * @param vertx  the Vert.x instance
-   * @param address  the address on the event bus where the service is listening
-   * @return
+   * @param vertx the Vert.x instance
+   * @param address the address on the event bus where the service is listening
+   * @return 
    */
   public static AsyncSqlService createEventBusProxy(Vertx vertx, String address) {
     def ret= AsyncSqlService.FACTORY.apply(io.vertx.ext.asyncsql.AsyncSqlService.createEventBusProxy((io.vertx.core.Vertx)vertx.getDelegate(), address));
@@ -73,12 +68,14 @@ public class AsyncSqlService {
   }
   /**
    * Called to start the service
+   * @param whenDone 
    */
   public void start(Handler<AsyncResult<Void>> whenDone) {
     this.delegate.start(whenDone);
   }
   /**
    * Called to stop the service
+   * @param whenDone 
    */
   public void stop(Handler<AsyncResult<Void>> whenDone) {
     this.delegate.stop(whenDone);
@@ -86,7 +83,6 @@ public class AsyncSqlService {
   /**
    * Returns a connection that can be used to perform SQL operations on. It's important to remember to close the
    * connection when you are done, so it is returned to the pool.
-   *
    * @param handler the handler which is called when the <code>JdbcConnection</code> object is ready for use.
    */
   public void getConnection(Handler<AsyncResult<SqlConnection>> handler) {

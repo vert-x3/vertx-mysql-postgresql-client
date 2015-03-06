@@ -27,7 +27,9 @@ def options = [
 // Service name is "io.vertx:postgresql-service" if you want postgreSql
 vertx.deployVerticle("io.vertx:mysql-service", options, { res ->
   if (res.succeeded()) {
+    // Deployed ok
   } else {
+    // Failed to deploy
   }
 })
 
@@ -57,6 +59,7 @@ proxy.getConnection({ res ->
       }
     })
   } else {
+    // Failed to get connection - deal with it
   }
 })
 
@@ -76,7 +79,10 @@ def mySqlService = AsyncSqlService.createMySqlService(vertx, config)
 
 mySqlService.start({ res ->
   if (res.succeeded()) {
+
+    // Started OK - now ready to use!
   } else {
+    // Failed to start
   }
 })
 
@@ -107,6 +113,7 @@ service.getConnection({ res ->
     // Got a connection
 
   } else {
+    // Failed to get connection - deal with it
   }
 })
 
@@ -119,6 +126,11 @@ The connection is an instance of `link:groovydoc/io/vertx/groovy/ext/sql/SqlConn
 more than Vert.x sql service.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.
+
+=== Note about date and timestamps
+
+Whenever you get dates back from the database, this service will implicitly convert them into ISO 8601
+(`yyyy-MM-ddTHH:mm:ss.SSS`) formatted strings. MySQL usually discards milliseconds, so you will regularly see `.000`.
 
 == Configuration
 

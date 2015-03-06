@@ -1,6 +1,6 @@
 = Vert.x MySQL / PostgreSQL service
 
-The `link:apidocs/io/vertx/ext/asyncsql/AsyncSqlService.html[MySQL / PostgreSQL Service]` is responsible for providing an
+The `link:../../apidocs/io/vertx/ext/asyncsql/AsyncSqlService.html[MySQL / PostgreSQL Service]` is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
 It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[open source driver] to interact with the MySQL
@@ -73,14 +73,14 @@ mySqlService.start(res -> {
 });
 ----
 
-If you create an instance this way you should make sure you start it with `link:apidocs/io/vertx/ext/asyncsql/AsyncSqlService.html#start-io.vertx.core.Handler-[start]`
+If you create an instance this way you should make sure you start it with `link:../../apidocs/io/vertx/ext/asyncsql/AsyncSqlService.html#start-io.vertx.core.Handler-[start]`
 before you use it.
 
 However you do it, once you've got your service you can start using it.
 
 == Getting a connection
 
-Use `link:apidocs/io/vertx/ext/asyncsql/AsyncSqlService.html#getConnection-io.vertx.core.Handler-[getConnection]` to get a connection.
+Use `link:../../apidocs/io/vertx/ext/asyncsql/AsyncSqlService.html#getConnection-io.vertx.core.Handler-[getConnection]` to get a connection.
 
 This will return the connection in the handler when one is ready from the pool.
 
@@ -101,10 +101,15 @@ service.getConnection(res -> {
 
 Once you've finished with the connection make sure you close it afterwards.
 
-The connection is an instance of `link:apidocs/io/vertx/ext/sql/SqlConnection.html[SqlConnection]` which is a common interface used by
+The connection is an instance of `link:../../apidocs/io/vertx/ext/sql/SqlConnection.html[SqlConnection]` which is a common interface used by
 more than Vert.x sql service.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.
+
+=== Note about date and timestamps
+
+Whenever you get dates back from the database, this service will implicitly convert them into ISO 8601
+(`yyyy-MM-ddTHH:mm:ss.SSS`) formatted strings. MySQL usually discards milliseconds, so you will regularly see `.000`.
 
 == Configuration
 
