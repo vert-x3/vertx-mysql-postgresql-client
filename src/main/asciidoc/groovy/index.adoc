@@ -24,8 +24,8 @@ def options = [
   config:config
 ]
 
-// Service name is "io.vertx:postgresql-service" if you want postgreSql
-vertx.deployVerticle("io.vertx:mysql-service", options, { res ->
+// Service name is "io.vertx:vertx-postgresql-service" if you want postgreSql
+vertx.deployVerticle("io.vertx:vertx-mysql-service", options, { res ->
   if (res.succeeded()) {
     // Deployed ok
   } else {
@@ -122,7 +122,7 @@ service.getConnection({ res ->
 
 Once you've finished with the connection make sure you close it afterwards.
 
-The connection is an instance of `link:groovydoc/io/vertx/groovy/ext/sql/SqlConnection.html[SqlConnection]` which is a common interface used by
+The connection is an instance of `link:../../vertx-sql-common/groovy/groovydoc/io/vertx/groovy/ext/sql/SqlConnection.html[SqlConnection]` which is a common interface used by
 more than Vert.x sql service.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.

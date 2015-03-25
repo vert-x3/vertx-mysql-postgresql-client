@@ -42,7 +42,7 @@ public class AsyncSqlService {
    * @return the service
    */
   public static AsyncSqlService createMySqlService(Vertx vertx, Map<String, Object> config) {
-    def ret= AsyncSqlService.FACTORY.apply(io.vertx.ext.asyncsql.AsyncSqlService.createMySqlService((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null));
+    def ret= new io.vertx.groovy.ext.asyncsql.AsyncSqlService(io.vertx.ext.asyncsql.AsyncSqlService.createMySqlService((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null));
     return ret;
   }
   /**
@@ -52,7 +52,7 @@ public class AsyncSqlService {
    * @return the service
    */
   public static AsyncSqlService createPostgreSqlService(Vertx vertx, Map<String, Object> config) {
-    def ret= AsyncSqlService.FACTORY.apply(io.vertx.ext.asyncsql.AsyncSqlService.createPostgreSqlService((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null));
+    def ret= new io.vertx.groovy.ext.asyncsql.AsyncSqlService(io.vertx.ext.asyncsql.AsyncSqlService.createPostgreSqlService((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null));
     return ret;
   }
   /**
@@ -63,7 +63,7 @@ public class AsyncSqlService {
    * @return 
    */
   public static AsyncSqlService createEventBusProxy(Vertx vertx, String address) {
-    def ret= AsyncSqlService.FACTORY.apply(io.vertx.ext.asyncsql.AsyncSqlService.createEventBusProxy((io.vertx.core.Vertx)vertx.getDelegate(), address));
+    def ret= new io.vertx.groovy.ext.asyncsql.AsyncSqlService(io.vertx.ext.asyncsql.AsyncSqlService.createEventBusProxy((io.vertx.core.Vertx)vertx.getDelegate(), address));
     return ret;
   }
   /**
@@ -98,8 +98,4 @@ public class AsyncSqlService {
       }
     });
   }
-
-  static final java.util.function.Function<io.vertx.ext.asyncsql.AsyncSqlService, AsyncSqlService> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.asyncsql.AsyncSqlService arg -> new AsyncSqlService(arg);
-  };
 }

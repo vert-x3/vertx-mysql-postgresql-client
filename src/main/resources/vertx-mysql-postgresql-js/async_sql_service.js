@@ -42,7 +42,7 @@ var AsyncSqlService = function(j_val) {
   this.start = function(whenDone) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_asyncSqlService.start(function(ar) {
+      j_asyncSqlService["start(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
         whenDone(null, null);
       } else {
@@ -61,7 +61,7 @@ var AsyncSqlService = function(j_val) {
   this.stop = function(whenDone) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_asyncSqlService.stop(function(ar) {
+      j_asyncSqlService["stop(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
         whenDone(null, null);
       } else {
@@ -81,7 +81,7 @@ var AsyncSqlService = function(j_val) {
   this.getConnection = function(handler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_asyncSqlService.getConnection(function(ar) {
+      j_asyncSqlService["getConnection(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
         handler(new SqlConnection(ar.result()), null);
       } else {
@@ -108,7 +108,7 @@ var AsyncSqlService = function(j_val) {
 AsyncSqlService.createMySqlService = function(vertx, config) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object') {
-    return new AsyncSqlService(JAsyncSqlService.createMySqlService(vertx._jdel, utils.convParamJsonObject(config)));
+    return new AsyncSqlService(JAsyncSqlService["createMySqlService(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](vertx._jdel, utils.convParamJsonObject(config)));
   } else utils.invalidArgs();
 };
 
@@ -123,7 +123,7 @@ AsyncSqlService.createMySqlService = function(vertx, config) {
 AsyncSqlService.createPostgreSqlService = function(vertx, config) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object') {
-    return new AsyncSqlService(JAsyncSqlService.createPostgreSqlService(vertx._jdel, utils.convParamJsonObject(config)));
+    return new AsyncSqlService(JAsyncSqlService["createPostgreSqlService(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](vertx._jdel, utils.convParamJsonObject(config)));
   } else utils.invalidArgs();
 };
 
@@ -139,7 +139,7 @@ AsyncSqlService.createPostgreSqlService = function(vertx, config) {
 AsyncSqlService.createEventBusProxy = function(vertx, address) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return new AsyncSqlService(JAsyncSqlService.createEventBusProxy(vertx._jdel, address));
+    return new AsyncSqlService(JAsyncSqlService["createEventBusProxy(io.vertx.core.Vertx,java.lang.String)"](vertx._jdel, address));
   } else utils.invalidArgs();
 };
 
