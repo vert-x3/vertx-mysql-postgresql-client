@@ -35,6 +35,9 @@
  * {@link examples.Examples#example1}
  * ----
  *
+ * The service name for the mysql service is `io.vertx.mysql-service` and the service name for the postgreSQL service
+ * is `service:io.vertx.postgresql-service`.
+ *
  * Now you can either send messages to it directly over the event bus, or you can create a proxy to the service
  * from wherever you are and just use that:
  *

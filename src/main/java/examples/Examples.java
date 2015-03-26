@@ -36,7 +36,7 @@ public class Examples {
     DeploymentOptions options = new DeploymentOptions().setConfig(config);
 
     // Service name is "io.vertx:vertx-postgresql-service" if you want postgreSql
-    vertx.deployVerticle("io.vertx:vertx-mysql-service", options, res -> {
+    vertx.deployVerticle("service:io.vertx.mysql-service", options, res -> {
       if (res.succeeded()) {
         // Deployed ok
       } else {
