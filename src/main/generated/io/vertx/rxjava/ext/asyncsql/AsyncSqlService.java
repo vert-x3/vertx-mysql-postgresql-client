@@ -29,9 +29,8 @@ import io.vertx.core.Handler;
  *
  * Represents an asynchronous MySQL or PostgreSQL service.
  *
- * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.asyncsql.AsyncSqlService original} non RX-ified interface using Vert.x codegen.
  */
 
 public class AsyncSqlService {
@@ -48,24 +47,22 @@ public class AsyncSqlService {
 
   /**
    * Create a MySQL service
-   *
-   * @param vertx  the Vert.x instance
-   * @param config  the config
+   * @param vertx the Vert.x instance
+   * @param config the config
    * @return the service
    */
-  public static AsyncSqlService createMySqlService(Vertx vertx, JsonObject config) {
+  public static AsyncSqlService createMySqlService(Vertx vertx, JsonObject config) { 
     AsyncSqlService ret= AsyncSqlService.newInstance(io.vertx.ext.asyncsql.AsyncSqlService.createMySqlService((io.vertx.core.Vertx) vertx.getDelegate(), config));
     return ret;
   }
 
   /**
    * Create a PostgreSQL service
-   *
-   * @param vertx  the Vert.x instance
-   * @param config  the config
+   * @param vertx the Vert.x instance
+   * @param config the config
    * @return the service
    */
-  public static AsyncSqlService createPostgreSqlService(Vertx vertx, JsonObject config) {
+  public static AsyncSqlService createPostgreSqlService(Vertx vertx, JsonObject config) { 
     AsyncSqlService ret= AsyncSqlService.newInstance(io.vertx.ext.asyncsql.AsyncSqlService.createPostgreSqlService((io.vertx.core.Vertx) vertx.getDelegate(), config));
     return ret;
   }
@@ -73,24 +70,28 @@ public class AsyncSqlService {
   /**
    * Create an event bus proxy to a service which lives somewhere on the network and is listening on the specified
    * event bus address
-   *
-   * @param vertx  the Vert.x instance
-   * @param address  the address on the event bus where the service is listening
-   * @return
+   * @param vertx the Vert.x instance
+   * @param address the address on the event bus where the service is listening
+   * @return 
    */
-  public static AsyncSqlService createEventBusProxy(Vertx vertx, String address) {
+  public static AsyncSqlService createEventBusProxy(Vertx vertx, String address) { 
     AsyncSqlService ret= AsyncSqlService.newInstance(io.vertx.ext.asyncsql.AsyncSqlService.createEventBusProxy((io.vertx.core.Vertx) vertx.getDelegate(), address));
     return ret;
   }
 
   /**
    * Called to start the service
+   * @param whenDone 
    */
-  public void start(Handler<AsyncResult<Void>> whenDone) {
+  public void start(Handler<AsyncResult<Void>> whenDone) { 
     this.delegate.start(whenDone);
   }
 
-  public Observable<Void> startObservable() {
+  /**
+   * Called to start the service
+   * @return 
+   */
+  public Observable<Void> startObservable() { 
     io.vertx.rx.java.ObservableFuture<Void> whenDone = io.vertx.rx.java.RxHelper.observableFuture();
     start(whenDone.toHandler());
     return whenDone;
@@ -98,12 +99,17 @@ public class AsyncSqlService {
 
   /**
    * Called to stop the service
+   * @param whenDone 
    */
-  public void stop(Handler<AsyncResult<Void>> whenDone) {
+  public void stop(Handler<AsyncResult<Void>> whenDone) { 
     this.delegate.stop(whenDone);
   }
 
-  public Observable<Void> stopObservable() {
+  /**
+   * Called to stop the service
+   * @return 
+   */
+  public Observable<Void> stopObservable() { 
     io.vertx.rx.java.ObservableFuture<Void> whenDone = io.vertx.rx.java.RxHelper.observableFuture();
     stop(whenDone.toHandler());
     return whenDone;
@@ -112,10 +118,9 @@ public class AsyncSqlService {
   /**
    * Returns a connection that can be used to perform SQL operations on. It's important to remember to close the
    * connection when you are done, so it is returned to the pool.
-   *
    * @param handler the handler which is called when the <code>JdbcConnection</code> object is ready for use.
    */
-  public void getConnection(Handler<AsyncResult<SqlConnection>> handler) {
+  public void getConnection(Handler<AsyncResult<SqlConnection>> handler) { 
     this.delegate.getConnection(new Handler<AsyncResult<io.vertx.ext.sql.SqlConnection>>() {
       public void handle(AsyncResult<io.vertx.ext.sql.SqlConnection> event) {
         AsyncResult<SqlConnection> f;
@@ -129,7 +134,12 @@ public class AsyncSqlService {
     });
   }
 
-  public Observable<SqlConnection> getConnectionObservable() {
+  /**
+   * Returns a connection that can be used to perform SQL operations on. It's important to remember to close the
+   * connection when you are done, so it is returned to the pool.
+   * @return 
+   */
+  public Observable<SqlConnection> getConnectionObservable() { 
     io.vertx.rx.java.ObservableFuture<SqlConnection> handler = io.vertx.rx.java.RxHelper.observableFuture();
     getConnection(handler.toHandler());
     return handler;
