@@ -11,12 +11,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>vertx-mysql-postgresql-service</artifactId>
-  <version>3.0.0-milestone4</version>
+  <version>3.0.0-SNAPSHOT</version>
 
   <name>Vert.x MySQL/PostgreSQL Service</name>
 
   <properties>
-    <stack.version>3.0.0-milestone4</stack.version>
+    <stack.version>3.0.0-SNAPSHOT</stack.version>
     <scala.version>2.11.4</scala.version>
     <asyncdriver.version>0.2.15</asyncdriver.version>
   </properties>
