@@ -56,10 +56,7 @@ class ClientHolder implements Shareable {
   synchronized void close(Handler<AsyncResult<Void>> whenDone) {
     if (--refCount == 0) {
       if (client != null) {
-        vertx.executeBlocking(future -> {
-          client.close(whenDone);
-          future.complete();
-        }, null);
+        client.close(whenDone);
       }
       if (closeRunner != null) {
         closeRunner.run();

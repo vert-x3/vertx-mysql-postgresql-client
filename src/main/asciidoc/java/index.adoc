@@ -98,7 +98,7 @@ Use `link:../../apidocs/io/vertx/ext/asyncsql/AsyncSQLClient.html#getConnection-
 
 This will return the connection in the handler when one is ready from the pool.
 
-* [source,java]
+[source,java]
 ----
 service.getConnection(res -> {
   if (res.succeeded()) {

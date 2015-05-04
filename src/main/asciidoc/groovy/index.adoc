@@ -131,7 +131,7 @@ Use `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html#getConnecti
 
 This will return the connection in the handler when one is ready from the pool.
 
-* [source,java]
+[source,java]
 ----
 
 // Now do stuff with it:

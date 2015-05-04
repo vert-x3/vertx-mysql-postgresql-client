@@ -131,7 +131,7 @@ Use `link:jsdoc/async_sql_client-AsyncSQLClient.html#getConnection[getConnection
 
 This will return the connection in the handler when one is ready from the pool.
 
-* [source,java]
+[source,java]
 ----
 
 // Now do stuff with it:
