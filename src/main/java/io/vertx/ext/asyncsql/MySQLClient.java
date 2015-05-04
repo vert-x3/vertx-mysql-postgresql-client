@@ -31,13 +31,13 @@ import io.vertx.ext.asyncsql.impl.AsyncSQLClientImpl;
 public interface MySQLClient extends AsyncSQLClient {
 
   /**
-   * Create a MySQL service
+   * Create a MySQL client
    *
    * @param vertx  the Vert.x instance
    * @param config  the config
-   * @return the service
+   * @return the client
    */
-  static AsyncSQLClient createMySqlService(Vertx vertx, JsonObject config) {
+  static AsyncSQLClient createMySQLClient(Vertx vertx, JsonObject config) {
     return new AsyncSQLClientImpl(vertx, config, true);
   }
 

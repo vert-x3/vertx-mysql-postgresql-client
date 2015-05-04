@@ -15,38 +15,24 @@
  */
 
 /**
- * = Vert.x MySQL / PostgreSQL service
+ * = Vert.x MySQL / PostgreSQL client
  *
- * The {@link io.vertx.ext.asyncsql.AsyncSQLClient MySQL / PostgreSQL Service} is responsible for providing an
+ * The {@link io.vertx.ext.asyncsql.AsyncSQLClient MySQL / PostgreSQL Client} is responsible for providing an
  * interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
  *
  * It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[open source driver] to interact with the MySQL
  * or PostgreSQL databases in a non blocking way
  *
- * == Setting up the service
+ * == Setting up the client
  *
- * As with other services you can use the service either by deploying it as a verticle somewhere on your network and
- * interacting with it over the event bus, either directly by sending messages, or using a service proxy, e.g.
- *
- * Somewhere you deploy it:
- *
- * [source,java]
- * ----
- * {@link examples.Examples#example1}
- * ----
- *
- * The service name for the mysql service is `io.vertx.mysql-service` and the service name for the postgreSQL service
- * is `service:io.vertx.postgresql-service`.
- *
- * Now you can either send messages to it directly over the event bus, or you can create a proxy to the service
- * from wherever you are and just use that:
+ * You can create an instance of the MySQL client as follows:
  *
  * [source,java]
  * ----
  * {@link examples.Examples#example2}
  * ----
  *
- * Alternatively you can create an instance of the service directly and just use that locally:
+ * Or the PostgreSQL client like this:
  *
  * [source,java]
  * ----
@@ -56,7 +42,11 @@
  * If you create an instance this way you should make sure you start it with {@link io.vertx.ext.asyncsql.AsyncSQLClient#start(io.vertx.core.Handler)}
  * before you use it.
  *
- * However you do it, once you've got your service you can start using it.
+ * Starting the client is asynchronous -the client will not be ready to use until the handler passed into the start
+ * method is called.
+ *
+ * You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
+ * it, you should stop it using {@link io.vertx.ext.asyncsql.AsyncSQLClient#stop(io.vertx.core.Handler)}
  *
  * == Getting a connection
  *

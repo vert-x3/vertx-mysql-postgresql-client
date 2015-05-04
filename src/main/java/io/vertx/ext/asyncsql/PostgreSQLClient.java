@@ -23,7 +23,7 @@ import io.vertx.ext.asyncsql.impl.AsyncSQLClientImpl;
 
 /**
  *
- * Represents an postgreSQL client
+ * Represents an PostgreSQL client
  *
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
@@ -31,13 +31,13 @@ import io.vertx.ext.asyncsql.impl.AsyncSQLClientImpl;
 public interface PostgreSQLClient extends AsyncSQLClient {
 
   /**
-   * Create a MySQL service
+   * Create a PostgreSQL client
    *
    * @param vertx  the Vert.x instance
    * @param config  the config
-   * @return the service
+   * @return the client
    */
-  static AsyncSQLClient createPostgreSQLService(Vertx vertx, JsonObject config) {
+  static AsyncSQLClient createPostgreSQLClient(Vertx vertx, JsonObject config) {
     return new AsyncSQLClientImpl(vertx, config, false);
   }
 

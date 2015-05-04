@@ -1,89 +1,57 @@
-= Vert.x MySQL / PostgreSQL service
+= Vert.x MySQL / PostgreSQL client
 
-The `link:jsdoc/async_sql_client-AsyncSQLClient.html[MySQL / PostgreSQL Service]` is responsible for providing an
+The `link:jsdoc/async_sql_client-AsyncSQLClient.html[MySQL / PostgreSQL Client]` is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
 It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[open source driver] to interact with the MySQL
 or PostgreSQL databases in a non blocking way
 
-== Setting up the service
+== Setting up the client
 
-As with other services you can use the service either by deploying it as a verticle somewhere on your network and
-interacting with it over the event bus, either directly by sending messages, or using a service proxy, e.g.
-
-Somewhere you deploy it:
+You can create an instance of the MySQL client as follows:
 
 [source,java]
 ----
+var MySQLClient = require("vertx-mysql-postgresql-js/my_sql_client");
 
-// Deploy service - can be anywhere on your network
 var config = {
   "host" : "mymysqldb.mycompany"
 };
-var options = {
-  "config" : config
-};
 
-// Service name is "io.vertx:vertx-postgresql-service" if you want postgreSql
-vertx.deployVerticle("service:io.vertx.mysql-service", options, function (res, res_err) {
+var mySQLClient = MySQLClient.createMySQLClient(vertx, config);
+
+mySQLClient.start(function (res, res_err) {
   if (res_err == null) {
-    // Deployed ok
+
+    // Started OK - now ready to use!
   } else {
-    // Failed to deploy
+    // Failed to start
   };
 });
 
+
 ----
 
-The service name for the mysql service is `io.vertx.mysql-service` and the service name for the postgreSQL service
-is `service:io.vertx.postgresql-service`.
-
-Now you can either send messages to it directly over the event bus, or you can create a proxy to the service
-from wherever you are and just use that:
+Or the PostgreSQL client like this:
 
 [source,java]
 ----
+var PostgreSQLClient = require("vertx-mysql-postgresql-js/postgre_sql_client");
 
-//    AsyncSqlService proxy = AsyncSqlService.createEventBusProxy(vertx, "vertx.mysql");
-//
-//    // Now do stuff with it:
-//
-//    proxy.getConnection(res -> {
-//      if (res.succeeded()) {
-//
-//        SQLConnection connection = res.result();
-//
-//        connection.query("SELECT * FROM some_table", res2 -> {
-//          if (res2.succeeded()) {
-//
-//            ResultSet rs = res2.result();
-//            // Do something with results
-//          }
-//        });
-//      } else {
-//        // Failed to get connection - deal with it
-//      }
-//    });
+var config = {
+  "host" : "mypostgresqldb.mycompany"
+};
 
-----
+var postgreSQLClient = PostgreSQLClient.createPostgreSQLClient(vertx, config);
 
-Alternatively you can create an instance of the service directly and just use that locally:
+postgreSQLClient.start(function (res, res_err) {
+  if (res_err == null) {
 
-[source,java]
-----
-
-//    JsonObject config = new JsonObject().put("host", "mymysqldb.mycompany");
-//
-//    AsyncSQLClient mySqlService = AsyncSQLClient.createMySqlService(vertx, config);
-//
-//    mySqlService.start(res -> {
-//      if (res.succeeded()) {
-//
-//        // Started OK - now ready to use!
-//      } else {
-//        // Failed to start
-//      }
-//    });
+    // Started OK - now ready to use!
+  } else {
+    // Failed to start
+  };
+});
 
 
 ----
@@ -91,7 +59,11 @@ Alternatively you can create an instance of the service directly and just use th
 If you create an instance this way you should make sure you start it with `link:jsdoc/async_sql_client-AsyncSQLClient.html#start[start]`
 before you use it.
 
-However you do it, once you've got your service you can start using it.
+Starting the client is asynchronous -the client will not be ready to use until the handler passed into the start
+method is called.
+
+You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
+it, you should stop it using `link:jsdoc/async_sql_client-AsyncSQLClient.html#stop[stop]`
 
 == Getting a connection
 
