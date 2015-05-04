@@ -18,7 +18,7 @@ def config = [
   host:"mymysqldb.mycompany"
 ]
 
-def mySQLClient = MySQLClient.createMySQLClient(vertx, config)
+def mySQLClient = MySQLClient.createNonShared(vertx, config)
 
 
 ----
@@ -33,7 +33,7 @@ def config = [
   host:"mypostgresqldb.mycompany"
 ]
 
-def postgreSQLClient = PostgreSQLClient.createPostgreSQLClient(vertx, config)
+def postgreSQLClient = PostgreSQLClient.createNonShared(vertx, config)
 
 ----
 

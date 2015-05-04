@@ -18,7 +18,7 @@ var config = {
   "host" : "mymysqldb.mycompany"
 };
 
-var mySQLClient = MySQLClient.createMySQLClient(vertx, config);
+var mySQLClient = MySQLClient.createNonShared(vertx, config);
 
 
 ----
@@ -33,7 +33,7 @@ var config = {
   "host" : "mypostgresqldb.mycompany"
 };
 
-var postgreSQLClient = PostgreSQLClient.createPostgreSQLClient(vertx, config);
+var postgreSQLClient = PostgreSQLClient.createNonShared(vertx, config);
 
 ----
 

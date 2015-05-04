@@ -33,7 +33,7 @@ public class Examples {
 
     JsonObject config = new JsonObject().put("host", "mymysqldb.mycompany");
 
-    AsyncSQLClient mySQLClient = MySQLClient.createMySQLClient(vertx, config);
+    AsyncSQLClient mySQLClient = MySQLClient.createNonShared(vertx, config);
 
   }
 
@@ -41,7 +41,7 @@ public class Examples {
 
     JsonObject config = new JsonObject().put("host", "mypostgresqldb.mycompany");
 
-    AsyncSQLClient postgreSQLClient = PostgreSQLClient.createPostgreSQLClient(vertx, config);
+    AsyncSQLClient postgreSQLClient = PostgreSQLClient.createNonShared(vertx, config);
   }
 
   public void example4(AsyncSQLClient service) {

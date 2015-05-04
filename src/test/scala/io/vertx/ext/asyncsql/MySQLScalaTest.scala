@@ -5,6 +5,6 @@ package io.vertx.ext.asyncsql
  */
 class MySQLScalaTest extends DirectTestBase with MySQLConfig {
 
-  override lazy val asyncSqlService = MySQLClient.createMySQLClient(vertx, config)
+  override lazy val asyncSqlService = MySQLClient.createNonShared(vertx, config)
 
 }

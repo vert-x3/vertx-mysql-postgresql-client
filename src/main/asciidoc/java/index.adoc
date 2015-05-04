@@ -14,7 +14,7 @@ You can create an instance of the MySQL client as follows:
 ----
 JsonObject config = new JsonObject().put("host", "mymysqldb.mycompany");
 
-AsyncSQLClient mySQLClient = MySQLClient.createMySQLClient(vertx, config);
+AsyncSQLClient mySQLClient = MySQLClient.createNonShared(vertx, config);
 ----
 
 Or the PostgreSQL client like this:
@@ -23,7 +23,7 @@ Or the PostgreSQL client like this:
 ----
 JsonObject config = new JsonObject().put("host", "mypostgresqldb.mycompany");
 
-AsyncSQLClient postgreSQLClient = PostgreSQLClient.createPostgreSQLClient(vertx, config);
+AsyncSQLClient postgreSQLClient = PostgreSQLClient.createNonShared(vertx, config);
 ----
 
 You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with

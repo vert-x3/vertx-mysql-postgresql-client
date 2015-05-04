@@ -19,27 +19,56 @@ package io.vertx.ext.asyncsql;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.asyncsql.impl.AsyncSQLClientImpl;
+import io.vertx.ext.asyncsql.impl.ClientHelper;
+
+import java.util.UUID;
 
 /**
  *
  * Represents an asynchronous MySQL client
  *
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
+ * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface MySQLClient extends AsyncSQLClient {
 
+  public static final String DEFAULT_DS_NAME = "DEFAULT_MYSQL_DS";
+
   /**
-   * Create a MySQL client
+   * Create a MySQL client which maintains its own data source.
    *
    * @param vertx  the Vert.x instance
-   * @param config  the config
+   * @param config  the configuration
    * @return the client
    */
-  static AsyncSQLClient createMySQLClient(Vertx vertx, JsonObject config) {
-    return new AsyncSQLClientImpl(vertx, config, true);
+  static AsyncSQLClient createNonShared(Vertx vertx, JsonObject config) {
+    return ClientHelper.getOrCreate(vertx, config, UUID.randomUUID().toString(), true);
   }
+
+  /**
+   * Create a MySQL client which shares its data source with any other MySQL clients created with the same
+   * data source name
+   *
+   * @param vertx  the Vert.x instance
+   * @param config  the configuration
+   * @param dataSourceName  the data source name
+   * @return the client
+   */
+  static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String dataSourceName) {
+    return ClientHelper.getOrCreate(vertx, config, dataSourceName, true);
+  }
+
+  /**
+   * Like {@link #createShared(io.vertx.core.Vertx, JsonObject, String)} but with the default data source name
+   * @param vertx  the Vert.x instance
+   * @param config  the configuration
+   * @return the client
+   */
+  static AsyncSQLClient createShared(Vertx vertx, JsonObject config) {
+    return ClientHelper.getOrCreate(vertx, config, DEFAULT_DS_NAME, true);
+  }
+
 
 
 }
