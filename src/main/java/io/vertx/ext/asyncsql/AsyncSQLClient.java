@@ -15,14 +15,9 @@ import io.vertx.ext.sql.SQLConnection;
 public interface AsyncSQLClient {
 
   /**
-   * Called to start the service
+   * Close the client and release all resources
    */
-  void start(Handler<AsyncResult<Void>> whenDone);
-
-  /**
-   * Called to stop the service
-   */
-  void stop(Handler<AsyncResult<Void>> whenDone);
+  void close(Handler<AsyncResult<Void>> whenDone);
 
   /**
    * Returns a connection that can be used to perform SQL operations on. It's important to remember to close the

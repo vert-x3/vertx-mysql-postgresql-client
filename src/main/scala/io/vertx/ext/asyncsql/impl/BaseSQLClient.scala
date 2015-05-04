@@ -51,17 +51,12 @@ trait BaseSQLClient {
     }
   }
 
-  def stop(stopped: Handler[AsyncResult[Void]]): Unit = {
+  def close(stopped: Handler[AsyncResult[Void]]): Unit = {
     logger.info(s"Stopping AsyncSqlService:${getClass.getName}")
     pool.close() onComplete {
       case Success(p) => stopped.handle(VFuture.succeededFuture())
       case Failure(ex) => stopped.handle(VFuture.failedFuture(ex))
     }
-  }
-
-  def start(started: Handler[AsyncResult[Void]]): Unit = {
-    logger.info(s"Starting AsyncSqlService:${getClass.getName}")
-    started.handle(VFuture.succeededFuture())
   }
 
   private def getConfiguration(config: JsonObject) = {

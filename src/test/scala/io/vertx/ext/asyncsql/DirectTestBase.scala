@@ -16,19 +16,11 @@ abstract class DirectTestBase extends SQLTestBase with ConfigProvider {
   override def setUp(): Unit = {
     super.setUp()
     val latch: CountDownLatch = new CountDownLatch(1)
-
-    asyncSqlService.start(new Handler[AsyncResult[Void]]() {
-      override def handle(event: AsyncResult[Void]): Unit = {
-        latch.countDown()
-      }
-    })
-
-    awaitLatch(latch)
   }
 
   override def tearDown(): Unit = {
     val latch: CountDownLatch = new CountDownLatch(1)
-    asyncSqlService.stop(new Handler[AsyncResult[Void]]() {
+    asyncSqlService.close(new Handler[AsyncResult[Void]]() {
       override def handle(event: AsyncResult[Void]): Unit = latch.countDown()
     })
     awaitLatch(latch)

@@ -18,9 +18,7 @@ class AsyncSQLClientImpl(vertx: Vertx, config: JsonObject, mysql: Boolean) exten
     }
   }
 
-  override def start(whenDone: Handler[AsyncResult[Void]]): Unit = baseService.start(whenDone)
-
-  override def stop(whenDone: Handler[AsyncResult[Void]]): Unit = baseService.stop(whenDone)
+  override def close(whenDone: Handler[AsyncResult[Void]]): Unit = baseService.close(whenDone)
 
   override def getConnection(handler: Handler[AsyncResult[SQLConnection]]): Unit = {
     baseService.getConnection(handler)

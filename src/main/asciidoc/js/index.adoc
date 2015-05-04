@@ -20,15 +20,6 @@ var config = {
 
 var mySQLClient = MySQLClient.createMySQLClient(vertx, config);
 
-mySQLClient.start(function (res, res_err) {
-  if (res_err == null) {
-
-    // Started OK - now ready to use!
-  } else {
-    // Failed to start
-  };
-});
-
 
 ----
 
@@ -44,26 +35,10 @@ var config = {
 
 var postgreSQLClient = PostgreSQLClient.createPostgreSQLClient(vertx, config);
 
-postgreSQLClient.start(function (res, res_err) {
-  if (res_err == null) {
-
-    // Started OK - now ready to use!
-  } else {
-    // Failed to start
-  };
-});
-
-
 ----
 
-If you create an instance this way you should make sure you start it with `link:jsdoc/async_sql_client-AsyncSQLClient.html#start[start]`
-before you use it.
-
-Starting the client is asynchronous -the client will not be ready to use until the handler passed into the start
-method is called.
-
 You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
-it, you should stop it using `link:jsdoc/async_sql_client-AsyncSQLClient.html#stop[stop]`
+it, you should close it using `link:jsdoc/async_sql_client-AsyncSQLClient.html#close[close]`
 
 == Getting a connection
 

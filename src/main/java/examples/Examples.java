@@ -35,15 +35,6 @@ public class Examples {
 
     AsyncSQLClient mySQLClient = MySQLClient.createMySQLClient(vertx, config);
 
-    mySQLClient.start(res -> {
-      if (res.succeeded()) {
-
-        // Started OK - now ready to use!
-      } else {
-        // Failed to start
-      }
-    });
-
   }
 
   public void example3(Vertx vertx) {
@@ -51,16 +42,6 @@ public class Examples {
     JsonObject config = new JsonObject().put("host", "mypostgresqldb.mycompany");
 
     AsyncSQLClient postgreSQLClient = PostgreSQLClient.createPostgreSQLClient(vertx, config);
-
-    postgreSQLClient.start(res -> {
-      if (res.succeeded()) {
-
-        // Started OK - now ready to use!
-      } else {
-        // Failed to start
-      }
-    });
-
   }
 
   public void example4(AsyncSQLClient service) {

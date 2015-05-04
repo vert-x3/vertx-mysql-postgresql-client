@@ -20,15 +20,6 @@ def config = [
 
 def mySQLClient = MySQLClient.createMySQLClient(vertx, config)
 
-mySQLClient.start({ res ->
-  if (res.succeeded()) {
-
-    // Started OK - now ready to use!
-  } else {
-    // Failed to start
-  }
-})
-
 
 ----
 
@@ -44,26 +35,10 @@ def config = [
 
 def postgreSQLClient = PostgreSQLClient.createPostgreSQLClient(vertx, config)
 
-postgreSQLClient.start({ res ->
-  if (res.succeeded()) {
-
-    // Started OK - now ready to use!
-  } else {
-    // Failed to start
-  }
-})
-
-
 ----
 
-If you create an instance this way you should make sure you start it with `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html#start(io.vertx.core.Handler)[start]`
-before you use it.
-
-Starting the client is asynchronous -the client will not be ready to use until the handler passed into the start
-method is called.
-
 You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
-it, you should stop it using `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html#stop(io.vertx.core.Handler)[stop]`
+it, you should close it using `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html#close(io.vertx.core.Handler)[close]`
 
 == Getting a connection
 

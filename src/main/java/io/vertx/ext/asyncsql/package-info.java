@@ -39,14 +39,8 @@
  * {@link examples.Examples#example3}
  * ----
  *
- * If you create an instance this way you should make sure you start it with {@link io.vertx.ext.asyncsql.AsyncSQLClient#start(io.vertx.core.Handler)}
- * before you use it.
- *
- * Starting the client is asynchronous -the client will not be ready to use until the handler passed into the start
- * method is called.
- *
  * You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
- * it, you should stop it using {@link io.vertx.ext.asyncsql.AsyncSQLClient#stop(io.vertx.core.Handler)}
+ * it, you should close it using {@link io.vertx.ext.asyncsql.AsyncSQLClient#close(io.vertx.core.Handler)}
  *
  * == Getting a connection
  *

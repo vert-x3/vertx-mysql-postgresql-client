@@ -7,8 +7,6 @@ import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.test.core.VertxTestBase;
 import org.junit.Test;
 
-import java.util.concurrent.CountDownLatch;
-
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
@@ -25,15 +23,6 @@ public class PostgreSQLTest extends VertxTestBase {
   public void setUp() throws Exception {
     super.setUp();
     asyncSqlService = PostgreSQLClient.createPostgreSQLClient(vertx, config);
-
-    CountDownLatch latch = new CountDownLatch(1);
-
-    asyncSqlService.start(onSuccess(x -> {
-      log.info("in onSuccess of start asyncSqlService");
-      latch.countDown();
-    }));
-
-    awaitLatch(latch);
   }
 
   @Test
