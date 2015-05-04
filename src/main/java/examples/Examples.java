@@ -29,6 +29,48 @@ import io.vertx.ext.sql.SQLConnection;
   */
 public class Examples {
 
+  public void exampleCreateDefault(Vertx vertx) {
+
+    // To create a MySQL client:
+
+    JsonObject mySQLClientConfig = new JsonObject().put("host", "mymysqldb.mycompany");
+    AsyncSQLClient mySQLClient = MySQLClient.createShared(vertx, mySQLClientConfig);
+
+    // To create a PostgreSQL client:
+
+    JsonObject postgreSQLClientConfig = new JsonObject().put("host", "mypostgresqldb.mycompany");
+    AsyncSQLClient postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConfig);
+
+  }
+
+  public void exampleCreatePoolName(Vertx vertx) {
+
+    // To create a MySQL client:
+
+    JsonObject mySQLClientConfig = new JsonObject().put("host", "mymysqldb.mycompany");
+    AsyncSQLClient mySQLClient = MySQLClient.createShared(vertx, mySQLClientConfig, "MySQLPool1");
+
+    // To create a PostgreSQL client:
+
+    JsonObject postgreSQLClientConfig = new JsonObject().put("host", "mypostgresqldb.mycompany");
+    AsyncSQLClient postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConfig, "PostgreSQLPool1");
+
+  }
+
+  public void exampleCreateNonShared(Vertx vertx) {
+
+    // To create a MySQL client:
+
+    JsonObject mySQLClientConfig = new JsonObject().put("host", "mymysqldb.mycompany");
+    AsyncSQLClient mySQLClient = MySQLClient.createNonShared(vertx, mySQLClientConfig);
+
+    // To create a PostgreSQL client:
+
+    JsonObject postgreSQLClientConfig = new JsonObject().put("host", "mypostgresqldb.mycompany");
+    AsyncSQLClient postgreSQLClient = PostgreSQLClient.createNonShared(vertx, postgreSQLClientConfig);
+
+  }
+
   public void example2(Vertx vertx) {
 
     JsonObject config = new JsonObject().put("host", "mymysqldb.mycompany");
