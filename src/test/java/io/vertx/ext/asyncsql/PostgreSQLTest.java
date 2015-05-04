@@ -12,10 +12,10 @@ import java.util.concurrent.CountDownLatch;
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-public class PostgresqlTest extends VertxTestBase {
+public class PostgreSQLTest extends VertxTestBase {
   private static final Logger log = LoggerFactory.getLogger(VertxTestBase.class);
 
-  AsyncSqlService asyncSqlService;
+  AsyncSQLClient asyncSqlService;
 
   final String address = "campudus.postgresql";
 
@@ -24,7 +24,7 @@ public class PostgresqlTest extends VertxTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    asyncSqlService = AsyncSqlService.createPostgreSqlService(vertx, config);
+    asyncSqlService = PostgreSQLClient.createPostgreSQLService(vertx, config);
 
     CountDownLatch latch = new CountDownLatch(1);
 

@@ -5,7 +5,7 @@ import io.vertx.core.logging.Logger
 import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{AsyncResult, Handler}
 import io.vertx.ext.asyncsql.impl.pool.SimpleExecutionContext
-import io.vertx.ext.sql.SqlConnection
+import io.vertx.ext.sql.SQLConnection
 import io.vertx.test.core.VertxTestBase
 import org.junit.Test
 
@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-abstract class SqlTestBase extends VertxTestBase with TestData {
+abstract class SQLTestBase extends VertxTestBase with TestData {
 
   protected val log: Logger = LoggerFactory.getLogger(super.getClass)
   implicit val executionContext: ExecutionContext = SimpleExecutionContext.apply(log)
@@ -23,7 +23,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
 
   def config: JsonObject
 
-  def asyncSqlService: AsyncSqlService
+  def asyncSqlService: AsyncSQLClient
 
   @Test
   def simpleConnection(): Unit = completeTest {
@@ -272,7 +272,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     p.future
   }
 
-  private def completeTest(f: Future[SqlConnection]): Unit = {
+  private def completeTest(f: Future[SQLConnection]): Unit = {
     (for {
       conn <- f
       _ <- arhToFuture(conn.close _)
@@ -288,7 +288,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     await()
   }
 
-  private def setupSimpleTestTable(conn: SqlConnection): Future[SqlConnection] = {
+  private def setupSimpleTestTable(conn: SQLConnection): Future[SQLConnection] = {
     for {
       _ <- arhToFuture((conn.execute _).curried("BEGIN"))
       _ <- arhToFuture((conn.execute _).curried("DROP TABLE IF EXISTS test_table"))

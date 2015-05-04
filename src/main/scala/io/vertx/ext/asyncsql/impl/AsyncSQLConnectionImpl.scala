@@ -5,7 +5,7 @@ import com.github.mauricio.async.db.{Connection, QueryResult, RowData}
 import io.vertx.core.json.JsonArray
 import io.vertx.core.{AsyncResult, Future => VFuture, Handler}
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool
-import io.vertx.ext.sql.{UpdateResult, ResultSet, SqlConnection}
+import io.vertx.ext.sql.{UpdateResult, ResultSet, SQLConnection}
 import org.joda.time.format.ISODateTimeFormat
 
 import scala.concurrent.{Future, ExecutionContext}
@@ -14,14 +14,14 @@ import scala.util.{Failure, Success, Try}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(implicit executionContext: ExecutionContext) extends SqlConnection {
+class AsyncSQLConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(implicit executionContext: ExecutionContext) extends SQLConnection {
 
   import scala.collection.JavaConverters._
 
   var inTransaction: Boolean = false
   var inAutoCommit: Boolean = true
 
-  override def setAutoCommit(autoCommit: Boolean, resultHandler: Handler[AsyncResult[Void]]): SqlConnection = {
+  override def setAutoCommit(autoCommit: Boolean, resultHandler: Handler[AsyncResult[Void]]): SQLConnection = {
     val fut = if (inTransaction && autoCommit) {
       inTransaction = false
       connection.sendQuery("COMMIT")
@@ -36,7 +36,7 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     this
   }
 
-  override def execute(sql: String, resultHandler: Handler[AsyncResult[Void]]): SqlConnection = {
+  override def execute(sql: String, resultHandler: Handler[AsyncResult[Void]]): SQLConnection = {
     (for {
       _ <- beginTransactionIfNeeded()
       r <- connection.sendQuery(sql)
@@ -44,7 +44,7 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     this
   }
 
-  override def query(sql: String, resultHandler: Handler[AsyncResult[ResultSet]]): SqlConnection = {
+  override def query(sql: String, resultHandler: Handler[AsyncResult[ResultSet]]): SQLConnection = {
     (for {
       _ <- beginTransactionIfNeeded()
       r <- connection.sendQuery(sql)
@@ -52,7 +52,7 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     this
   }
 
-  override def queryWithParams(sql: String, params: JsonArray, resultHandler: Handler[AsyncResult[ResultSet]]): SqlConnection = {
+  override def queryWithParams(sql: String, params: JsonArray, resultHandler: Handler[AsyncResult[ResultSet]]): SQLConnection = {
     (for {
       _ <- beginTransactionIfNeeded()
       r <- connection.sendPreparedStatement(sql, params.getList.asScala)
@@ -60,7 +60,7 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     this
   }
 
-  override def update(sql: String, resultHandler: Handler[AsyncResult[UpdateResult]]): SqlConnection = {
+  override def update(sql: String, resultHandler: Handler[AsyncResult[UpdateResult]]): SQLConnection = {
     (for {
       _ <- beginTransactionIfNeeded()
       r <- connection.sendQuery(sql)
@@ -68,7 +68,7 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     this
   }
 
-  override def updateWithParams(sql: String, params: JsonArray, resultHandler: Handler[AsyncResult[UpdateResult]]): SqlConnection = {
+  override def updateWithParams(sql: String, params: JsonArray, resultHandler: Handler[AsyncResult[UpdateResult]]): SQLConnection = {
     (for {
       _ <- beginTransactionIfNeeded()
       r <- connection.sendPreparedStatement(sql, params.getList.asScala)
@@ -76,7 +76,7 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     this
   }
 
-  override def commit(handler: Handler[AsyncResult[Void]]): SqlConnection = {
+  override def commit(handler: Handler[AsyncResult[Void]]): SQLConnection = {
     if (inTransaction) {
       inTransaction = false
       connection.sendQuery("COMMIT") flatMap (_ => connection.sendQuery("BEGIN")) onComplete doneVoid(handler)
@@ -86,7 +86,7 @@ class AsyncSqlConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     this
   }
 
-  override def rollback(handler: Handler[AsyncResult[Void]]): SqlConnection = {
+  override def rollback(handler: Handler[AsyncResult[Void]]): SQLConnection = {
     if (inTransaction) {
       inTransaction = false
       connection.sendQuery("ROLLBACK") flatMap (_ => connection.sendQuery("BEGIN")) onComplete doneVoid(handler)

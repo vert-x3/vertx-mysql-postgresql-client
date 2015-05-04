@@ -16,18 +16,30 @@
 
 package io.vertx.ext.asyncsql;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.impl.AsyncSQLClientImpl;
 
 /**
- * A verticle that starts an instance of a PostgreSQL service
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * Represents an asynchronous MySQL client
+ *
+ * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-public class PostgreSqlServiceVerticle extends AsyncSqlServiceVerticle {
+@VertxGen
+public interface MySQLClient extends AsyncSQLClient {
 
-  @Override
-  protected AsyncSqlService createService(Vertx vertx, JsonObject config) {
-    return AsyncSqlService.createPostgreSqlService(vertx, config);
+  /**
+   * Create a MySQL service
+   *
+   * @param vertx  the Vert.x instance
+   * @param config  the config
+   * @return the service
+   */
+  static AsyncSQLClient createMySqlService(Vertx vertx, JsonObject config) {
+    return new AsyncSQLClientImpl(vertx, config, true);
   }
+
+
 }

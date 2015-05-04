@@ -7,7 +7,7 @@ import io.vertx.core.logging.Logger
 import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{AsyncResult, Future => VFuture, Handler, Vertx}
 import io.vertx.ext.asyncsql.impl.pool.{AsyncConnectionPool, SimpleExecutionContext}
-import io.vertx.ext.sql.SqlConnection
+import io.vertx.ext.sql.SQLConnection
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
@@ -15,7 +15,7 @@ import scala.util.{Failure, Success}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-trait BaseSqlService {
+trait BaseSQLClient {
 
   val vertx: Vertx
   val config: JsonObject
@@ -41,10 +41,10 @@ trait BaseSqlService {
   protected lazy val pool: AsyncConnectionPool = AsyncConnectionPool(vertx, maxPoolSize, configuration, poolFactory)
   protected lazy val registerAddress: String = config.getString("address")
 
-  def getConnection(handler: Handler[AsyncResult[SqlConnection]]): Unit = {
+  def getConnection(handler: Handler[AsyncResult[SQLConnection]]): Unit = {
     pool.take() onComplete {
       case Success(conn) =>
-        val connection = new AsyncSqlConnectionImpl(conn, pool)(executionContext)
+        val connection = new AsyncSQLConnectionImpl(conn, pool)(executionContext)
         handler.handle(VFuture.succeededFuture(connection))
       case Failure(ex) =>
         handler.handle(VFuture.failedFuture(ex))

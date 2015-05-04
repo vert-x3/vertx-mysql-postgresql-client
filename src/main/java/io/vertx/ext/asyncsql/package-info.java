@@ -17,7 +17,7 @@
 /**
  * = Vert.x MySQL / PostgreSQL service
  *
- * The {@link io.vertx.ext.asyncsql.AsyncSqlService MySQL / PostgreSQL Service} is responsible for providing an
+ * The {@link io.vertx.ext.asyncsql.AsyncSQLClient MySQL / PostgreSQL Service} is responsible for providing an
  * interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
  *
  * It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[open source driver] to interact with the MySQL
@@ -53,14 +53,14 @@
  * {@link examples.Examples#example3}
  * ----
  *
- * If you create an instance this way you should make sure you start it with {@link io.vertx.ext.asyncsql.AsyncSqlService#start(io.vertx.core.Handler)}
+ * If you create an instance this way you should make sure you start it with {@link io.vertx.ext.asyncsql.AsyncSQLClient#start(io.vertx.core.Handler)}
  * before you use it.
  *
  * However you do it, once you've got your service you can start using it.
  *
  * == Getting a connection
  *
- * Use {@link io.vertx.ext.asyncsql.AsyncSqlService#getConnection(io.vertx.core.Handler)} to get a connection.
+ * Use {@link io.vertx.ext.asyncsql.AsyncSQLClient#getConnection(io.vertx.core.Handler)} to get a connection.
  *
  * This will return the connection in the handler when one is ready from the pool.
  *
@@ -71,7 +71,7 @@
  *
  * Once you've finished with the connection make sure you close it afterwards.
  *
- * The connection is an instance of {@link io.vertx.ext.sql.SqlConnection} which is a common interface used by
+ * The connection is an instance of {@link io.vertx.ext.sql.SQLConnection} which is a common interface used by
  * more than Vert.x sql service.
  *
  * You can learn how to use it in the http://foobar[common sql interface] documentation.

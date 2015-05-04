@@ -7,7 +7,7 @@ import io.vertx.ext.asyncsql.impl.pool.MysqlAsyncConnectionPool
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-class MysqlService(val vertx: Vertx, val config: JsonObject) extends BaseSqlService {
+class MySQLClient(val vertx: Vertx, val config: JsonObject) extends BaseSQLClient {
 
   override protected val poolFactory = MysqlAsyncConnectionPool.apply _
 

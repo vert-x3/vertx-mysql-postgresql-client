@@ -2,19 +2,19 @@ package io.vertx.ext.asyncsql.impl
 
 import io.vertx.core.{AsyncResult, Handler, Vertx}
 import io.vertx.core.json.JsonObject
-import io.vertx.ext.asyncsql.AsyncSqlService
-import io.vertx.ext.sql.SqlConnection
+import io.vertx.ext.asyncsql.AsyncSQLClient
+import io.vertx.ext.sql.SQLConnection
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-class AsyncSqlServiceImpl(vertx: Vertx, config: JsonObject, mysql: Boolean) extends AsyncSqlService {
+class AsyncSQLClientImpl(vertx: Vertx, config: JsonObject, mysql: Boolean) extends AsyncSQLClient {
 
-  val baseService: BaseSqlService = {
+  val baseService: BaseSQLClient = {
     if (mysql) {
-      new MysqlService(vertx, config)
+      new MySQLClient(vertx, config)
     } else {
-      new PostgresqlService(vertx, config)
+      new PostgreSQLClient(vertx, config)
     }
   }
 
@@ -22,7 +22,7 @@ class AsyncSqlServiceImpl(vertx: Vertx, config: JsonObject, mysql: Boolean) exte
 
   override def stop(whenDone: Handler[AsyncResult[Void]]): Unit = baseService.stop(whenDone)
 
-  override def getConnection(handler: Handler[AsyncResult[SqlConnection]]): Unit = {
+  override def getConnection(handler: Handler[AsyncResult[SQLConnection]]): Unit = {
     baseService.getConnection(handler)
   }
 }

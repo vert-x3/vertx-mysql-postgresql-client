@@ -16,7 +16,7 @@
 
 /** @module vertx-mysql-postgresql-js/async_sql_service */
 var utils = require('vertx-js/util/utils');
-var SqlConnection = require('vertx-sql-js/sql_connection');
+var SQLConnection = require('vertx-sql-js/sql_connection');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -83,7 +83,7 @@ var AsyncSqlService = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_asyncSqlService["getConnection(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        handler(new SqlConnection(ar.result()), null);
+        handler(new SQLConnection(ar.result()), null);
       } else {
         handler(null, ar.cause());
       }
@@ -124,22 +124,6 @@ AsyncSqlService.createPostgreSqlService = function(vertx, config) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object') {
     return new AsyncSqlService(JAsyncSqlService["createPostgreSqlService(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](vertx._jdel, utils.convParamJsonObject(config)));
-  } else utils.invalidArgs();
-};
-
-/**
- Create an event bus proxy to a service which lives somewhere on the network and is listening on the specified
- event bus address
-
- @memberof module:vertx-mysql-postgresql-js/async_sql_service
- @param vertx {Vertx} the Vert.x instance 
- @param address {string} the address on the event bus where the service is listening 
- @return {AsyncSqlService} 
- */
-AsyncSqlService.createEventBusProxy = function(vertx, address) {
-  var __args = arguments;
-  if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return new AsyncSqlService(JAsyncSqlService["createEventBusProxy(io.vertx.core.Vertx,java.lang.String)"](vertx._jdel, address));
   } else utils.invalidArgs();
 };
 

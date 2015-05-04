@@ -1,6 +1,6 @@
 = Vert.x MySQL / PostgreSQL service
 
-The `link:jsdoc/async_sql_service-AsyncSqlService.html[MySQL / PostgreSQL Service]` is responsible for providing an
+The `link:jsdoc/async_sql_client-AsyncSQLClient.html[MySQL / PostgreSQL Service]` is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
 It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[open source driver] to interact with the MySQL
@@ -43,28 +43,27 @@ from wherever you are and just use that:
 
 [source,java]
 ----
-var AsyncSqlService = require("vertx-mysql-postgresql-js/async_sql_service");
 
-var proxy = AsyncSqlService.createEventBusProxy(vertx, "vertx.mysql");
-
-// Now do stuff with it:
-
-proxy.getConnection(function (res, res_err) {
-  if (res_err == null) {
-
-    var connection = res;
-
-    connection.query("SELECT * FROM some_table", function (res2, res2_err) {
-      if (res2_err == null) {
-
-        var rs = res2;
-        // Do something with results
-      };
-    });
-  } else {
-    // Failed to get connection - deal with it
-  };
-});
+//    AsyncSqlService proxy = AsyncSqlService.createEventBusProxy(vertx, "vertx.mysql");
+//
+//    // Now do stuff with it:
+//
+//    proxy.getConnection(res -> {
+//      if (res.succeeded()) {
+//
+//        SQLConnection connection = res.result();
+//
+//        connection.query("SELECT * FROM some_table", res2 -> {
+//          if (res2.succeeded()) {
+//
+//            ResultSet rs = res2.result();
+//            // Do something with results
+//          }
+//        });
+//      } else {
+//        // Failed to get connection - deal with it
+//      }
+//    });
 
 ----
 
@@ -72,34 +71,31 @@ Alternatively you can create an instance of the service directly and just use th
 
 [source,java]
 ----
-var AsyncSqlService = require("vertx-mysql-postgresql-js/async_sql_service");
 
-var config = {
-  "host" : "mymysqldb.mycompany"
-};
-
-var mySqlService = AsyncSqlService.createMySqlService(vertx, config);
-
-mySqlService.start(function (res, res_err) {
-  if (res_err == null) {
-
-    // Started OK - now ready to use!
-  } else {
-    // Failed to start
-  };
-});
+//    JsonObject config = new JsonObject().put("host", "mymysqldb.mycompany");
+//
+//    AsyncSQLClient mySqlService = AsyncSQLClient.createMySqlService(vertx, config);
+//
+//    mySqlService.start(res -> {
+//      if (res.succeeded()) {
+//
+//        // Started OK - now ready to use!
+//      } else {
+//        // Failed to start
+//      }
+//    });
 
 
 ----
 
-If you create an instance this way you should make sure you start it with `link:jsdoc/async_sql_service-AsyncSqlService.html#start[start]`
+If you create an instance this way you should make sure you start it with `link:jsdoc/async_sql_client-AsyncSQLClient.html#start[start]`
 before you use it.
 
 However you do it, once you've got your service you can start using it.
 
 == Getting a connection
 
-Use `link:jsdoc/async_sql_service-AsyncSqlService.html#getConnection[getConnection]` to get a connection.
+Use `link:jsdoc/async_sql_client-AsyncSQLClient.html#getConnection[getConnection]` to get a connection.
 
 This will return the connection in the handler when one is ready from the pool.
 
@@ -125,7 +121,7 @@ service.getConnection(function (res, res_err) {
 
 Once you've finished with the connection make sure you close it afterwards.
 
-The connection is an instance of `link:../../vertx-sql-common/js/jsdoc/sql_connection-SqlConnection.html[SqlConnection]` which is a common interface used by
+The connection is an instance of `link:../../vertx-sql-common/js/jsdoc/sql_connection-SQLConnection.html[SQLConnection]` which is a common interface used by
 more than Vert.x sql service.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.
