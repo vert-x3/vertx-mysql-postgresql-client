@@ -105,7 +105,7 @@
  * Once you've finished with the connection make sure you close it afterwards.
  *
  * The connection is an instance of {@link io.vertx.ext.sql.SQLConnection} which is a common interface used by
- * more than Vert.x sql service.
+ * othe SQL clients.
  *
  * You can learn how to use it in the http://foobar[common sql interface] documentation.
  *

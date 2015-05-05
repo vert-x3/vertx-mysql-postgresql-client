@@ -86,11 +86,11 @@ public class Examples {
     AsyncSQLClient postgreSQLClient = PostgreSQLClient.createNonShared(vertx, config);
   }
 
-  public void example4(AsyncSQLClient service) {
+  public void example4(AsyncSQLClient client) {
 
     // Now do stuff with it:
 
-    service.getConnection(res -> {
+    client.getConnection(res -> {
       if (res.succeeded()) {
 
         SQLConnection connection = res.result();

@@ -136,7 +136,7 @@ This will return the connection in the handler when one is ready from the pool.
 
 // Now do stuff with it:
 
-service.getConnection({ res ->
+client.getConnection({ res ->
   if (res.succeeded()) {
 
     def connection = res.result()
@@ -154,7 +154,7 @@ service.getConnection({ res ->
 Once you've finished with the connection make sure you close it afterwards.
 
 The connection is an instance of `link:../../vertx-sql-common/groovy/groovydoc/io/vertx/groovy/ext/sql/SQLConnection.html[SQLConnection]` which is a common interface used by
-more than Vert.x sql service.
+othe SQL clients.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.
 

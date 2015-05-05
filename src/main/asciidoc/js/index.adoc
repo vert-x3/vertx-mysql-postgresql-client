@@ -136,7 +136,7 @@ This will return the connection in the handler when one is ready from the pool.
 
 // Now do stuff with it:
 
-service.getConnection(function (res, res_err) {
+client.getConnection(function (res, res_err) {
   if (res_err == null) {
 
     var connection = res;
@@ -154,7 +154,7 @@ service.getConnection(function (res, res_err) {
 Once you've finished with the connection make sure you close it afterwards.
 
 The connection is an instance of `link:../../vertx-sql-common/js/jsdoc/sql_connection-SQLConnection.html[SQLConnection]` which is a common interface used by
-more than Vert.x sql service.
+othe SQL clients.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.
 

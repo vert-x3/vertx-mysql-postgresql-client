@@ -52,7 +52,7 @@ trait BaseSQLClient {
   }
 
   def close(stopped: Handler[AsyncResult[Void]]): Unit = {
-    logger.info(s"Stopping AsyncSqlService:${getClass.getName}")
+    logger.info(s"Stopping AsyncSqlClient:${getClass.getName}")
     pool.close() onComplete {
       case Success(p) => stopped.handle(VFuture.succeededFuture())
       case Failure(ex) => stopped.handle(VFuture.failedFuture(ex))

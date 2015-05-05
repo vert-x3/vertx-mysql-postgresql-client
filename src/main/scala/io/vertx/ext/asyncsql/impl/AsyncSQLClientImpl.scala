@@ -10,7 +10,7 @@ import io.vertx.ext.sql.SQLConnection
  */
 class AsyncSQLClientImpl(vertx: Vertx, config: JsonObject, mysql: Boolean) extends AsyncSQLClient {
 
-  val baseService: BaseSQLClient = {
+  val baseClient: BaseSQLClient = {
     if (mysql) {
       new MySQLClient(vertx, config)
     } else {
@@ -18,11 +18,11 @@ class AsyncSQLClientImpl(vertx: Vertx, config: JsonObject, mysql: Boolean) exten
     }
   }
 
-  override def close(whenDone: Handler[AsyncResult[Void]]): Unit = baseService.close(whenDone)
+  override def close(whenDone: Handler[AsyncResult[Void]]): Unit = baseClient.close(whenDone)
 
-  override def close(): Unit = baseService.close(null)
+  override def close(): Unit = baseClient.close(null)
 
   override def getConnection(handler: Handler[AsyncResult[SQLConnection]]): Unit = {
-    baseService.getConnection(handler)
+    baseClient.getConnection(handler)
   }
 }

@@ -9,7 +9,7 @@ import io.vertx.core.{AsyncResult, Handler}
  */
 abstract class DirectTestBase extends SQLTestBase with ConfigProvider {
 
-  def asyncSqlService: AsyncSQLClient
+  def asyncSqlClient: AsyncSQLClient
 
   override def await() = super.await()
 
@@ -20,7 +20,7 @@ abstract class DirectTestBase extends SQLTestBase with ConfigProvider {
 
   override def tearDown(): Unit = {
     val latch: CountDownLatch = new CountDownLatch(1)
-    asyncSqlService.close(new Handler[AsyncResult[Void]]() {
+    asyncSqlClient.close(new Handler[AsyncResult[Void]]() {
       override def handle(event: AsyncResult[Void]): Unit = latch.countDown()
     })
     awaitLatch(latch)

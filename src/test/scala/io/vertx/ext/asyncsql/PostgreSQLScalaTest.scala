@@ -5,6 +5,6 @@ package io.vertx.ext.asyncsql
  */
 class PostgreSQLScalaTest extends DirectTestBase with PostgreSQLConfig {
 
-  override lazy val asyncSqlService = PostgreSQLClient.createNonShared(vertx, config)
+  override lazy val asyncSqlClient = PostgreSQLClient.createNonShared(vertx, config)
 
 }
