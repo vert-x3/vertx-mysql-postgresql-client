@@ -16,12 +16,12 @@
 
 package examples;
 
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.asyncsql.AsyncSqlService;
-import io.vertx.ext.sql.ResultSet;
-import io.vertx.ext.sql.SqlConnection;
+import io.vertx.ext.asyncsql.AsyncSQLClient;
+import io.vertx.ext.asyncsql.MySQLClient;
+import io.vertx.ext.asyncsql.PostgreSQLClient;
+import io.vertx.ext.sql.SQLConnection;
 
 /**
   *
@@ -29,71 +29,71 @@ import io.vertx.ext.sql.SqlConnection;
   */
 public class Examples {
 
-  public void example1(Vertx vertx) {
+  public void exampleCreateDefault(Vertx vertx) {
 
-    // Deploy service - can be anywhere on your network
-    JsonObject config = new JsonObject().put("host", "mymysqldb.mycompany");
-    DeploymentOptions options = new DeploymentOptions().setConfig(config);
+    // To create a MySQL client:
 
-    // Service name is "io.vertx:vertx-postgresql-service" if you want postgreSql
-    vertx.deployVerticle("service:io.vertx.mysql-service", options, res -> {
-      if (res.succeeded()) {
-        // Deployed ok
-      } else {
-        // Failed to deploy
-      }
-    });
+    JsonObject mySQLClientConfig = new JsonObject().put("host", "mymysqldb.mycompany");
+    AsyncSQLClient mySQLClient = MySQLClient.createShared(vertx, mySQLClientConfig);
+
+    // To create a PostgreSQL client:
+
+    JsonObject postgreSQLClientConfig = new JsonObject().put("host", "mypostgresqldb.mycompany");
+    AsyncSQLClient postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConfig);
+
+  }
+
+  public void exampleCreatePoolName(Vertx vertx) {
+
+    // To create a MySQL client:
+
+    JsonObject mySQLClientConfig = new JsonObject().put("host", "mymysqldb.mycompany");
+    AsyncSQLClient mySQLClient = MySQLClient.createShared(vertx, mySQLClientConfig, "MySQLPool1");
+
+    // To create a PostgreSQL client:
+
+    JsonObject postgreSQLClientConfig = new JsonObject().put("host", "mypostgresqldb.mycompany");
+    AsyncSQLClient postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConfig, "PostgreSQLPool1");
+
+  }
+
+  public void exampleCreateNonShared(Vertx vertx) {
+
+    // To create a MySQL client:
+
+    JsonObject mySQLClientConfig = new JsonObject().put("host", "mymysqldb.mycompany");
+    AsyncSQLClient mySQLClient = MySQLClient.createNonShared(vertx, mySQLClientConfig);
+
+    // To create a PostgreSQL client:
+
+    JsonObject postgreSQLClientConfig = new JsonObject().put("host", "mypostgresqldb.mycompany");
+    AsyncSQLClient postgreSQLClient = PostgreSQLClient.createNonShared(vertx, postgreSQLClientConfig);
+
   }
 
   public void example2(Vertx vertx) {
 
-    AsyncSqlService proxy = AsyncSqlService.createEventBusProxy(vertx, "vertx.mysql");
+    JsonObject config = new JsonObject().put("host", "mymysqldb.mycompany");
 
-    // Now do stuff with it:
+    AsyncSQLClient mySQLClient = MySQLClient.createNonShared(vertx, config);
 
-    proxy.getConnection(res -> {
-      if (res.succeeded()) {
-
-        SqlConnection connection = res.result();
-
-        connection.query("SELECT * FROM some_table", res2 -> {
-          if (res2.succeeded()) {
-
-            ResultSet rs = res2.result();
-            // Do something with results
-          }
-        });
-      } else {
-        // Failed to get connection - deal with it
-      }
-    });
   }
 
   public void example3(Vertx vertx) {
 
-    JsonObject config = new JsonObject().put("host", "mymysqldb.mycompany");
+    JsonObject config = new JsonObject().put("host", "mypostgresqldb.mycompany");
 
-    AsyncSqlService mySqlService = AsyncSqlService.createMySqlService(vertx, config);
-
-    mySqlService.start(res -> {
-      if (res.succeeded()) {
-
-        // Started OK - now ready to use!
-      } else {
-        // Failed to start
-      }
-    });
-
+    AsyncSQLClient postgreSQLClient = PostgreSQLClient.createNonShared(vertx, config);
   }
 
-  public void example4(AsyncSqlService service) {
+  public void example4(AsyncSQLClient client) {
 
     // Now do stuff with it:
 
-    service.getConnection(res -> {
+    client.getConnection(res -> {
       if (res.succeeded()) {
 
-        SqlConnection connection = res.result();
+        SQLConnection connection = res.result();
 
         // Got a connection
 

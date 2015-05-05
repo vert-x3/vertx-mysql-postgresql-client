@@ -1,114 +1,142 @@
-= Vert.x MySQL / PostgreSQL service
+= Vert.x MySQL / PostgreSQL client
 
-The `link:jsdoc/async_sql_service-AsyncSqlService.html[MySQL / PostgreSQL Service]` is responsible for providing an
+The `link:jsdoc/async_sql_client-AsyncSQLClient.html[MySQL / PostgreSQL Client]` is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
 It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[open source driver] to interact with the MySQL
 or PostgreSQL databases in a non blocking way
 
-== Setting up the service
+== Creating a the client
 
-As with other services you can use the service either by deploying it as a verticle somewhere on your network and
-interacting with it over the event bus, either directly by sending messages, or using a service proxy, e.g.
+There are several ways to create a client. Let's go through them all.
 
-Somewhere you deploy it:
+=== Using default shared pool
+
+In most cases you will want to share a pool between different client instances.
+
+E.g. you scale your application by deploying multiple instances of your verticle and you want each verticle instance
+to share the same pool so you don't end up with multiple pools
+
+You do this as follows:
 
 [source,java]
 ----
+var MySQLClient = require("vertx-mysql-postgresql-js/my_sql_client");
+var PostgreSQLClient = require("vertx-mysql-postgresql-js/postgre_sql_client");
 
-// Deploy service - can be anywhere on your network
-var config = {
+// To create a MySQL client:
+
+var mySQLClientConfig = {
   "host" : "mymysqldb.mycompany"
 };
-var options = {
-  "config" : config
+var mySQLClient = MySQLClient.createShared(vertx, mySQLClientConfig);
+
+// To create a PostgreSQL client:
+
+var postgreSQLClientConfig = {
+  "host" : "mypostgresqldb.mycompany"
 };
+var postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConfig);
 
-// Service name is "io.vertx:vertx-postgresql-service" if you want postgreSql
-vertx.deployVerticle("service:io.vertx.mysql-service", options, function (res, res_err) {
-  if (res_err == null) {
-    // Deployed ok
-  } else {
-    // Failed to deploy
-  };
-});
 
 ----
 
-The service name for the mysql service is `io.vertx.mysql-service` and the service name for the postgreSQL service
-is `service:io.vertx.postgresql-service`.
+The first call to `link:jsdoc/my_sql_client-MySQLClient.html#createShared[MySQLClient.createShared]`
+or `link:jsdoc/postgre_sql_client-PostgreSQLClient.html#createShared[PostgreSQLClient.createShared]`
+will actually create the data source, and the specified config will be used.
 
-Now you can either send messages to it directly over the event bus, or you can create a proxy to the service
-from wherever you are and just use that:
+Subsequent calls will return a new client instance that uses the same data source, so the configuration won't be used.
+
+=== Specifying a pool name
+
+You can create a client specifying a pool name as follows
 
 [source,java]
 ----
-var AsyncSqlService = require("vertx-mysql-postgresql-js/async_sql_service");
+var MySQLClient = require("vertx-mysql-postgresql-js/my_sql_client");
+var PostgreSQLClient = require("vertx-mysql-postgresql-js/postgre_sql_client");
 
-var proxy = AsyncSqlService.createEventBusProxy(vertx, "vertx.mysql");
+// To create a MySQL client:
 
-// Now do stuff with it:
-
-proxy.getConnection(function (res, res_err) {
-  if (res_err == null) {
-
-    var connection = res;
-
-    connection.query("SELECT * FROM some_table", function (res2, res2_err) {
-      if (res2_err == null) {
-
-        var rs = res2;
-        // Do something with results
-      };
-    });
-  } else {
-    // Failed to get connection - deal with it
-  };
-});
-
-----
-
-Alternatively you can create an instance of the service directly and just use that locally:
-
-[source,java]
-----
-var AsyncSqlService = require("vertx-mysql-postgresql-js/async_sql_service");
-
-var config = {
+var mySQLClientConfig = {
   "host" : "mymysqldb.mycompany"
 };
+var mySQLClient = MySQLClient.createShared(vertx, mySQLClientConfig, "MySQLPool1");
 
-var mySqlService = AsyncSqlService.createMySqlService(vertx, config);
+// To create a PostgreSQL client:
 
-mySqlService.start(function (res, res_err) {
-  if (res_err == null) {
-
-    // Started OK - now ready to use!
-  } else {
-    // Failed to start
-  };
-});
+var postgreSQLClientConfig = {
+  "host" : "mypostgresqldb.mycompany"
+};
+var postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConfig, "PostgreSQLPool1");
 
 
 ----
 
-If you create an instance this way you should make sure you start it with `link:jsdoc/async_sql_service-AsyncSqlService.html#start[start]`
-before you use it.
+If different clients are created using the same Vert.x instance and specifying the same pool name, they will
+share the same data source.
 
-However you do it, once you've got your service you can start using it.
+The first call to `link:jsdoc/my_sql_client-MySQLClient.html#createShared[MySQLClient.createShared]`
+or `link:jsdoc/postgre_sql_client-PostgreSQLClient.html#createShared[PostgreSQLClient.createShared]`
+will actually create the data source, and the specified config will be used.
+
+Subsequent calls will return a new client instance that uses the same pool, so the configuration won't be used.
+
+Use this way of creating if you wish different groups of clients to have different pools, e.g. they're
+interacting with different databases.
+
+=== Creating a client with a non shared data source
+
+In most cases you will want to share a pool between different client instances.
+However, it's possible you want to create a client instance that doesn't share its pool with any other client.
+
+In that case you can use `link:jsdoc/my_sql_client-MySQLClient.html#createNonShared[MySQLClient.createNonShared]`
+or `link:jsdoc/postgre_sql_client-PostgreSQLClient.html#createNonShared[PostgreSQLClient.createNonShared]`
+
+[source,java]
+----
+var MySQLClient = require("vertx-mysql-postgresql-js/my_sql_client");
+var PostgreSQLClient = require("vertx-mysql-postgresql-js/postgre_sql_client");
+
+// To create a MySQL client:
+
+var mySQLClientConfig = {
+  "host" : "mymysqldb.mycompany"
+};
+var mySQLClient = MySQLClient.createNonShared(vertx, mySQLClientConfig);
+
+// To create a PostgreSQL client:
+
+var postgreSQLClientConfig = {
+  "host" : "mypostgresqldb.mycompany"
+};
+var postgreSQLClient = PostgreSQLClient.createNonShared(vertx, postgreSQLClientConfig);
+
+
+----
+
+This is equivalent to calling `link:jsdoc/my_sql_client-MySQLClient.html#createShared[MySQLClient.createShared]`
+or `link:jsdoc/postgre_sql_client-PostgreSQLClient.html#createShared[PostgreSQLClient.createShared]`
+with a unique pool name each time.
+
+== Closing the client
+
+You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
+it, you should close it using `link:jsdoc/async_sql_client-AsyncSQLClient.html#close[close]` or
+`link:jsdoc/async_sql_client-AsyncSQLClient.html#close[close]`
 
 == Getting a connection
 
-Use `link:jsdoc/async_sql_service-AsyncSqlService.html#getConnection[getConnection]` to get a connection.
+Use `link:jsdoc/async_sql_client-AsyncSQLClient.html#getConnection[getConnection]` to get a connection.
 
 This will return the connection in the handler when one is ready from the pool.
 
-* [source,java]
+[source,java]
 ----
 
 // Now do stuff with it:
 
-service.getConnection(function (res, res_err) {
+client.getConnection(function (res, res_err) {
   if (res_err == null) {
 
     var connection = res;
@@ -125,8 +153,8 @@ service.getConnection(function (res, res_err) {
 
 Once you've finished with the connection make sure you close it afterwards.
 
-The connection is an instance of `link:../../vertx-sql-common/js/jsdoc/sql_connection-SqlConnection.html[SqlConnection]` which is a common interface used by
-more than Vert.x sql service.
+The connection is an instance of `link:../../vertx-sql-common/js/jsdoc/sql_connection-SQLConnection.html[SQLConnection]` which is a common interface used by
+othe SQL clients.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.
 
@@ -137,11 +165,10 @@ Whenever you get dates back from the database, this service will implicitly conv
 
 == Configuration
 
-Both the PostgreSql and MySql services take the same configuration:
+Both the PostgreSql and MySql clients take the same configuration:
 
 ----
 {
-  "address" : <event-bus-address-to-listen-on>,
   "host" : <your-host>,
   "port" : <your-port>,
   "maxPoolSize" : <maximum-number-of-open-connections>,
@@ -151,7 +178,6 @@ Both the PostgreSql and MySql services take the same configuration:
 }
 ----
 
-`address`:: The address this service should register on the event bus. Defaults to `vertx.postgresql` or `vertx.mysql`.
 `host`:: The host of the database. Defaults to `localhost`.
 `port`:: The port of the database. Defaults to `5432` for PostgreSQL and `3306` for MySQL.
 `maxPoolSize`:: The number of connections that may be kept open. Defaults to `10`.

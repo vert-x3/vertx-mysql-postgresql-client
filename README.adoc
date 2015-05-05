@@ -1,7 +1,7 @@
-= Vert.x MySQL PostgreSQL Service
+= Vert.x MySQL PostgreSQL client
 
-This Vert.x service uses the https://github.com/mauricio/postgresql-async[Mauricio Linhares driver] to support
-a fully async service for MySQL and PostgreSQL.
+This Vert.x client uses the https://github.com/mauricio/postgresql-async[Mauricio Linhares driver] to support
+a fully async client for MySQL and PostgreSQL.
 
 Please see the in source asciidoc documentation or the main documentation on the web-site for a full description:
 

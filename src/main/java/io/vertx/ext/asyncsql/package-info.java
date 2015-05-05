@@ -15,64 +15,97 @@
  */
 
 /**
- * = Vert.x MySQL / PostgreSQL service
+ * = Vert.x MySQL / PostgreSQL client
  *
- * The {@link io.vertx.ext.asyncsql.AsyncSqlService MySQL / PostgreSQL Service} is responsible for providing an
+ * The {@link io.vertx.ext.asyncsql.AsyncSQLClient MySQL / PostgreSQL Client} is responsible for providing an
  * interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
  *
  * It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[open source driver] to interact with the MySQL
  * or PostgreSQL databases in a non blocking way
  *
- * == Setting up the service
+ * == Creating a the client
  *
- * As with other services you can use the service either by deploying it as a verticle somewhere on your network and
- * interacting with it over the event bus, either directly by sending messages, or using a service proxy, e.g.
+ * There are several ways to create a client. Let's go through them all.
  *
- * Somewhere you deploy it:
+ * === Using default shared pool
  *
- * [source,java]
- * ----
- * {@link examples.Examples#example1}
- * ----
+ * In most cases you will want to share a pool between different client instances.
  *
- * The service name for the mysql service is `io.vertx.mysql-service` and the service name for the postgreSQL service
- * is `service:io.vertx.postgresql-service`.
+ * E.g. you scale your application by deploying multiple instances of your verticle and you want each verticle instance
+ * to share the same pool so you don't end up with multiple pools
  *
- * Now you can either send messages to it directly over the event bus, or you can create a proxy to the service
- * from wherever you are and just use that:
+ * You do this as follows:
  *
  * [source,java]
  * ----
- * {@link examples.Examples#example2}
+ * {@link examples.Examples#exampleCreateDefault}
  * ----
  *
- * Alternatively you can create an instance of the service directly and just use that locally:
+ * The first call to {@link io.vertx.ext.asyncsql.MySQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject)}
+ * or {@link io.vertx.ext.asyncsql.PostgreSQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject)}
+ * will actually create the data source, and the specified config will be used.
+ *
+ * Subsequent calls will return a new client instance that uses the same data source, so the configuration won't be used.
+ *
+ * === Specifying a pool name
+ *
+ * You can create a client specifying a pool name as follows
  *
  * [source,java]
  * ----
- * {@link examples.Examples#example3}
+ * {@link examples.Examples#exampleCreatePoolName}
  * ----
  *
- * If you create an instance this way you should make sure you start it with {@link io.vertx.ext.asyncsql.AsyncSqlService#start(io.vertx.core.Handler)}
- * before you use it.
+ * If different clients are created using the same Vert.x instance and specifying the same pool name, they will
+ * share the same data source.
  *
- * However you do it, once you've got your service you can start using it.
+ * The first call to {@link io.vertx.ext.asyncsql.MySQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject, String)}
+ * or {@link io.vertx.ext.asyncsql.PostgreSQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject, String)}
+ * will actually create the data source, and the specified config will be used.
+ *
+ * Subsequent calls will return a new client instance that uses the same pool, so the configuration won't be used.
+ *
+ * Use this way of creating if you wish different groups of clients to have different pools, e.g. they're
+ * interacting with different databases.
+ *
+ * === Creating a client with a non shared data source
+ *
+ * In most cases you will want to share a pool between different client instances.
+ * However, it's possible you want to create a client instance that doesn't share its pool with any other client.
+ *
+ * In that case you can use {@link io.vertx.ext.asyncsql.MySQLClient#createNonShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject)}
+ * or {@link io.vertx.ext.asyncsql.PostgreSQLClient#createNonShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject)}
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#exampleCreateNonShared}
+ * ----
+ *
+ * This is equivalent to calling {@link io.vertx.ext.asyncsql.MySQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject, String)}
+ * or {@link io.vertx.ext.asyncsql.PostgreSQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject, String)}
+ * with a unique pool name each time.
+ *
+ * == Closing the client
+ *
+ * You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
+ * it, you should close it using {@link io.vertx.ext.asyncsql.AsyncSQLClient#close(io.vertx.core.Handler)} or
+ * {@link io.vertx.ext.asyncsql.AsyncSQLClient#close()}
  *
  * == Getting a connection
  *
- * Use {@link io.vertx.ext.asyncsql.AsyncSqlService#getConnection(io.vertx.core.Handler)} to get a connection.
+ * Use {@link io.vertx.ext.asyncsql.AsyncSQLClient#getConnection(io.vertx.core.Handler)} to get a connection.
  *
  * This will return the connection in the handler when one is ready from the pool.
  *
- * * [source,java]
+ * [source,java]
  * ----
  * {@link examples.Examples#example4}
  * ----
  *
  * Once you've finished with the connection make sure you close it afterwards.
  *
- * The connection is an instance of {@link io.vertx.ext.sql.SqlConnection} which is a common interface used by
- * more than Vert.x sql service.
+ * The connection is an instance of {@link io.vertx.ext.sql.SQLConnection} which is a common interface used by
+ * othe SQL clients.
  *
  * You can learn how to use it in the http://foobar[common sql interface] documentation.
  *
@@ -83,11 +116,10 @@
  *
  * == Configuration
  *
- * Both the PostgreSql and MySql services take the same configuration:
+ * Both the PostgreSql and MySql clients take the same configuration:
  *
  * ----
  * {
- *   "address" : <event-bus-address-to-listen-on>,
  *   "host" : <your-host>,
  *   "port" : <your-port>,
  *   "maxPoolSize" : <maximum-number-of-open-connections>,
@@ -97,7 +129,6 @@
  * }
  * ----
  *
- * `address`:: The address this service should register on the event bus. Defaults to `vertx.postgresql` or `vertx.mysql`.
  * `host`:: The host of the database. Defaults to `localhost`.
  * `port`:: The port of the database. Defaults to `5432` for PostgreSQL and `3306` for MySQL.
  * `maxPoolSize`:: The number of connections that may be kept open. Defaults to `10`.

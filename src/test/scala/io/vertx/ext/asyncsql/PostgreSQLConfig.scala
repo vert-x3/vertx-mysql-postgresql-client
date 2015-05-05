@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonObject
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-trait ConfigProvider {
-  def config: JsonObject = new JsonObject()
+trait PostgreSQLConfig extends ConfigProvider {
+  this: SQLTestBase =>
+
 }

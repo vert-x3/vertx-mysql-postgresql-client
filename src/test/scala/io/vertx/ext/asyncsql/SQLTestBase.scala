@@ -5,7 +5,7 @@ import io.vertx.core.logging.Logger
 import io.vertx.core.logging.impl.LoggerFactory
 import io.vertx.core.{AsyncResult, Handler}
 import io.vertx.ext.asyncsql.impl.pool.SimpleExecutionContext
-import io.vertx.ext.sql.SqlConnection
+import io.vertx.ext.sql.SQLConnection
 import io.vertx.test.core.VertxTestBase
 import org.junit.Test
 
@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-abstract class SqlTestBase extends VertxTestBase with TestData {
+abstract class SQLTestBase extends VertxTestBase with TestData {
 
   protected val log: Logger = LoggerFactory.getLogger(super.getClass)
   implicit val executionContext: ExecutionContext = SimpleExecutionContext.apply(log)
@@ -23,12 +23,12 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
 
   def config: JsonObject
 
-  def asyncSqlService: AsyncSqlService
+  def asyncSqlClient: AsyncSQLClient
 
   @Test
   def simpleConnection(): Unit = completeTest {
     for {
-      conn <- arhToFuture(asyncSqlService.getConnection _)
+      conn <- arhToFuture(asyncSqlClient.getConnection _)
       res <- arhToFuture((conn.query _).curried("SELECT 1 AS something"))
     } yield {
       assertNotNull(res)
@@ -43,7 +43,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
   @Test
   def simpleSelect(): Unit = completeTest {
     for {
-      conn <- arhToFuture(asyncSqlService.getConnection _)
+      conn <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- setupSimpleTestTable(conn)
       res <- arhToFuture((conn.queryWithParams _).curried("SELECT name FROM test_table WHERE id=?")(new JsonArray().add(2)))
     } yield {
@@ -59,7 +59,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     val id = 0
     val name = "Adele"
     for {
-      conn <- arhToFuture(asyncSqlService.getConnection _)
+      conn <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- setupSimpleTestTable(conn)
       updateRes <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
       selectRes <- arhToFuture((conn.query _).curried("SELECT name FROM test_table ORDER BY id"))
@@ -78,7 +78,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     val name = "Adele"
 
     for {
-      conn <- arhToFuture(asyncSqlService.getConnection _)
+      conn <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- setupSimpleTestTable(conn)
       _ <- arhToFuture((conn.setAutoCommit _).curried(false))
       updateRes <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
@@ -104,10 +104,10 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     val name = "Adele"
 
     for {
-      conn <- arhToFuture(asyncSqlService.getConnection _)
+      conn <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- setupSimpleTestTable(conn)
-      c1 <- arhToFuture(asyncSqlService.getConnection _)
-      c2 <- arhToFuture(asyncSqlService.getConnection _)
+      c1 <- arhToFuture(asyncSqlClient.getConnection _)
+      c2 <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- arhToFuture((c1.setAutoCommit _).curried(false))
       c1Update <- arhToFuture((c1.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
       c2Select <- arhToFuture((c2.query _).curried("SELECT name FROM test_table ORDER BY id"))
@@ -127,10 +127,10 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     val name = "Adele"
 
     for {
-      conn <- arhToFuture(asyncSqlService.getConnection _)
+      conn <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- setupSimpleTestTable(conn)
-      c1 <- arhToFuture(asyncSqlService.getConnection _)
-      c2 <- arhToFuture(asyncSqlService.getConnection _)
+      c1 <- arhToFuture(asyncSqlClient.getConnection _)
+      c2 <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- arhToFuture((c1.setAutoCommit _).curried(false))
       c1Update <- arhToFuture((c1.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
       _ <- arhToFuture((c1.setAutoCommit _).curried(true))
@@ -150,7 +150,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     val name = "Adele"
 
     for {
-      conn <- arhToFuture(asyncSqlService.getConnection _)
+      conn <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- setupSimpleTestTable(conn)
       _ <- arhToFuture((conn.setAutoCommit _).curried(false))
       _ <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
@@ -173,7 +173,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     val name = "Adele"
 
     for {
-      conn <- arhToFuture(asyncSqlService.getConnection _)
+      conn <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- setupSimpleTestTable(conn)
       _ <- arhToFuture((conn.setAutoCommit _).curried(false))
       _ <- arhToFuture((conn.updateWithParams _).curried("UPDATE test_table SET name=? WHERE id=?")(new JsonArray().add(name).add(id)))
@@ -196,7 +196,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     val name = "Adele"
 
     for {
-      c <- arhToFuture(asyncSqlService.getConnection _)
+      c <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- setupSimpleTestTable(c)
       i <- arhToFuture((c.updateWithParams _).curried("INSERT INTO test_table (id, name) VALUES (?, ?)")(new JsonArray().add(id).add(name)))
       s <- arhToFuture((c.query _).curried("SELECT id, name FROM test_table ORDER BY id"))
@@ -214,7 +214,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
   @Test
   def selectNullValues(): Unit = completeTest {
     for {
-      c <- arhToFuture(asyncSqlService.getConnection _)
+      c <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- arhToFuture((c.execute _).curried("DROP TABLE IF EXISTS test_nulls_table"))
       _ <- arhToFuture((c.execute _).curried(
         """CREATE TABLE test_nulls_table (
@@ -240,7 +240,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
   @Test
   def selectDateValues(): Unit = completeTest {
     for {
-      c <- arhToFuture(asyncSqlService.getConnection _)
+      c <- arhToFuture(asyncSqlClient.getConnection _)
       _ <- arhToFuture((c.execute _).curried("DROP TABLE IF EXISTS test_date_table"))
       _ <- arhToFuture((c.execute _).curried(
         """CREATE TABLE test_date_table (
@@ -272,7 +272,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     p.future
   }
 
-  private def completeTest(f: Future[SqlConnection]): Unit = {
+  private def completeTest(f: Future[SQLConnection]): Unit = {
     (for {
       conn <- f
       _ <- arhToFuture(conn.close _)
@@ -288,7 +288,7 @@ abstract class SqlTestBase extends VertxTestBase with TestData {
     await()
   }
 
-  private def setupSimpleTestTable(conn: SqlConnection): Future[SqlConnection] = {
+  private def setupSimpleTestTable(conn: SQLConnection): Future[SQLConnection] = {
     for {
       _ <- arhToFuture((conn.execute _).curried("BEGIN"))
       _ <- arhToFuture((conn.execute _).curried("DROP TABLE IF EXISTS test_table"))

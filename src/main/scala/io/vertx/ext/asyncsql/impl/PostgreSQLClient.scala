@@ -7,7 +7,7 @@ import io.vertx.ext.asyncsql.impl.pool.PostgresqlAsyncConnectionPool
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-class PostgresqlService(val vertx: Vertx, val config: JsonObject) extends BaseSqlService {
+class PostgreSQLClient(val vertx: Vertx, val config: JsonObject) extends BaseSQLClient {
 
   override protected val poolFactory = PostgresqlAsyncConnectionPool.apply _
 
