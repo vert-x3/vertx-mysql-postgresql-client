@@ -27,7 +27,7 @@ import org.junit.Test;
 public class RefCountTest extends VertxTestBase {
 
   private LocalMap<String, Object> getLocalMap() {
-    return vertx.sharedData().getLocalMap("__vertx.MySQLPostgreSQL.datasources.MySQL");
+    return vertx.sharedData().getLocalMap("__vertx.MySQLPostgreSQL.pools.MySQL");
   }
 
   @Test

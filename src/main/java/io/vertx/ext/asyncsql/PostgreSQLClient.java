@@ -36,7 +36,7 @@ public interface PostgreSQLClient extends AsyncSQLClient {
   public static final String DEFAULT_DS_NAME = "DEFAULT_POSTGRESQL_DS";
 
   /**
-   * Create a PostgreSQL client which maintains its own data source.
+   * Create a PostgreSQL client which maintains its own pool.
    *
    * @param vertx  the Vert.x instance
    * @param config  the configuration
@@ -47,20 +47,20 @@ public interface PostgreSQLClient extends AsyncSQLClient {
   }
 
   /**
-   * Create a PostgreSQL client which shares its data source with any other MySQL clients created with the same
-   * data source name
+   * Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same
+   * pool name
    *
    * @param vertx  the Vert.x instance
    * @param config  the configuration
-   * @param dataSourceName  the data source name
+   * @param poolName  the pool name
    * @return the client
    */
-  static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String dataSourceName) {
-    return ClientHelper.getOrCreate(vertx, config, dataSourceName, false);
+  static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String poolName) {
+    return ClientHelper.getOrCreate(vertx, config, poolName, false);
   }
 
   /**
-   * Like {@link #createShared(io.vertx.core.Vertx, JsonObject, String)} but with the default data source name
+   * Like {@link #createShared(io.vertx.core.Vertx, JsonObject, String)} but with the default pool name
    * @param vertx  the Vert.x instance
    * @param config  the configuration
    * @return the client

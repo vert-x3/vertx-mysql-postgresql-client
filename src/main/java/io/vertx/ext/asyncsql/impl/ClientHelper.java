@@ -33,19 +33,15 @@ import io.vertx.ext.asyncsql.AsyncSQLClient;
  */
 public class ClientHelper {
 
-  private static final String DS_LOCAL_MAP_NAME_BASE =  "__vertx.MySQLPostgreSQL.datasources.";
+  private static final String DS_LOCAL_MAP_NAME_BASE =  "__vertx.MySQLPostgreSQL.pools.";
 
-  public static AsyncSQLClient getOrCreate(Vertx vertx, JsonObject config, String dataSourceName, boolean mySQL) {
-    return lookupClient(vertx, config, dataSourceName, mySQL);
-  }
-
-  private static AsyncSQLClient lookupClient(Vertx vertx, JsonObject config, String datasourceName, boolean mySQL) {
+  public static AsyncSQLClient getOrCreate(Vertx vertx, JsonObject config, String poolName, boolean mySQL) {
     synchronized (vertx) {
       LocalMap<String, ClientHolder> map = vertx.sharedData().getLocalMap(DS_LOCAL_MAP_NAME_BASE + (mySQL ? "MySQL" : "PostgreSQL"));
-      ClientHolder theHolder = map.get(datasourceName);
+      ClientHolder theHolder = map.get(poolName);
       if (theHolder == null) {
-        theHolder = new ClientHolder(vertx, config, mySQL, () -> removeFromMap(vertx, map, datasourceName));
-        map.put(datasourceName, theHolder);
+        theHolder = new ClientHolder(vertx, config, mySQL, () -> removeFromMap(vertx, map, poolName));
+        map.put(poolName, theHolder);
       } else {
         theHolder.incRefCount();
       }
@@ -53,9 +49,9 @@ public class ClientHelper {
     }
   }
 
-  private static void removeFromMap(Vertx vertx, LocalMap<String, ClientHolder> map, String dataSourceName) {
+  private static void removeFromMap(Vertx vertx, LocalMap<String, ClientHolder> map, String poolName) {
     synchronized (vertx) {
-      map.remove(dataSourceName);
+      map.remove(poolName);
       if (map.isEmpty()) {
         map.close();
       }

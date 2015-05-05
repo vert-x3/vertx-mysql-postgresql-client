@@ -27,7 +27,7 @@
  *
  * There are several ways to create a client. Let's go through them all.
  *
- * === Using default shared data source
+ * === Using default shared pool
  *
  * In most cases you will want to share a pool between different client instances.
  *

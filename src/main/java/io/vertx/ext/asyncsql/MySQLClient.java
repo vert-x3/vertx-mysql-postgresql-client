@@ -33,10 +33,10 @@ import java.util.UUID;
 @VertxGen
 public interface MySQLClient extends AsyncSQLClient {
 
-  public static final String DEFAULT_DS_NAME = "DEFAULT_MYSQL_DS";
+  public static final String DEFAULT_POOL_NAME = "DEFAULT_MYSQL_POOL";
 
   /**
-   * Create a MySQL client which maintains its own data source.
+   * Create a MySQL client which maintains its own pool.
    *
    * @param vertx  the Vert.x instance
    * @param config  the configuration
@@ -52,21 +52,21 @@ public interface MySQLClient extends AsyncSQLClient {
    *
    * @param vertx  the Vert.x instance
    * @param config  the configuration
-   * @param dataSourceName  the data source name
+   * @param poolName  the pool name
    * @return the client
    */
-  static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String dataSourceName) {
-    return ClientHelper.getOrCreate(vertx, config, dataSourceName, true);
+  static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String poolName) {
+    return ClientHelper.getOrCreate(vertx, config, poolName, true);
   }
 
   /**
-   * Like {@link #createShared(io.vertx.core.Vertx, JsonObject, String)} but with the default data source name
+   * Like {@link #createShared(io.vertx.core.Vertx, JsonObject, String)} but with the default pool name
    * @param vertx  the Vert.x instance
    * @param config  the configuration
    * @return the client
    */
   static AsyncSQLClient createShared(Vertx vertx, JsonObject config) {
-    return ClientHelper.getOrCreate(vertx, config, DEFAULT_DS_NAME, true);
+    return ClientHelper.getOrCreate(vertx, config, DEFAULT_POOL_NAME, true);
   }
 
 
