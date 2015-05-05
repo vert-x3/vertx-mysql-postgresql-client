@@ -61,7 +61,6 @@ public class RefCountTest extends VertxTestBase {
     AsyncSQLClient client3 = MySQLClient.createShared(vertx, config);
     assertEquals(1, map.size());
     client1.close();
-    Thread.sleep(200);
     assertEquals(1, map.size());
     client2.close();
     assertEquals(1, map.size());
@@ -89,7 +88,6 @@ public class RefCountTest extends VertxTestBase {
     assertEquals(2, map.size());
 
     client1.close();
-    Thread.sleep(200);
     assertEquals(2, map.size());
     client2.close();
     assertEquals(2, map.size());
@@ -97,7 +95,6 @@ public class RefCountTest extends VertxTestBase {
     waitUntil(() -> map.size() == 1);
 
     client4.close();
-    Thread.sleep(200);
     assertEquals(1, map.size());
     client5.close();
     assertEquals(1, map.size());
