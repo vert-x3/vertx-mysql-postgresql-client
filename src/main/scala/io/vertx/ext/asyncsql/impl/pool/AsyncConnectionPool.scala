@@ -114,7 +114,7 @@ object AsyncConnectionPool {
   def apply(vertx: Vertx, maxPoolSize: Int, config: Configuration, factoryFn: (Vertx, Configuration, EventLoop, Int) => AsyncConnectionPool) = {
     factoryFn(vertx,
       config,
-      vertx.getOrCreateContext.asInstanceOf[EventLoopContext].getEventLoop,
+      vertx.getOrCreateContext.asInstanceOf[EventLoopContext].eventLoop,
       maxPoolSize)
   }
 
