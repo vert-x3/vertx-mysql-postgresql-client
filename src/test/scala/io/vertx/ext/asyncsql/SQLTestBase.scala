@@ -234,8 +234,10 @@ abstract class SQLTestBase extends VertxTestBase with TestData {
     }
   }
 
-  protected def dateTimeInUtc1 = "2015-02-22T07:15:01.234"
-  protected def dateTimeInUtc2 = "2014-06-27T17:50:02.468"
+  protected def insertedTime1 = "2015-02-22T07:15:01.234Z"
+  protected def expectedTime1 = "2015-02-22T07:15:01.234"
+  protected def insertedTime2 = "2014-06-27T17:50:02.468+02:00"
+  protected def expectedTime2 = "2014-06-27T17:50:02.468"
 
   @Test
   def selectDateValues(): Unit = completeTest {
@@ -248,16 +250,16 @@ abstract class SQLTestBase extends VertxTestBase with TestData {
           |  some_date DATE,
           |  some_timestamp TIMESTAMP
           |)""".stripMargin))
-      _ <- arhToFuture((c.updateWithParams _).curried(s"INSERT INTO test_date_table (id, some_date, some_timestamp) VALUES (?, ?, ?)")(new JsonArray().add(1).add("2015-02-22").add("2015-02-22T07:15:01.234Z")))
-      _ <- arhToFuture((c.updateWithParams _).curried(s"INSERT INTO test_date_table (id, some_date, some_timestamp) VALUES (?, ?, ?)")(new JsonArray().add(2).add("2007-07-20").add("2014-06-27T17:50:02.468+02:00")))
+      _ <- arhToFuture((c.updateWithParams _).curried(s"INSERT INTO test_date_table (id, some_date, some_timestamp) VALUES (?, ?, ?)")(new JsonArray().add(1).add("2015-02-22").add(insertedTime1)))
+      _ <- arhToFuture((c.updateWithParams _).curried(s"INSERT INTO test_date_table (id, some_date, some_timestamp) VALUES (?, ?, ?)")(new JsonArray().add(2).add("2007-07-20").add(insertedTime2)))
       s <- arhToFuture((c.query _).curried("SELECT id, some_date, some_timestamp FROM test_date_table ORDER BY id"))
     } yield {
       val results = s.getResults
       val fields = s.getColumnNames.asScala
       assertEquals(List("id", "some_date", "some_timestamp"), fields)
       assertEquals(List(
-        (1, "2015-02-22", dateTimeInUtc1),
-        (2, "2007-07-20", dateTimeInUtc2)
+        (1, "2015-02-22", expectedTime1),
+        (2, "2007-07-20", expectedTime2)
       ), results.asScala.map(arr => (arr.getLong(0), arr.getString(1), arr.getString(2))).toList)
       c
     }

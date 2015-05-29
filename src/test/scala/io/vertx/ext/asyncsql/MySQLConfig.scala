@@ -8,6 +8,8 @@ import io.vertx.core.json.JsonObject
 trait MySQLConfig extends ConfigProvider {
   this: SQLTestBase =>
 
-  override val dateTimeInUtc1 = "2015-02-22T07:15:01.000"
-  override val dateTimeInUtc2 = "2014-06-27T17:50:02.000"
+  override val insertedTime1 = "2015-02-22 07:15:01"
+  override val expectedTime1 = "2015-02-22T07:15:01.000"
+  override val insertedTime2 = "2014-06-27 17:50:02"
+  override val expectedTime2 = "2014-06-27T17:50:02.000"
 }
