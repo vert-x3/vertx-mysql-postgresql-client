@@ -4,7 +4,7 @@ import com.github.mauricio.async.db.Configuration
 import io.netty.channel.EventLoop
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.Logger
-import io.vertx.core.logging.impl.LoggerFactory
+import io.vertx.core.logging.LoggerFactory
 import io.vertx.core.{AsyncResult, Future => VFuture, Handler, Vertx}
 import io.vertx.ext.asyncsql.impl.pool.{AsyncConnectionPool, SimpleExecutionContext}
 import io.vertx.ext.sql.SQLConnection

@@ -5,7 +5,7 @@ import com.github.mauricio.async.db.mysql.MySQLConnection
 import io.netty.channel.EventLoop
 import io.vertx.core.Vertx
 import io.vertx.core.logging.Logger
-import io.vertx.core.logging.impl.LoggerFactory
+import io.vertx.core.logging.LoggerFactory
 
 import scala.concurrent.ExecutionContext
 

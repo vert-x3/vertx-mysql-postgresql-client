@@ -68,7 +68,7 @@ public class MySQLClient extends AsyncSQLClient {
   }
 
   /**
-   * Like {@link  #createShared(io.vertx.rxjava.core.Vertx, JsonObject, String)} but with the default pool name
+   * Like {@link io.vertx.rxjava.ext.asyncsql.MySQLClient#createShared} but with the default pool name
    * @param vertx the Vert.x instance
    * @param config the configuration
    * @return the client

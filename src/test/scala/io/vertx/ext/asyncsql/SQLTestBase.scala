@@ -2,7 +2,7 @@ package io.vertx.ext.asyncsql
 
 import io.vertx.core.json.{JsonArray, JsonObject}
 import io.vertx.core.logging.Logger
-import io.vertx.core.logging.impl.LoggerFactory
+import io.vertx.core.logging.LoggerFactory
 import io.vertx.core.{AsyncResult, Handler}
 import io.vertx.ext.asyncsql.impl.pool.SimpleExecutionContext
 import io.vertx.ext.sql.SQLConnection

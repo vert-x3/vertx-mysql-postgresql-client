@@ -145,7 +145,7 @@ client.getConnection(function (res, res_err) {
 
   } else {
     // Failed to get connection - deal with it
-  };
+  }
 });
 
 
