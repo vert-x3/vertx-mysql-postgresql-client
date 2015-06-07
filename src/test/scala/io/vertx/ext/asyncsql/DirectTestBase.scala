@@ -15,7 +15,6 @@ abstract class DirectTestBase extends SQLTestBase with ConfigProvider {
 
   override def setUp(): Unit = {
     super.setUp()
-    val latch: CountDownLatch = new CountDownLatch(1)
   }
 
   override def tearDown(): Unit = {
