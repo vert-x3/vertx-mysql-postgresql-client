@@ -55,6 +55,19 @@ abstract class SQLTestBase extends VertxTestBase with TestData {
   }
 
   @Test
+  def makeTwoTransactionsAfterEachOther(): Unit = completeTest {
+    for {
+      c <- arhToFuture(asyncSqlClient.getConnection _)
+      _ <- arhToFuture((c.setAutoCommit _).curried(false))
+      one <- arhToFuture((c.query _).curried("SELECT 1"))
+      _ <- arhToFuture(c.commit _)
+      two <- arhToFuture((c.query _).curried("SELECT 2"))
+      _ <- arhToFuture(c.commit _)
+      _ <- arhToFuture((c.setAutoCommit _).curried(true))
+    } yield c
+  }
+
+  @Test
   def updateRow(): Unit = completeTest {
     val id = 0
     val name = "Adele"
@@ -235,8 +248,11 @@ abstract class SQLTestBase extends VertxTestBase with TestData {
   }
 
   protected def insertedTime1 = "2015-02-22T07:15:01.234Z"
+
   protected def expectedTime1 = "2015-02-22T07:15:01.234"
+
   protected def insertedTime2 = "2014-06-27T17:50:02.468+02:00"
+
   protected def expectedTime2 = "2014-06-27T17:50:02.468"
 
   @Test
@@ -279,9 +295,9 @@ abstract class SQLTestBase extends VertxTestBase with TestData {
       conn <- f
       _ <- arhToFuture(conn.close _)
     } yield {
-      log.info("closed connection -> done")
-      testComplete()
-    }) recover {
+        log.info("closed connection -> done")
+        testComplete()
+      }) recover {
       case ex =>
         log.error("should not get this exception", ex)
         fail("got exception")
