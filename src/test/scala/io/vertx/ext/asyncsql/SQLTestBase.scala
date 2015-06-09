@@ -295,9 +295,8 @@ abstract class SQLTestBase extends VertxTestBase with TestData {
       conn <- f
       _ <- arhToFuture(conn.close _)
     } yield {
-        log.info("closed connection -> done")
-        testComplete()
-      }) recover {
+      testComplete()
+    }) recover {
       case ex =>
         log.error("should not get this exception", ex)
         fail("got exception")
