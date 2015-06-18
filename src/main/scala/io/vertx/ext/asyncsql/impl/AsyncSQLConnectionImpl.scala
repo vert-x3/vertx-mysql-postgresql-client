@@ -76,25 +76,9 @@ class AsyncSQLConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     this
   }
 
-  override def commit(handler: Handler[AsyncResult[Void]]): SQLConnection = {
-    if (inTransaction) {
-      inTransaction = false
-      connection.sendQuery("COMMIT") flatMap (_ => connection.sendQuery("BEGIN")) onComplete doneVoid(handler)
-    } else {
-      handler.handle(VFuture.failedFuture("Not in a transaction currently"))
-    }
-    this
-  }
+  override def commit(handler: Handler[AsyncResult[Void]]): SQLConnection = endAndStartTransaction("COMMIT", handler)
 
-  override def rollback(handler: Handler[AsyncResult[Void]]): SQLConnection = {
-    if (inTransaction) {
-      inTransaction = false
-      connection.sendQuery("ROLLBACK") flatMap (_ => connection.sendQuery("BEGIN")) onComplete doneVoid(handler)
-    } else {
-      handler.handle(VFuture.failedFuture("Not in a transaction currently"))
-    }
-    this
-  }
+  override def rollback(handler: Handler[AsyncResult[Void]]): SQLConnection = endAndStartTransaction("ROLLBACK", handler)
 
   override def close(handler: Handler[AsyncResult[Void]]): Unit = {
     inAutoCommit = true
@@ -116,6 +100,21 @@ class AsyncSQLConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
     } else {
       Future.successful()
     }
+  }
+
+  private def endAndStartTransaction(command: String, handler: Handler[AsyncResult[Void]]): SQLConnection = {
+    if (inTransaction) {
+      inTransaction = false
+      (for {
+        _ <- connection.sendQuery(command)
+        _ <- connection.sendQuery("BEGIN")
+      } yield {
+        inTransaction = true
+      }) onComplete doneVoid(handler)
+    } else {
+      handler.handle(VFuture.failedFuture("Not in a transaction currently"))
+    }
+    this
   }
 
   private def queryResultToUpdateResult(qr: QueryResult): UpdateResult = {
