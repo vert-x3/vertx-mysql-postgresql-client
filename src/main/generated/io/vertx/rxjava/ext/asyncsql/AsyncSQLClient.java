@@ -103,6 +103,6 @@ public class AsyncSQLClient {
 
 
   public static AsyncSQLClient newInstance(io.vertx.ext.asyncsql.AsyncSQLClient arg) {
-    return new AsyncSQLClient(arg);
+    return arg != null ? new AsyncSQLClient(arg) : null;
   }
 }

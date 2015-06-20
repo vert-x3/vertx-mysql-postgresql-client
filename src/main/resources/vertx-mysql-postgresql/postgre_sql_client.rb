@@ -22,7 +22,7 @@ module VertxMysqlPostgresql
     # @return [::VertxMysqlPostgresql::AsyncSQLClient] the client
     def self.create_non_shared(vertx=nil,config=nil)
       if vertx.class.method_defined?(:j_del) && config.class == Hash && !block_given?
-        return ::VertxMysqlPostgresql::AsyncSQLClient.new(Java::IoVertxExtAsyncsql::PostgreSQLClient.java_method(:createNonShared, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxCoreJson::JsonObject.java_class]).call(vertx.j_del,::Vertx::Util::Utils.to_json_object(config)))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtAsyncsql::PostgreSQLClient.java_method(:createNonShared, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxCoreJson::JsonObject.java_class]).call(vertx.j_del,::Vertx::Util::Utils.to_json_object(config)),::VertxMysqlPostgresql::AsyncSQLClient)
       end
       raise ArgumentError, "Invalid arguments when calling create_non_shared(vertx,config)"
     end
@@ -34,9 +34,9 @@ module VertxMysqlPostgresql
     # @return [::VertxMysqlPostgresql::AsyncSQLClient] the client
     def self.create_shared(vertx=nil,config=nil,poolName=nil)
       if vertx.class.method_defined?(:j_del) && config.class == Hash && !block_given? && poolName == nil
-        return ::VertxMysqlPostgresql::AsyncSQLClient.new(Java::IoVertxExtAsyncsql::PostgreSQLClient.java_method(:createShared, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxCoreJson::JsonObject.java_class]).call(vertx.j_del,::Vertx::Util::Utils.to_json_object(config)))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtAsyncsql::PostgreSQLClient.java_method(:createShared, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxCoreJson::JsonObject.java_class]).call(vertx.j_del,::Vertx::Util::Utils.to_json_object(config)),::VertxMysqlPostgresql::AsyncSQLClient)
       elsif vertx.class.method_defined?(:j_del) && config.class == Hash && poolName.class == String && !block_given?
-        return ::VertxMysqlPostgresql::AsyncSQLClient.new(Java::IoVertxExtAsyncsql::PostgreSQLClient.java_method(:createShared, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxCoreJson::JsonObject.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,::Vertx::Util::Utils.to_json_object(config),poolName))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtAsyncsql::PostgreSQLClient.java_method(:createShared, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxCoreJson::JsonObject.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,::Vertx::Util::Utils.to_json_object(config),poolName),::VertxMysqlPostgresql::AsyncSQLClient)
       end
       raise ArgumentError, "Invalid arguments when calling create_shared(vertx,config,poolName)"
     end

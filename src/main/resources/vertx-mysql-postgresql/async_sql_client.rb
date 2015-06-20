@@ -33,7 +33,7 @@ module VertxMysqlPostgresql
     # @return [void]
     def get_connection
       if block_given?
-        return @j_del.java_method(:getConnection, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::VertxSql::SQLConnection.new(ar.result) : nil) }))
+        return @j_del.java_method(:getConnection, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxSql::SQLConnection) : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling get_connection()"
     end

@@ -51,7 +51,7 @@ var PostgreSQLClient = function(j_val) {
 PostgreSQLClient.createNonShared = function(vertx, config) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object') {
-    return new AsyncSQLClient(JPostgreSQLClient["createNonShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](vertx._jdel, utils.convParamJsonObject(config)));
+    return utils.convReturnVertxGen(JPostgreSQLClient["createNonShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](vertx._jdel, utils.convParamJsonObject(config)), AsyncSQLClient);
   } else utils.invalidArgs();
 };
 
@@ -68,9 +68,9 @@ PostgreSQLClient.createNonShared = function(vertx, config) {
 PostgreSQLClient.createShared = function() {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object') {
-    return new AsyncSQLClient(JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](__args[0]._jdel, utils.convParamJsonObject(__args[1])));
+    return utils.convReturnVertxGen(JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](__args[0]._jdel, utils.convParamJsonObject(__args[1])), AsyncSQLClient);
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && typeof __args[2] === 'string') {
-    return new AsyncSQLClient(JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject,java.lang.String)"](__args[0]._jdel, utils.convParamJsonObject(__args[1]), __args[2]));
+    return utils.convReturnVertxGen(JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject,java.lang.String)"](__args[0]._jdel, utils.convParamJsonObject(__args[1]), __args[2]), AsyncSQLClient);
   } else utils.invalidArgs();
 };
 

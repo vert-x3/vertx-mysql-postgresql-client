@@ -67,7 +67,7 @@ var AsyncSQLClient = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_asyncSQLClient["getConnection(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        handler(new SQLConnection(ar.result()), null);
+        handler(utils.convReturnVertxGen(ar.result(), SQLConnection), null);
       } else {
         handler(null, ar.cause());
       }

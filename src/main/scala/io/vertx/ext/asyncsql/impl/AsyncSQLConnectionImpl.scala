@@ -3,6 +3,7 @@ package io.vertx.ext.asyncsql.impl
 import com.github.mauricio.async.db
 import com.github.mauricio.async.db.{Connection, QueryResult, RowData}
 import io.vertx.core.json.JsonArray
+import io.vertx.core.logging.{LoggerFactory, Logger}
 import io.vertx.core.{AsyncResult, Future => VFuture, Handler}
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool
 import io.vertx.ext.sql.{UpdateResult, ResultSet, SQLConnection}
@@ -15,6 +16,8 @@ import scala.util.{Failure, Success, Try}
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
 class AsyncSQLConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(implicit executionContext: ExecutionContext) extends SQLConnection {
+
+  private val logger: Logger = LoggerFactory.getLogger(classOf[AsyncSQLConnectionImpl])
 
   import scala.collection.JavaConverters._
 
@@ -79,6 +82,16 @@ class AsyncSQLConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
   override def commit(handler: Handler[AsyncResult[Void]]): SQLConnection = endAndStartTransaction("COMMIT", handler)
 
   override def rollback(handler: Handler[AsyncResult[Void]]): SQLConnection = endAndStartTransaction("ROLLBACK", handler)
+
+  override def close() : Unit = {
+    close(new Handler[AsyncResult[Void]] {
+      override def handle(event: AsyncResult[Void]): Unit = {
+        if (event.failed()) {
+          logger.error("Failure in closing connection", event.cause())
+        }
+      }
+    })
+  }
 
   override def close(handler: Handler[AsyncResult[Void]]): Unit = {
     inAutoCommit = true

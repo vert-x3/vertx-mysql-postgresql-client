@@ -80,6 +80,6 @@ public class MySQLClient extends AsyncSQLClient {
 
 
   public static MySQLClient newInstance(io.vertx.ext.asyncsql.MySQLClient arg) {
-    return new MySQLClient(arg);
+    return arg != null ? new MySQLClient(arg) : null;
   }
 }

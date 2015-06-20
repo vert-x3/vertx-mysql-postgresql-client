@@ -80,6 +80,6 @@ public class PostgreSQLClient extends AsyncSQLClient {
 
 
   public static PostgreSQLClient newInstance(io.vertx.ext.asyncsql.PostgreSQLClient arg) {
-    return new PostgreSQLClient(arg);
+    return arg != null ? new PostgreSQLClient(arg) : null;
   }
 }
