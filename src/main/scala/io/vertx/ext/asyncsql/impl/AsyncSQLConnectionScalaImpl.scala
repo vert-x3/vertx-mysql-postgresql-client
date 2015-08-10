@@ -15,7 +15,7 @@ import scala.util.{Failure, Success, Try}
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-class AsyncSQLConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(implicit executionContext: ExecutionContext) extends SQLConnection {
+class AsyncSQLConnectionScalaImpl(connection: Connection, pool: AsyncConnectionPool)(implicit executionContext: ExecutionContext) extends SQLConnection {
 
   private val logger: Logger = LoggerFactory.getLogger(classOf[AsyncSQLConnectionImpl])
 
@@ -83,15 +83,15 @@ class AsyncSQLConnectionImpl(connection: Connection, pool: AsyncConnectionPool)(
 
   override def rollback(handler: Handler[AsyncResult[Void]]): SQLConnection = endAndStartTransaction("ROLLBACK", handler)
 
-  override def close() : Unit = {
-    close(new Handler[AsyncResult[Void]] {
-      override def handle(event: AsyncResult[Void]): Unit = {
-        if (event.failed()) {
-          logger.error("Failure in closing connection", event.cause())
-        }
-      }
-    })
-  }
+//  override def close() : Unit = {
+//    close(new Handler[AsyncResult[Void]] {
+//      override def handle(event: AsyncResult[Void]): Unit = {
+//        if (event.failed()) {
+//          logger.error("Failure in closing connection", event.cause())
+//        }
+//      }
+//    })
+//  }
 
   override def close(handler: Handler[AsyncResult[Void]]): Unit = {
     inAutoCommit = true

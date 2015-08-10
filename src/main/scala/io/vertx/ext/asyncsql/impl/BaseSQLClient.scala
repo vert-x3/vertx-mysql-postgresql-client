@@ -44,7 +44,7 @@ trait BaseSQLClient {
   def getConnection(handler: Handler[AsyncResult[SQLConnection]]): Unit = {
     pool.take() onComplete {
       case Success(conn) =>
-        val connection = new AsyncSQLConnectionImpl(conn, pool)(executionContext)
+        val connection = new AsyncSQLConnectionImpl(conn, pool, executionContext)
         handler.handle(VFuture.succeededFuture(connection))
       case Failure(ex) =>
         handler.handle(VFuture.failedFuture(ex))
