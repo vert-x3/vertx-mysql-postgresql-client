@@ -25,10 +25,10 @@ import io.vertx.core.json.JsonObject
 */
 @CompileStatic
 public class MySQLClient extends AsyncSQLClient {
-  final def io.vertx.ext.asyncsql.MySQLClient delegate;
-  public MySQLClient(io.vertx.ext.asyncsql.MySQLClient delegate) {
-    super(delegate);
-    this.delegate = delegate;
+  private final def io.vertx.ext.asyncsql.MySQLClient delegate;
+  public MySQLClient(Object delegate) {
+    super((io.vertx.ext.asyncsql.MySQLClient) delegate);
+    this.delegate = (io.vertx.ext.asyncsql.MySQLClient) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -40,7 +40,7 @@ public class MySQLClient extends AsyncSQLClient {
    * @return the client
    */
   public static AsyncSQLClient createNonShared(Vertx vertx, Map<String, Object> config) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.asyncsql.MySQLClient.createNonShared((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null), io.vertx.ext.asyncsql.AsyncSQLClient.class, io.vertx.groovy.ext.asyncsql.AsyncSQLClient.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.asyncsql.MySQLClient.createNonShared((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null), io.vertx.groovy.ext.asyncsql.AsyncSQLClient.class);
     return ret;
   }
   /**
@@ -52,7 +52,7 @@ public class MySQLClient extends AsyncSQLClient {
    * @return the client
    */
   public static AsyncSQLClient createShared(Vertx vertx, Map<String, Object> config, String poolName) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.asyncsql.MySQLClient.createShared((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null, poolName), io.vertx.ext.asyncsql.AsyncSQLClient.class, io.vertx.groovy.ext.asyncsql.AsyncSQLClient.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.asyncsql.MySQLClient.createShared((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null, poolName), io.vertx.groovy.ext.asyncsql.AsyncSQLClient.class);
     return ret;
   }
   /**
@@ -62,7 +62,7 @@ public class MySQLClient extends AsyncSQLClient {
    * @return the client
    */
   public static AsyncSQLClient createShared(Vertx vertx, Map<String, Object> config) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.asyncsql.MySQLClient.createShared((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null), io.vertx.ext.asyncsql.AsyncSQLClient.class, io.vertx.groovy.ext.asyncsql.AsyncSQLClient.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.asyncsql.MySQLClient.createShared((io.vertx.core.Vertx)vertx.getDelegate(), config != null ? new io.vertx.core.json.JsonObject(config) : null), io.vertx.groovy.ext.asyncsql.AsyncSQLClient.class);
     return ret;
   }
 }

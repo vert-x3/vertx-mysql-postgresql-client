@@ -33,7 +33,13 @@ import java.util.UUID;
 @VertxGen
 public interface PostgreSQLClient extends AsyncSQLClient {
 
-  public static final String DEFAULT_DS_NAME = "DEFAULT_POSTGRESQL_DS";
+  String DEFAULT_DS_NAME = "DEFAULT_POSTGRESQL_DS";
+  String DEFAULT_HOST = "localhost";
+  int DEFAULT_PORT = 5432;
+  String DEFAULT_DATABASE = "testdb";
+  String DEFAULT_USER = "vertx";
+  String DEFAULT_PASSWORD = "passowrd";
+
 
   /**
    * Create a PostgreSQL client which maintains its own pool.

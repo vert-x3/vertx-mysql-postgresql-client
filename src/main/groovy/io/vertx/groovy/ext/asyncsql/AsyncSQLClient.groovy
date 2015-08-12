@@ -26,9 +26,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class AsyncSQLClient {
-  final def io.vertx.ext.asyncsql.AsyncSQLClient delegate;
-  public AsyncSQLClient(io.vertx.ext.asyncsql.AsyncSQLClient delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.asyncsql.AsyncSQLClient delegate;
+  public AsyncSQLClient(Object delegate) {
+    this.delegate = (io.vertx.ext.asyncsql.AsyncSQLClient) delegate;
   }
   public Object getDelegate() {
     return delegate;

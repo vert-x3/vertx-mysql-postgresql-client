@@ -16,9 +16,9 @@ public class AsyncSQLClientImpl implements AsyncSQLClient {
 
   public AsyncSQLClientImpl(Vertx vertx, JsonObject config, boolean mysql) {
     if (mysql) {
-      baseClient = new MySQLClient(vertx, config);
+      baseClient = new MYSQLClientImpl(vertx, config);
     } else {
-      baseClient = new PostgreSQLClient(vertx, config);
+      baseClient = new PostgreSQLClientImpl(vertx, config);
     }
   }
 

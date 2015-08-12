@@ -33,7 +33,13 @@ import java.util.UUID;
 @VertxGen
 public interface MySQLClient extends AsyncSQLClient {
 
-  public static final String DEFAULT_POOL_NAME = "DEFAULT_MYSQL_POOL";
+  String DEFAULT_POOL_NAME = "DEFAULT_MYSQL_POOL";
+  String DEFAULT_HOST = "localhost";
+  int DEFAULT_PORT = 3306;
+  String DEFAULT_DATABASE = "testdb";
+  String DEFAULT_USER = "vertx";
+  String DEFAULT_PASSWORD = "password";
+
 
   /**
    * Create a MySQL client which maintains its own pool.

@@ -1,4 +1,5 @@
 require 'vertx-mysql-postgresql/async_sql_client'
+require 'vertx/vertx'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.asyncsql.MySQLClient
 module VertxMysqlPostgresql
