@@ -8,6 +8,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.asyncsql.impl.ScalaUtils;
+import io.vertx.ext.asyncsql.impl.VertxExecutionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ public abstract class AsyncConnectionPool {
     this.vertx = vertx;
     this.maxPoolSize = maxPoolSize;
     this.configuration = configuration;
+    //TODO would it make sense to pass the execution context here ?
   }
 
   protected abstract Connection create();
@@ -36,7 +39,9 @@ public abstract class AsyncConnectionPool {
     poolSize += 1;
     try {
       Connection connection = create();
-      handler.handle(Future.succeededFuture(connection));
+      connection
+          .connect().onComplete(ScalaUtils.toFunction1(handler),
+          VertxExecutionContext.create(vertx));
     } catch (Throwable e) {
       logger.info("creating a connection went wrong", e);
       poolSize -= 1;
