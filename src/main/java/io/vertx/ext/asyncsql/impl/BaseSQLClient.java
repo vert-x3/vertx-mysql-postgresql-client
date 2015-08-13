@@ -38,7 +38,7 @@ public abstract class BaseSQLClient {
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
     pool().take(ar -> {
       if (ar.succeeded()) {
-        handler.handle(Future.succeededFuture(new AsyncSQLConnectionImpl(ar.result(), pool(), VertxExecutionContext.create())));
+        handler.handle(Future.succeededFuture(new AsyncSQLConnectionImpl(ar.result(), pool(), VertxExecutionContext.create(vertx))));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }

@@ -55,7 +55,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection execute(String sql, Handler<AsyncResult<Void>> handler) {
-    beginTransactionIfNeeded().setHandler(v -> {
+    beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
         if (ar.failed()) {
@@ -71,16 +71,16 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection query(String sql, Handler<AsyncResult<ResultSet>> handler) {
-    beginTransactionIfNeeded().setHandler(v -> {
-      final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
-      future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
+    beginTransactionIfNeeded(v -> {
+      final Future<QueryResult> future = ScalaUtils.scalaToVertx(connection.sendQuery(sql), executionContext);
+      future.setHandler(ar -> {
         if (ar.succeeded()) {
           handler.handle(Future.succeededFuture(queryResultToResultSet(ar.result())));
         } else {
           handler.handle(Future.failedFuture(ar.cause()));
         }
 
-      }),executionContext);
+      });
     });
 
     return this;
@@ -88,7 +88,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection queryWithParams(String sql, JsonArray params, Handler<AsyncResult<ResultSet>> handler) {
-    beginTransactionIfNeeded().setHandler(v -> {
+    beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(sql,
           ScalaUtils.toScalaList(params.getList()));
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
@@ -106,7 +106,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection update(String sql, Handler<AsyncResult<UpdateResult>> handler) {
-    beginTransactionIfNeeded().setHandler(v -> {
+    beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
         if (ar.failed()) {
@@ -122,7 +122,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection updateWithParams(String sql, JsonArray params, Handler<AsyncResult<UpdateResult>> handler) {
-    beginTransactionIfNeeded().setHandler(v -> {
+    beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(sql,
           ScalaUtils.toScalaList(params.getList()));
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
@@ -191,23 +191,25 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
             }
           });
     } else {
-      handler.handle(Future.failedFuture(new IllegalStateException("Not in transaction currently")));
+      handler.handle(Future.failedFuture(
+          new IllegalStateException("Not in transaction currently")));
     }
     return this;
   }
 
-  private Future<Void> beginTransactionIfNeeded() {
+  private void beginTransactionIfNeeded(Handler<AsyncResult<Void>> action) {
     if (!inAutoCommit && !inTransaction) {
       inTransaction = true;
-      return ScalaUtils.scalaToVertxVoid(connection.sendQuery("BEGIN"), executionContext);
+      ScalaUtils.scalaToVertxVoid(connection.sendQuery("BEGIN"), executionContext)
+          .setHandler(action);
     } else {
-      return Future.succeededFuture();
+      action.handle(Future.succeededFuture());
     }
   }
 
   private ResultSet queryResultToResultSet(QueryResult qr) {
     final Option<com.github.mauricio.async.db.ResultSet> rows = qr.rows();
-    if (rows.isDefined()) {
+    if (! rows.isDefined()) {
       return new ResultSet(Collections.emptyList(), Collections.emptyList());
     } else {
       final List<String> names = ScalaUtils.toJavaList(rows.get().columnNames().toList());
