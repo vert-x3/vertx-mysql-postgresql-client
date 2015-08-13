@@ -47,7 +47,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
       fut = Future.succeededFuture();
     }
 
-    inAutoCommit = true;
+    inAutoCommit = autoCommit;
     fut.setHandler(handler);
 
     return this;
