@@ -33,6 +33,9 @@ import io.vertx.ext.asyncsql.AsyncSQLClient;
  */
 public class ClientHelper {
 
+  // TODO This loos a bit wrong, taking the lock on a method parameter is leaking a lock that may be used internally.
+  // TODO With the switch to Java this should be simplified, as we can just keep the client in a static map.
+
   private static final String DS_LOCAL_MAP_NAME_BASE =  "__vertx.MySQLPostgreSQL.pools.";
 
   public static AsyncSQLClient getOrCreate(Vertx vertx, JsonObject config, String poolName, boolean mySQL) {

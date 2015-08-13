@@ -28,6 +28,7 @@ public class VertxExecutionContext implements ExecutionContext {
 
   @Override
   public void execute(Runnable runnable) {
+    // TODO This should probably use executeBlocking if we are on an event loop thread.
     runnable.run();
   }
 
