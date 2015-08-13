@@ -10,7 +10,7 @@ public class PostgreSQLClientTest extends SQLTestBase {
   public void init() {
     client = PostgreSQLClient.createNonShared(vertx,
         new JsonObject()
-            .put("host", "192.168.59.103") // Boot2docker.
+            .put("host", System.getProperty("db.host", "localhost"))
     );
   }
 }

@@ -10,7 +10,7 @@ public class MySQLClientTest extends SQLTestBase {
   public void init() {
     client = MySQLClient.createNonShared(vertx,
         new JsonObject()
-            .put("host", "192.168.59.103") // Boot2docker.
+            .put("host", System.getProperty("db.host", "localhost"))
     );
   }
 }
