@@ -32,15 +32,15 @@ public abstract class AsyncConnectionPool {
 
   protected abstract Connection create();
 
-  private synchronized void createConnection(Future<Connection> future) {
+  private synchronized void createConnection(Handler<AsyncResult<Connection>> handler) {
     poolSize += 1;
     try {
       Connection connection = create();
-      future.complete(connection);
+      handler.handle(Future.succeededFuture(connection));
     } catch (Throwable e) {
       logger.info("creating a connection went wrong", e);
       poolSize -= 1;
-      future.fail(e);
+      handler.handle(Future.failedFuture(e));
     }
   }
 
@@ -50,9 +50,7 @@ public abstract class AsyncConnectionPool {
 
   private synchronized void createOrWaitForAvailableConnection(Handler<AsyncResult<Connection>> handler) {
     if (poolSize < maxPoolSize) {
-      Future<Connection> future = Future.future();
-      future.setHandler(handler);
-      createConnection(future);
+      createConnection(handler);
     } else {
       waitForAvailableConnection(handler);
     }
@@ -94,7 +92,9 @@ public abstract class AsyncConnectionPool {
 
   public synchronized void close(Handler<AsyncResult<Void>> handler) {
     close();
-    handler.handle(null);
+    if (handler != null) {
+      handler.handle(Future.succeededFuture());
+    }
   }
 
   public interface ExecuteWithConnection<ResultType> {
