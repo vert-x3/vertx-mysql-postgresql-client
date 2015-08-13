@@ -16,7 +16,9 @@ public class PostgreSQLTest extends VertxTestBase {
 
   final String address = "campudus.postgresql";
 
-  final JsonObject config = new JsonObject().put("postgresql", new JsonObject().put("address", address));
+  final JsonObject config = new JsonObject()
+      .put("host", "192.168.59.103") // Boot2docker.
+      .put("postgresql", new JsonObject().put("address", address));
 
   @Override
   public void setUp() throws Exception {
@@ -42,6 +44,7 @@ public class PostgreSQLTest extends VertxTestBase {
   public void someTest() throws Exception {
     asyncSqlClient.getConnection(onSuccess(conn -> {
       conn.query("SELECT 1 AS something", onSuccess(resultSet -> {
+        System.out.println(resultSet.getResults());
         assertNotNull(resultSet);
         assertNotNull(resultSet.getColumnNames());
         assertNotNull(resultSet.getResults());
