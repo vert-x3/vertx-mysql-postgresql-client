@@ -3,7 +3,7 @@ package io.vertx.ext.asyncsql;
 import io.vertx.core.json.JsonObject;
 import org.junit.Before;
 
-public class PostgreSQLClientTest extends SQLTestBase2 {
+public class PostgreSQLClientTest extends SQLTestBase {
 
 
   @Before
