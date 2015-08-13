@@ -38,7 +38,7 @@ public interface PostgreSQLClient extends AsyncSQLClient {
   int DEFAULT_PORT = 5432;
   String DEFAULT_DATABASE = "testdb";
   String DEFAULT_USER = "vertx";
-  String DEFAULT_PASSWORD = "passowrd";
+  String DEFAULT_PASSWORD = "password";
 
 
   /**
