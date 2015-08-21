@@ -24,8 +24,8 @@ import java.util.List;
 public class AsyncSQLConnectionImpl implements SQLConnection {
 
   private final ExecutionContext executionContext;
-  private boolean inTransaction = false;
-  private boolean inAutoCommit = true;
+  private volatile boolean inTransaction = false;
+  private volatile boolean inAutoCommit = true;
 
   private final Connection connection;
   private final AsyncConnectionPool pool;
@@ -156,7 +156,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public void close() {
     close((ar) -> {
-
+      // Do nothing by default.
     });
   }
 
