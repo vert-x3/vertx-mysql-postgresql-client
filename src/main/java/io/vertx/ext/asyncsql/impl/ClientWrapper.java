@@ -22,6 +22,8 @@ import io.vertx.ext.asyncsql.AsyncSQLClient;
 import io.vertx.ext.sql.SQLConnection;
 
 /**
+ * Wraps a client with the {@link ClientHolder} in order to keep track of the references.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class ClientWrapper implements AsyncSQLClient {

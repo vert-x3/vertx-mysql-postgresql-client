@@ -9,6 +9,11 @@ import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
 import scala.util.Try;
 
+/**
+ * Some Scala <=> Java conversion utilities.
+ *
+ * @author <a href="http://escoffier.me">Clement Escoffier</a>
+ */
 public class ScalaUtils {
 
   public static <T> Future<T> scalaToVertx(scala.concurrent.Future<T> future, ExecutionContext ec) {

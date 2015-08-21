@@ -15,6 +15,11 @@ import scala.concurrent.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Manages a pool of connection.
+ *
+ * @author <a href="http://escoffier.me">Clement Escoffier</a>
+ */
 public abstract class AsyncConnectionPool {
 
   private final int maxPoolSize;
@@ -106,26 +111,4 @@ public abstract class AsyncConnectionPool {
   public ExecutionContext executionContext() {
     return executionContext;
   }
-
-  public interface ExecuteWithConnection<ResultType> {
-    ResultType execute(AsyncResult<Connection> connection);
-  }
-
-  public <T> void withConnection(ExecuteWithConnection<AsyncResult<T>> operation) {
-    take(ar -> {
-      if (ar.failed()) {
-        logger.error("Cannot execute 'withConnection' block - cannot get a connection", ar.cause());
-        operation.execute(Future.failedFuture(ar.cause()));
-      } else {
-        final Connection connection = ar.result();
-        operation.execute(Future.succeededFuture(connection));
-        giveBack(connection);
-      }
-    });
-  }
-
-  public <T> void withConnection(ExecuteWithConnection<AsyncResult<T>> operation, Connection connection) {
-    operation.execute(Future.succeededFuture(connection));
-  }
-
 }

@@ -28,12 +28,13 @@ import io.vertx.ext.asyncsql.AsyncSQLClient;
  */
 class ClientHolder implements Shareable {
 
-  Vertx vertx;
-  JsonObject config;
-  boolean mySQL;
-  Runnable closeRunner;
-  AsyncSQLClient client;
-  int refCount = 1;
+  private final Vertx vertx;
+  private final JsonObject config;
+  private final boolean mySQL;
+  private final Runnable closeRunner;
+
+  private AsyncSQLClient client;
+  private int refCount = 1;
 
   ClientHolder(Vertx vertx, JsonObject config, boolean mySQL, Runnable closeRunner) {
     this.vertx = vertx;
