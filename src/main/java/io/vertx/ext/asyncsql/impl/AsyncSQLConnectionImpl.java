@@ -25,7 +25,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   private final ExecutionContext executionContext;
   private volatile boolean inTransaction = false;
-  private volatile boolean inAutoCommit = true;
+  private boolean inAutoCommit = true;
 
   private final Connection connection;
   private final AsyncConnectionPool pool;
@@ -40,17 +40,19 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   public SQLConnection setAutoCommit(boolean autoCommit, Handler<AsyncResult<Void>> handler) {
     Future<Void> fut;
 
-    if (inTransaction && autoCommit) {
-      inTransaction = false;
-      fut = ScalaUtils.scalaToVertxVoid(connection.sendQuery("COMMIT"), executionContext);
-    } else {
-      fut = Future.succeededFuture();
+    synchronized (this) {
+      if (inTransaction && autoCommit) {
+        inTransaction = false;
+        fut = ScalaUtils.scalaToVertxVoid(connection.sendQuery("COMMIT"), executionContext);
+      } else {
+        fut = Future.succeededFuture();
+      }
+      inAutoCommit = autoCommit;
     }
 
-    inAutoCommit = autoCommit;
     fut.setHandler(handler);
-
     return this;
+
   }
 
   @Override
@@ -98,7 +100,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
           handler.handle(Future.failedFuture(ar.cause()));
         }
 
-      }),executionContext);
+      }), executionContext);
     });
 
     return this;
@@ -138,7 +140,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   }
 
   @Override
-  public void close(Handler<AsyncResult<Void>> handler) {
+  public synchronized void close(Handler<AsyncResult<Void>> handler) {
     inAutoCommit = true;
     if (inTransaction) {
       inTransaction = false;
@@ -197,7 +199,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     return this;
   }
 
-  private void beginTransactionIfNeeded(Handler<AsyncResult<Void>> action) {
+  private synchronized void beginTransactionIfNeeded(Handler<AsyncResult<Void>> action) {
     if (!inAutoCommit && !inTransaction) {
       inTransaction = true;
       ScalaUtils.scalaToVertxVoid(connection.sendQuery("BEGIN"), executionContext)
@@ -209,7 +211,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   private ResultSet queryResultToResultSet(QueryResult qr) {
     final Option<com.github.mauricio.async.db.ResultSet> rows = qr.rows();
-    if (! rows.isDefined()) {
+    if (!rows.isDefined()) {
       return new ResultSet(Collections.emptyList(), Collections.emptyList());
     } else {
       final List<String> names = ScalaUtils.toJavaList(rows.get().columnNames().toList());
