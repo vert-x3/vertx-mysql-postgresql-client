@@ -11,7 +11,7 @@ import java.util.Objects;
 
 /**
  * Execution environment for Scala Future. By default, Scala uses a <em>reasonable default thread pool.</em>. In the
- * vert.x context, we use the Worker thread pool. If the task is submitted using a Worket thread, the same thread is
+ * vert.x context, we use the Worker thread pool. If the task is submitted using a Worker thread, the same thread is
  * used. If not, the task is delegated to a worker thread.
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
