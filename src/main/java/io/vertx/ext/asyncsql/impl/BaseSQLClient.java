@@ -13,6 +13,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
 import scala.Option;
+import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
 
 import java.util.concurrent.TimeUnit;
@@ -38,7 +39,9 @@ public abstract class BaseSQLClient {
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
     pool().take(ar -> {
       if (ar.succeeded()) {
-        handler.handle(Future.succeededFuture(new AsyncSQLConnectionImpl(ar.result(), pool(), VertxExecutionContext.create(vertx))));
+        final AsyncConnectionPool pool = pool();
+        ExecutionContext ec = pool.executionContext();
+        handler.handle(Future.succeededFuture(new AsyncSQLConnectionImpl(ar.result(), pool, ec)));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }

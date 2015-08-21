@@ -20,9 +20,7 @@ import org.junit.runner.RunWith;
 import java.util.List;
 
 @RunWith(VertxUnitRunner.class)
-public class SQLTestBase {
-
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
+public abstract class SQLTestBase {
 
   protected AsyncSQLClient client;
   protected static Vertx vertx;
@@ -84,21 +82,19 @@ public class SQLTestBase {
 
       // Create table
       conn = ar.result();
-      setupSimpleTable(ar.result(), ar2 -> {
-        conn.queryWithParams("SELECT name FROM test_table WHERE id=?",
-            new JsonArray().add(2), ar3 -> {
-              if (ar3.failed()) {
-                context.fail(ar3.cause());
-              } else {
-                final ResultSet res = ar3.result();
-                context.assertNotNull(res);
-                context.assertEquals(res.getColumnNames().size(), 1);
-                context.assertEquals(res.getColumnNames().get(0), "name");
-                context.assertEquals(Data.NAMES.get(2), res.getResults().get(0).getString(0));
-                async.complete();
-              }
-            });
-      });
+      setupSimpleTable(conn, ar2 -> conn.queryWithParams("SELECT name FROM test_table WHERE id=?",
+          new JsonArray().add(2), ar3 -> {
+            if (ar3.failed()) {
+              context.fail(ar3.cause());
+            } else {
+              final ResultSet res = ar3.result();
+              context.assertNotNull(res);
+              context.assertEquals(res.getColumnNames().size(), 1);
+              context.assertEquals(res.getColumnNames().get(0), "name");
+              context.assertEquals(Data.NAMES.get(2), res.getResults().get(0).getString(0));
+              async.complete();
+            }
+          }));
     });
   }
 
@@ -270,7 +266,6 @@ public class SQLTestBase {
 
   @Test
   public void testSetAutocommitWhileInTransaction(TestContext context) {
-    //TODO not sur it is the correct translation, need to be checked
     int id = 0;
     String name = "Adele";
     Async async = context.async();

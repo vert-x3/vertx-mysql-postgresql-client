@@ -127,7 +127,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
           <systemPropertyVariables>
             <vertx.test.timeout>60</vertx.test.timeout>
             <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
@@ -141,10 +140,11 @@
 
   <profiles>
     <profile>
+      <!-- To launch the database in docker container using docker-machine, execute:
+       mvn clean install -Pdocker -Dhost=(docker-machine ip default)
+       where `default` is the docker machine you use.
+      -->
       <id>docker</id>
-      <properties>
-              <host>192.168.59.103</host>
-      </properties>
       <build>
         <plugins>
           <plugin>
