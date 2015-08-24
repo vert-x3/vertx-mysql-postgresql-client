@@ -46,11 +46,11 @@ public abstract class AsyncConnectionPool {
   private final List<Connection> availableConnections = new ArrayList<>();
   private final List<Handler<AsyncResult<Connection>>> waiters = new ArrayList<>();
 
-  public AsyncConnectionPool(Vertx vertx, Context context, int maxPoolSize, Configuration configuration) {
+  public AsyncConnectionPool(Vertx vertx, int maxPoolSize, Configuration configuration) {
     this.vertx = vertx;
     this.maxPoolSize = maxPoolSize;
     this.configuration = configuration;
-    this.executionContext = VertxEventLoopExecutionContext.create(context);
+    this.executionContext = VertxEventLoopExecutionContext.create(vertx);
   }
 
   protected abstract Connection create();

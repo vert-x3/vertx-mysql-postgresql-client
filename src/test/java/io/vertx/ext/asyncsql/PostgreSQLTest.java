@@ -39,7 +39,7 @@ public class PostgreSQLTest extends VertxTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    asyncSqlClient = PostgreSQLClient.createNonShared(vertx, vertx.getOrCreateContext(), config);
+    asyncSqlClient = PostgreSQLClient.createNonShared(vertx, config);
   }
 
   @Override

@@ -31,11 +31,11 @@ public class AsyncSQLClientImpl implements AsyncSQLClient {
 
   private final BaseSQLClient baseClient;
 
-  public AsyncSQLClientImpl(Vertx vertx, Context context, JsonObject config, boolean mysql) {
+  public AsyncSQLClientImpl(Vertx vertx, JsonObject config, boolean mysql) {
     if (mysql) {
-      baseClient = new MYSQLClientImpl(vertx, context, config);
+      baseClient = new MYSQLClientImpl(vertx, config);
     } else {
-      baseClient = new PostgreSQLClientImpl(vertx, context, config);
+      baseClient = new PostgreSQLClientImpl(vertx, config);
     }
   }
 

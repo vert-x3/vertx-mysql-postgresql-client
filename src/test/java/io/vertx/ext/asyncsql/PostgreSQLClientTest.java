@@ -17,18 +17,13 @@
 package io.vertx.ext.asyncsql;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.junit.RunTestOnContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.Before;
-import org.junit.Rule;
-import org.junit.runner.RunWith;
 
 public class PostgreSQLClientTest extends SQLTestBase {
 
   @Before
   public void init() {
     client = PostgreSQLClient.createNonShared(vertx,
-        vertx.getOrCreateContext(),
         new JsonObject()
             .put("host", System.getProperty("db.host", "localhost"))
     );

@@ -31,8 +31,8 @@ import io.vertx.core.Vertx;
  */
 public class PostgresqlAsyncConnectionPool extends AsyncConnectionPool {
 
-  public PostgresqlAsyncConnectionPool(Vertx vertx, Context context, int maxPoolSize, Configuration configuration) {
-    super(vertx, context, maxPoolSize, configuration);
+  public PostgresqlAsyncConnectionPool(Vertx vertx, int maxPoolSize, Configuration configuration) {
+    super(vertx, maxPoolSize, configuration);
   }
 
   @Override

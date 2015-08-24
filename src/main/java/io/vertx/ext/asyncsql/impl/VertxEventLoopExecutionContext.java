@@ -18,6 +18,7 @@ package io.vertx.ext.asyncsql.impl;
 
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import scala.concurrent.ExecutionContext;
@@ -25,36 +26,39 @@ import scala.concurrent.ExecutionContext;
 import java.util.Objects;
 
 /**
- * Execution environment for Scala Future. The submitted {@link Runnable} are executed in the Vert.x Event Loop. The
- * event loop is the one attached to the passed {@link Context}.
+ * Execution environment for Scala Future. The submitted {@link Runnable} are executed in the Vert.x Event Loop.
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
 public class VertxEventLoopExecutionContext implements ExecutionContext {
 
-  public static ExecutionContext create(Context context) {
-    return new VertxEventLoopExecutionContext(context, (ex) -> LOGGER.error("An exception occurred", ex));
+  public static ExecutionContext create(Vertx vertx) {
+    return new VertxEventLoopExecutionContext(vertx, (ex) -> LOGGER.error("An exception occurred", ex));
   }
 
-  public static ExecutionContext create(Context context, Handler<Throwable> handler) {
-    return new VertxEventLoopExecutionContext(context, handler);
+  public static ExecutionContext create(Vertx vertx, Handler<Throwable> handler) {
+    return new VertxEventLoopExecutionContext(vertx, handler);
   }
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VertxEventLoopExecutionContext.class);
 
-  private final Context context;
+  private final Vertx vertx;
   private final Handler<Throwable> errorHandler;
 
-  private VertxEventLoopExecutionContext(Context context, Handler<Throwable> errorHandler) {
+  private VertxEventLoopExecutionContext(Vertx vertx, Handler<Throwable> errorHandler) {
     Objects.requireNonNull(errorHandler);
-    Objects.requireNonNull(context);
-    this.context = context;
+    Objects.requireNonNull(vertx);
+    this.vertx = vertx;
     this.errorHandler = errorHandler;
   }
 
   @Override
   public void execute(Runnable runnable) {
-    context.runOnContext(v -> {
+    Context ctxt = Vertx.currentContext();
+    if (ctxt == null) {
+      ctxt = vertx.getOrCreateContext();
+    }
+    ctxt.runOnContext(v -> {
       try {
         runnable.run();
       } catch (Throwable e) {

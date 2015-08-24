@@ -32,7 +32,7 @@ public class ClientHelper {
 
   private static final String DS_LOCAL_MAP_NAME_BASE = "__vertx.MySQLPostgreSQL.pools.";
 
-  public static AsyncSQLClient getOrCreate(Vertx vertx, Context context, JsonObject config, String poolName, boolean
+  public static AsyncSQLClient getOrCreate(Vertx vertx, JsonObject config, String poolName, boolean
       mySQL) {
     synchronized (vertx) {
       LocalMap<String, ClientHolder> map = vertx.sharedData().getLocalMap(
@@ -40,7 +40,7 @@ public class ClientHelper {
 
       ClientHolder theHolder = map.get(poolName);
       if (theHolder == null) {
-        theHolder = new ClientHolder(vertx, context, config, mySQL, () -> removeFromMap(vertx, map, poolName));
+        theHolder = new ClientHolder(vertx, config, mySQL, () -> removeFromMap(vertx, map, poolName));
         map.put(poolName, theHolder);
       } else {
         theHolder.incRefCount();

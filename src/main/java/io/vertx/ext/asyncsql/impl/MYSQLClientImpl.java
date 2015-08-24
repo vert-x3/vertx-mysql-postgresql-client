@@ -16,7 +16,6 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.MySQLClient;
@@ -32,10 +31,10 @@ public class MYSQLClientImpl extends BaseSQLClient {
 
   private final MysqlAsyncConnectionPool pool;
 
-  public MYSQLClientImpl(Vertx vertx, Context context,
+  public MYSQLClientImpl(Vertx vertx,
                          JsonObject config) {
     super(vertx, config);
-    pool = new MysqlAsyncConnectionPool(vertx, context, maxPoolSize, getConfiguration(
+    pool = new MysqlAsyncConnectionPool(vertx, maxPoolSize, getConfiguration(
         MySQLClient.DEFAULT_HOST,
         MySQLClient.DEFAULT_PORT,
         MySQLClient.DEFAULT_DATABASE,

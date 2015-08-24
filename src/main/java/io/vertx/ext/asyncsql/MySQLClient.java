@@ -17,7 +17,6 @@
 package io.vertx.ext.asyncsql;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.impl.ClientHelper;
@@ -68,43 +67,17 @@ public interface MySQLClient extends AsyncSQLClient {
    * Create a MySQL client which maintains its own pool.
    *
    * @param vertx   the Vert.x instance
-   * @param context the context
    * @param config  the configuration
    * @return the client
    */
-  static AsyncSQLClient createNonShared(Vertx vertx, Context context, JsonObject config) {
-    return ClientHelper.getOrCreate(vertx, context, config, UUID.randomUUID().toString(), true);
+  static AsyncSQLClient createNonShared(Vertx vertx, JsonObject config) {
+    return ClientHelper.getOrCreate(vertx, config, UUID.randomUUID().toString(), true);
   }
 
-  /**
-   * Create a MySQL client which maintains its own pool. It uses the {@link Context} retrieved using
-   * {@link Vertx#currentContext()}.
-   *
-   * @param vertx  the Vert.x instance
-   * @param config the configuration
-   * @return the client
-   */
-  static AsyncSQLClient createNonShared(Vertx vertx, JsonObject config) {
-    return createNonShared(vertx, Vertx.currentContext(), config);
-  }
 
   /**
    * Create a MySQL client which shares its data source with any other MySQL clients created with the same
    * data source name
-   *
-   * @param vertx    the Vert.x instance
-   * @param context  the context
-   * @param config   the configuration
-   * @param poolName the pool name
-   * @return the client
-   */
-  static AsyncSQLClient createShared(Vertx vertx, Context context, JsonObject config, String poolName) {
-    return ClientHelper.getOrCreate(vertx, context, config, poolName, true);
-  }
-
-  /**
-   * Create a MySQL client which shares its data source with any other MySQL clients created with the same
-   * data source name. It uses the {@link Context} retrieved using {@link Vertx#currentContext()}.
    *
    * @param vertx    the Vert.x instance
    * @param config   the configuration
@@ -112,7 +85,7 @@ public interface MySQLClient extends AsyncSQLClient {
    * @return the client
    */
   static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String poolName) {
-    return createShared(vertx, Vertx.currentContext(), config, poolName);
+    return ClientHelper.getOrCreate(vertx, config, poolName, true);
   }
 
 
@@ -120,23 +93,11 @@ public interface MySQLClient extends AsyncSQLClient {
    * Like {@link #createShared(io.vertx.core.Vertx, JsonObject, String)} but with the default pool name
    *
    * @param vertx   the Vert.x instance
-   * @param context the context
    * @param config  the configuration
    * @return the client
    */
-  static AsyncSQLClient createShared(Vertx vertx, Context context, JsonObject config) {
-    return ClientHelper.getOrCreate(vertx, context, config, DEFAULT_POOL_NAME, true);
-  }
-
-  /**
-   * Like {@link #createShared(io.vertx.core.Vertx, JsonObject, String)} but with the default pool name.
-   *
-   * @param vertx  the Vert.x instance
-   * @param config the configuration
-   * @return the client
-   */
   static AsyncSQLClient createShared(Vertx vertx, JsonObject config) {
-    return createShared(vertx, Vertx.currentContext(), config);
+    return ClientHelper.getOrCreate(vertx, config, DEFAULT_POOL_NAME, true);
   }
 
 

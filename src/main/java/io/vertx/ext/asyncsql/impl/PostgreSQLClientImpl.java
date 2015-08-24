@@ -32,9 +32,9 @@ public class PostgreSQLClientImpl extends BaseSQLClient {
 
   private final PostgresqlAsyncConnectionPool pool;
 
-  public PostgreSQLClientImpl(Vertx vertx, Context context, JsonObject config) {
+  public PostgreSQLClientImpl(Vertx vertx, JsonObject config) {
     super(vertx, config);
-    pool = new PostgresqlAsyncConnectionPool(vertx, context, maxPoolSize, getConfiguration(
+    pool = new PostgresqlAsyncConnectionPool(vertx, maxPoolSize, getConfiguration(
         PostgreSQLClient.DEFAULT_HOST,
         PostgreSQLClient.DEFAULT_PORT,
         PostgreSQLClient.DEFAULT_DATABASE,
