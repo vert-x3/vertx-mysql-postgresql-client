@@ -17,7 +17,7 @@ public class MysqlAsyncConnectionPool extends AsyncConnectionPool {
   @Override
   protected Connection create() {
     return new MySQLConnection(configuration, CharsetMapper.Instance(),
-        ((EventLoopContext) vertx.getOrCreateContext()).eventLoop(),
+        vertx.nettyEventLoopGroup().next(),
         executionContext);
   }
 

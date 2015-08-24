@@ -21,7 +21,7 @@ public class PostgresqlAsyncConnectionPool extends AsyncConnectionPool {
         configuration,
         PostgreSQLColumnEncoderRegistry.Instance(),
         PostgreSQLColumnDecoderRegistry.Instance(),
-        ((EventLoopContext) vertx.getOrCreateContext()).eventLoop(),
+        vertx.nettyEventLoopGroup().next(),
         executionContext);
   }
 
