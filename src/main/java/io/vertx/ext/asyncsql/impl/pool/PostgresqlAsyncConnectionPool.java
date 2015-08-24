@@ -6,8 +6,6 @@ import com.github.mauricio.async.db.postgresql.PostgreSQLConnection;
 import com.github.mauricio.async.db.postgresql.column.PostgreSQLColumnDecoderRegistry;
 import com.github.mauricio.async.db.postgresql.column.PostgreSQLColumnEncoderRegistry;
 import io.vertx.core.Vertx;
-import io.vertx.core.impl.EventLoopContext;
-import io.vertx.ext.asyncsql.impl.VertxExecutionContext;
 
 public class PostgresqlAsyncConnectionPool extends AsyncConnectionPool {
 

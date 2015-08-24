@@ -9,7 +9,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.impl.ScalaUtils;
-import io.vertx.ext.asyncsql.impl.VertxExecutionContext;
+import io.vertx.ext.asyncsql.impl.VertxEventLoopExecutionContext;
 import scala.concurrent.ExecutionContext;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public abstract class AsyncConnectionPool {
     this.vertx = vertx;
     this.maxPoolSize = maxPoolSize;
     this.configuration = configuration;
-    this.executionContext = VertxExecutionContext.create(vertx);
+    this.executionContext = VertxEventLoopExecutionContext.create(vertx);
   }
 
   protected abstract Connection create();
