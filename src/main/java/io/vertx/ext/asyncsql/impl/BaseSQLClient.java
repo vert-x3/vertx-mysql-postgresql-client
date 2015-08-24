@@ -61,7 +61,7 @@ public abstract class BaseSQLClient {
     pool().take(ar -> {
       if (ar.succeeded()) {
         final AsyncConnectionPool pool = pool();
-        ExecutionContext ec = pool.executionContext();
+        ExecutionContext ec = VertxEventLoopExecutionContext.create(vertx);
         handler.handle(Future.succeededFuture(new AsyncSQLConnectionImpl(ar.result(), pool, ec)));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));

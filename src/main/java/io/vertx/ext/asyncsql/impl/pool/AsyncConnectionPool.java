@@ -18,12 +18,14 @@ package io.vertx.ext.asyncsql.impl.pool;
 
 import com.github.mauricio.async.db.Configuration;
 import com.github.mauricio.async.db.Connection;
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.impl.ScalaUtils;
 import io.vertx.ext.asyncsql.impl.VertxEventLoopExecutionContext;
-import scala.concurrent.ExecutionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +42,6 @@ public abstract class AsyncConnectionPool {
   private static final Logger logger = LoggerFactory.getLogger(AsyncConnectionPool.class);
   protected final Configuration configuration;
   protected final Vertx vertx;
-  protected final ExecutionContext executionContext;
 
   private int poolSize = 0;
   private final List<Connection> availableConnections = new ArrayList<>();
@@ -50,7 +51,6 @@ public abstract class AsyncConnectionPool {
     this.vertx = vertx;
     this.maxPoolSize = maxPoolSize;
     this.configuration = configuration;
-    this.executionContext = VertxEventLoopExecutionContext.create(vertx);
   }
 
   protected abstract Connection create();
@@ -60,7 +60,7 @@ public abstract class AsyncConnectionPool {
     try {
       Connection connection = create();
       connection
-          .connect().onComplete(ScalaUtils.toFunction1(handler), executionContext);
+          .connect().onComplete(ScalaUtils.toFunction1(handler), VertxEventLoopExecutionContext.create(vertx));
     } catch (Throwable e) {
       logger.info("creating a connection went wrong", e);
       poolSize -= 1;
@@ -119,9 +119,5 @@ public abstract class AsyncConnectionPool {
     if (handler != null) {
       handler.handle(Future.succeededFuture());
     }
-  }
-
-  public ExecutionContext executionContext() {
-    return executionContext;
   }
 }

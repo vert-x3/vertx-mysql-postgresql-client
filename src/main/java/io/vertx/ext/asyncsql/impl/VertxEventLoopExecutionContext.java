@@ -42,29 +42,37 @@ public class VertxEventLoopExecutionContext implements ExecutionContext {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VertxEventLoopExecutionContext.class);
 
-  private final Vertx vertx;
+  private final Context context;
   private final Handler<Throwable> errorHandler;
 
   private VertxEventLoopExecutionContext(Vertx vertx, Handler<Throwable> errorHandler) {
     Objects.requireNonNull(errorHandler);
     Objects.requireNonNull(vertx);
-    this.vertx = vertx;
+    Context ctx = Vertx.currentContext();
+    if (ctx == null) {
+      ctx = vertx.getOrCreateContext();
+    }
+    this.context = ctx;
     this.errorHandler = errorHandler;
   }
 
   @Override
   public void execute(Runnable runnable) {
-    Context ctxt = Vertx.currentContext();
-    if (ctxt == null) {
-      ctxt = vertx.getOrCreateContext();
-    }
-    ctxt.runOnContext(v -> {
+    if (context == Vertx.currentContext()) {
       try {
         runnable.run();
       } catch (Throwable e) {
         reportFailure(e);
       }
-    });
+    } else {
+      context.runOnContext(v -> {
+        try {
+          runnable.run();
+        } catch (Throwable e) {
+          reportFailure(e);
+        }
+      });
+    }
   }
 
   @Override

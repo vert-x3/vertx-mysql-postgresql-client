@@ -26,7 +26,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import scala.concurrent.ExecutionContext;
 import scala.concurrent.impl.Promise;
 import scala.util.Success;
 
@@ -41,13 +40,10 @@ import static com.jayway.awaitility.Awaitility.await;
 public class VertxEventLoopExecutionContextTest {
 
   protected static Vertx vertx;
-  public static ExecutionContext executionContext;
-
 
   @BeforeClass
   public static void setUp() {
     vertx = Vertx.vertx();
-    executionContext = VertxEventLoopExecutionContext.create(vertx);
   }
 
   @AfterClass
@@ -65,7 +61,7 @@ public class VertxEventLoopExecutionContextTest {
       promise.onComplete(ScalaUtils.toFunction1(v -> {
         tc.assertEquals(context, Vertx.currentContext());
         async.complete();
-      }), executionContext);
+      }), VertxEventLoopExecutionContext.create(vertx));
       promise.complete(new Success<>("hello"));
     });
   }
@@ -79,7 +75,7 @@ public class VertxEventLoopExecutionContextTest {
     promise.onComplete(ScalaUtils.toFunction1(v -> {
       tc.assertNotNull(Vertx.currentContext());
       async.complete();
-    }), executionContext);
+    }), VertxEventLoopExecutionContext.create(vertx));
     promise.complete(new Success<>("hello"));
   }
 
