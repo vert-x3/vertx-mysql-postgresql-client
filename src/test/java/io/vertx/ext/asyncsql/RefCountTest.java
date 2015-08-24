@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ *  Copyright 2015 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -18,17 +18,25 @@ package io.vertx.ext.asyncsql;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
+import io.vertx.ext.unit.junit.RunTestOnContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.test.core.VertxTestBase;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@RunWith(VertxUnitRunner.class)
 public class RefCountTest extends VertxTestBase {
 
   private LocalMap<String, Object> getLocalMap() {
     return vertx.sharedData().getLocalMap("__vertx.MySQLPostgreSQL.pools.MySQL");
   }
+
+  @Rule
+  public RunTestOnContext rule = new RunTestOnContext();
 
   @Test
   public void testNonShared() {

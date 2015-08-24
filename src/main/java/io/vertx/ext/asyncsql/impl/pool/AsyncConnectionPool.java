@@ -1,11 +1,24 @@
+/*
+ *  Copyright 2015 Red Hat, Inc.
+ *
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  and Apache License v2.0 which accompanies this distribution.
+ *
+ *  The Eclipse Public License is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
+ *
+ *  The Apache License v2.0 is available at
+ *  http://www.opensource.org/licenses/apache2.0.php
+ *
+ *  You may elect to redistribute this code under either of these licenses.
+ */
+
 package io.vertx.ext.asyncsql.impl.pool;
 
 import com.github.mauricio.async.db.Configuration;
 import com.github.mauricio.async.db.Connection;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.impl.ScalaUtils;
@@ -33,11 +46,11 @@ public abstract class AsyncConnectionPool {
   private final List<Connection> availableConnections = new ArrayList<>();
   private final List<Handler<AsyncResult<Connection>>> waiters = new ArrayList<>();
 
-  public AsyncConnectionPool(Vertx vertx, int maxPoolSize, Configuration configuration) {
+  public AsyncConnectionPool(Vertx vertx, Context context, int maxPoolSize, Configuration configuration) {
     this.vertx = vertx;
     this.maxPoolSize = maxPoolSize;
     this.configuration = configuration;
-    this.executionContext = VertxEventLoopExecutionContext.create(vertx);
+    this.executionContext = VertxEventLoopExecutionContext.create(context);
   }
 
   protected abstract Connection create();

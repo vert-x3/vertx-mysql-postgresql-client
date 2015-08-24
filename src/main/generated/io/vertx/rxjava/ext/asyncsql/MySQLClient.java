@@ -21,9 +21,9 @@ import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava.core.Context;
 
 /**
- *
  * Represents an asynchronous MySQL client
  *
  * <p/>
@@ -46,6 +46,19 @@ public class MySQLClient extends AsyncSQLClient {
   /**
    * Create a MySQL client which maintains its own pool.
    * @param vertx the Vert.x instance
+   * @param context the context
+   * @param config the configuration
+   * @return the client
+   */
+  public static AsyncSQLClient createNonShared(Vertx vertx, Context context, JsonObject config) { 
+    AsyncSQLClient ret= AsyncSQLClient.newInstance(io.vertx.ext.asyncsql.MySQLClient.createNonShared((io.vertx.core.Vertx) vertx.getDelegate(), (io.vertx.core.Context) context.getDelegate(), config));
+    return ret;
+  }
+
+  /**
+   * Create a MySQL client which maintains its own pool. It uses the  retrieved using
+   * .
+   * @param vertx the Vert.x instance
    * @param config the configuration
    * @return the client
    */
@@ -58,6 +71,20 @@ public class MySQLClient extends AsyncSQLClient {
    * Create a MySQL client which shares its data source with any other MySQL clients created with the same
    * data source name
    * @param vertx the Vert.x instance
+   * @param context the context
+   * @param config the configuration
+   * @param poolName the pool name
+   * @return the client
+   */
+  public static AsyncSQLClient createShared(Vertx vertx, Context context, JsonObject config, String poolName) { 
+    AsyncSQLClient ret= AsyncSQLClient.newInstance(io.vertx.ext.asyncsql.MySQLClient.createShared((io.vertx.core.Vertx) vertx.getDelegate(), (io.vertx.core.Context) context.getDelegate(), config, poolName));
+    return ret;
+  }
+
+  /**
+   * Create a MySQL client which shares its data source with any other MySQL clients created with the same
+   * data source name. It uses the  retrieved using .
+   * @param vertx the Vert.x instance
    * @param config the configuration
    * @param poolName the pool name
    * @return the client
@@ -69,6 +96,18 @@ public class MySQLClient extends AsyncSQLClient {
 
   /**
    * Like {@link io.vertx.rxjava.ext.asyncsql.MySQLClient#createShared} but with the default pool name
+   * @param vertx the Vert.x instance
+   * @param context the context
+   * @param config the configuration
+   * @return the client
+   */
+  public static AsyncSQLClient createShared(Vertx vertx, Context context, JsonObject config) { 
+    AsyncSQLClient ret= AsyncSQLClient.newInstance(io.vertx.ext.asyncsql.MySQLClient.createShared((io.vertx.core.Vertx) vertx.getDelegate(), (io.vertx.core.Context) context.getDelegate(), config));
+    return ret;
+  }
+
+  /**
+   * Like {@link io.vertx.rxjava.ext.asyncsql.MySQLClient#createShared} but with the default pool name.
    * @param vertx the Vert.x instance
    * @param config the configuration
    * @return the client

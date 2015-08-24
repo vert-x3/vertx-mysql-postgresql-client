@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ *  Copyright 2015 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -17,6 +17,7 @@
 package io.vertx.ext.asyncsql.impl;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -32,20 +33,22 @@ class ClientHolder implements Shareable {
   private final JsonObject config;
   private final boolean mySQL;
   private final Runnable closeRunner;
+  private final Context context;
 
   private AsyncSQLClient client;
   private int refCount = 1;
 
-  ClientHolder(Vertx vertx, JsonObject config, boolean mySQL, Runnable closeRunner) {
+  ClientHolder(Vertx vertx, Context context, JsonObject config, boolean mySQL, Runnable closeRunner) {
     this.vertx = vertx;
     this.config = config;
     this.mySQL = mySQL;
+    this.context = context;
     this.closeRunner = closeRunner;
   }
 
   synchronized AsyncSQLClient client() {
     if (client == null) {
-      client = new AsyncSQLClientImpl(vertx, config, mySQL);
+      client = new AsyncSQLClientImpl(vertx, context, config, mySQL);
     }
     return client;
   }

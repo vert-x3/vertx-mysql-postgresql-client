@@ -18,13 +18,13 @@
 var utils = require('vertx-js/util/utils');
 var AsyncSQLClient = require('vertx-mysql-postgresql-js/async_sql_client');
 var Vertx = require('vertx-js/vertx');
+var Context = require('vertx-js/context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
 var JPostgreSQLClient = io.vertx.ext.asyncsql.PostgreSQLClient;
 
 /**
-
  Represents an PostgreSQL client
 
  @class
@@ -46,13 +46,16 @@ var PostgreSQLClient = function(j_val) {
 
  @memberof module:vertx-mysql-postgresql-js/postgre_sql_client
  @param vertx {Vertx} the Vert.x instance 
+ @param context {Context} the Vert.x context to use 
  @param config {Object} the configuration 
  @return {AsyncSQLClient} the client
  */
-PostgreSQLClient.createNonShared = function(vertx, config) {
+PostgreSQLClient.createNonShared = function() {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object') {
-    return utils.convReturnVertxGen(JPostgreSQLClient["createNonShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](vertx._jdel, utils.convParamJsonObject(config)), AsyncSQLClient);
+    return utils.convReturnVertxGen(JPostgreSQLClient["createNonShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](__args[0]._jdel, utils.convParamJsonObject(__args[1])), AsyncSQLClient);
+  }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'object') {
+    return utils.convReturnVertxGen(JPostgreSQLClient["createNonShared(io.vertx.core.Vertx,io.vertx.core.Context,io.vertx.core.json.JsonObject)"](__args[0]._jdel, __args[1]._jdel, utils.convParamJsonObject(__args[2])), AsyncSQLClient);
   } else utils.invalidArgs();
 };
 
@@ -62,6 +65,7 @@ PostgreSQLClient.createNonShared = function(vertx, config) {
 
  @memberof module:vertx-mysql-postgresql-js/postgre_sql_client
  @param vertx {Vertx} the Vert.x instance 
+ @param context {Context} the Vert.x context to use 
  @param config {Object} the configuration 
  @param poolName {string} the pool name 
  @return {AsyncSQLClient} the client
@@ -72,6 +76,10 @@ PostgreSQLClient.createShared = function() {
     return utils.convReturnVertxGen(JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](__args[0]._jdel, utils.convParamJsonObject(__args[1])), AsyncSQLClient);
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && typeof __args[2] === 'string') {
     return utils.convReturnVertxGen(JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject,java.lang.String)"](__args[0]._jdel, utils.convParamJsonObject(__args[1]), __args[2]), AsyncSQLClient);
+  }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'object') {
+    return utils.convReturnVertxGen(JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.Context,io.vertx.core.json.JsonObject)"](__args[0]._jdel, __args[1]._jdel, utils.convParamJsonObject(__args[2])), AsyncSQLClient);
+  }else if (__args.length === 4 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'object' && typeof __args[3] === 'string') {
+    return utils.convReturnVertxGen(JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.Context,io.vertx.core.json.JsonObject,java.lang.String)"](__args[0]._jdel, __args[1]._jdel, utils.convParamJsonObject(__args[2]), __args[3]), AsyncSQLClient);
   } else utils.invalidArgs();
 };
 
