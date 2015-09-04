@@ -437,16 +437,17 @@ public abstract class SQLTestBase {
     });
   }
 
-
-  public static final String insertedTime1 = "2015-02-22T07:15:01.234Z";
-  public static final String insertedTime2 = "2014-06-27T17:50:02.468+02:00";
+  // note that mysql and the DDL of the table bellow do not take the TZ in consideration
+  public static final String insertedTime1 = "2015-02-22T07:15:01.234";
+  public static final String insertedTime2 = "2014-06-27T17:50:02.468";
 
   /**
-   * @return the String form of the time returned for "2015-02-22T07:15:01.234Z".
+   * @return the String form of the time returned for "2015-02-22T07:15:01.234".
    */
   public abstract String getExpectedTime1();
+
   /**
-   * @return the String form of the time returned for "2014-06-27T17:50:02.468+02:00".
+   * @return the String form of the time returned for "2014-06-27T17:50:02.468".
    */
   public abstract String getExpectedTime2();
 
@@ -456,32 +457,35 @@ public abstract class SQLTestBase {
     client.getConnection(ar -> {
       ensureSuccess(context, ar);
       conn = ar.result();
-      conn.execute("DROP TABLE IF EXISTS test_date_table", ar2 -> {
-        ensureSuccess(context, ar2);
-        conn.execute("CREATE TABLE test_date_table (id BIGINT, some_date DATE,some_timestamp TIMESTAMP)", ar3 -> {
-          ensureSuccess(context, ar3);
-          conn.updateWithParams("INSERT INTO test_date_table (id, some_date, some_timestamp) VALUES (?, ?, ?)", new JsonArray().add(1).add("2015-02-22").add(insertedTime1), ar4 -> {
-            ensureSuccess(context, ar4);
-            conn.updateWithParams("INSERT INTO test_date_table (id, some_date, some_timestamp) VALUES (?, ?, ?)", new JsonArray().add(2).add("2007-07-20").add(insertedTime2), ar5 -> {
-              ensureSuccess(context, ar5);
-              conn.query("SELECT id, some_date, some_timestamp FROM test_date_table ORDER BY id", ar6 -> {
-                ensureSuccess(context, ar6);
-                ResultSet results = ar6.result();
-                List<String> columns = results.getColumnNames();
-                context.assertEquals(3, columns.size());
-                context.assertEquals("id", columns.get(0));
-                context.assertEquals("some_date", columns.get(1));
-                context.assertEquals("some_timestamp", columns.get(2));
+      conn.execute("set SQL_MODE = 'STRICT_ALL_TABLES'", ar1 -> {
+        ensureSuccess(context, ar1);
+        conn.execute("DROP TABLE IF EXISTS test_date_table", ar2 -> {
+          ensureSuccess(context, ar2);
+          conn.execute("CREATE TABLE test_date_table (id BIGINT, some_date DATE,some_timestamp TIMESTAMP)", ar3 -> {
+            ensureSuccess(context, ar3);
+            conn.updateWithParams("INSERT INTO test_date_table (id, some_date, some_timestamp) VALUES (?, ?, ?)", new JsonArray().add(1).add("2015-02-22").add(insertedTime1), ar4 -> {
+              ensureSuccess(context, ar4);
+              conn.updateWithParams("INSERT INTO test_date_table (id, some_date, some_timestamp) VALUES (?, ?, ?)", new JsonArray().add(2).add("2007-07-20").add(insertedTime2), ar5 -> {
+                ensureSuccess(context, ar5);
+                conn.query("SELECT id, some_date, some_timestamp FROM test_date_table ORDER BY id", ar6 -> {
+                  ensureSuccess(context, ar6);
+                  ResultSet results = ar6.result();
+                  List<String> columns = results.getColumnNames();
+                  context.assertEquals(3, columns.size());
+                  context.assertEquals("id", columns.get(0));
+                  context.assertEquals("some_date", columns.get(1));
+                  context.assertEquals("some_timestamp", columns.get(2));
 
-                context.assertEquals(2, results.getResults().size());
-                JsonArray row1 = results.getResults().get(0);
-                context.assertEquals(row1.getString(1), "2015-02-22");
-                context.assertEquals(row1.getString(2), getExpectedTime1());
-                JsonArray row2 = results.getResults().get(1);
-                context.assertEquals(row2.getString(1), "2007-07-20");
-                context.assertEquals(row2.getString(2), getExpectedTime2());
+                  context.assertEquals(2, results.getResults().size());
+                  JsonArray row1 = results.getResults().get(0);
+                  context.assertEquals(row1.getString(1), "2015-02-22");
+                  context.assertEquals(row1.getString(2), getExpectedTime1());
+                  JsonArray row2 = results.getResults().get(1);
+                  context.assertEquals(row2.getString(1), "2007-07-20");
+                  context.assertEquals(row2.getString(2), getExpectedTime2());
 
-                async.complete();
+                  async.complete();
+                });
               });
             });
           });
