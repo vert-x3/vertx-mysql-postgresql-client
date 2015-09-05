@@ -10,9 +10,7 @@ docker run -d \
 		-e POSTGRES_DB \
 		--name "some-postgres" \
 		-p 5432:5432 \
-		"postgres"
-
-#		-v "./postgres-initdb.sql:/docker-entrypoint-initdb.d/test.sql":ro \
+		"postgres:9.4.4"
 
 
 

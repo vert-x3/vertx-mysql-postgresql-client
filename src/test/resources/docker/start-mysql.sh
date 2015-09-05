@@ -12,7 +12,7 @@ docker run -d \
 		-e MYSQL_DATABASE \
 		--name "some-mysql" \
 		-p 3306:3306 \
-		"mysql/mysql-server"
+		"mysql/mysql-server:5.6"
 
 
 
