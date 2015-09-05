@@ -22,8 +22,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
@@ -457,12 +455,7 @@ public abstract class SQLTestBase {
     client.getConnection(ar -> {
       ensureSuccess(context, ar);
       conn = ar.result();
-      conn.execute("set SQL_MODE = 'STRICT_ALL_TABLES'", ar1 -> {
-        // INFO: we ignore the result of this call because it is a mysql specific feature and not all versions support it
-        // what is means is that we want the sql parser to be strict even if the engine e.g.: myisam does not implement
-        // all constraints such as is the date Feb 31 a valid date. By specifying this we will tell for example that the
-        // previous date is invalid. For Postgres this is an uknown config so it will report an error, so we ignore it
-        // too.
+      setSqlModeIfPossible(nothing -> {
         conn.execute("DROP TABLE IF EXISTS test_date_table", ar2 -> {
           ensureSuccess(context, ar2);
           conn.execute("CREATE TABLE test_date_table (id BIGINT, some_date DATE,some_timestamp TIMESTAMP)", ar3 -> {
@@ -496,6 +489,10 @@ public abstract class SQLTestBase {
         });
       });
     });
+  }
+
+  protected void setSqlModeIfPossible(Handler<Void> handler) {
+    handler.handle(null);
   }
 
   private void setupSimpleTable(SQLConnection conn, Handler<AsyncResult<Void>> handler) {
