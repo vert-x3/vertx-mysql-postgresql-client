@@ -17,13 +17,13 @@
 /** @module vertx-mysql-postgresql-js/my_sql_client */
 var utils = require('vertx-js/util/utils');
 var AsyncSQLClient = require('vertx-mysql-postgresql-js/async_sql_client');
+var Vertx = require('vertx-js/vertx');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
 var JMySQLClient = io.vertx.ext.asyncsql.MySQLClient;
 
 /**
-
  Represents an asynchronous MySQL client
 
  @class

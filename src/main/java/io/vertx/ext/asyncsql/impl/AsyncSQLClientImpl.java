@@ -17,37 +17,41 @@
 package io.vertx.ext.asyncsql.impl;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.AsyncSQLClient;
 import io.vertx.ext.sql.SQLConnection;
 
 /**
- * Wraps a client with the {@link ClientHolder} in order to keep track of the references.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-public class ClientWrapper implements AsyncSQLClient {
+public class AsyncSQLClientImpl implements AsyncSQLClient {
 
-  private final ClientHolder holder;
-  private final AsyncSQLClient client;
+  private final BaseSQLClient baseClient;
 
-  public ClientWrapper(ClientHolder holder) {
-    this.holder = holder;
-    this.client = holder.client();
-  }
-
-  @Override
-  public void close(Handler<AsyncResult<Void>> whenDone) {
-    holder.close(whenDone);
+  public AsyncSQLClientImpl(Vertx vertx, JsonObject config, boolean mysql) {
+    if (mysql) {
+      baseClient = new MYSQLClientImpl(vertx, config);
+    } else {
+      baseClient = new PostgreSQLClientImpl(vertx, config);
+    }
   }
 
   @Override
   public void close() {
-    holder.close(null);
+    baseClient.close(null);
+  }
+
+  @Override
+  public void close(Handler<AsyncResult<Void>> whenDone) {
+    baseClient.close(whenDone);
   }
 
   @Override
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
-    client.getConnection(handler);
+    baseClient.getConnection(handler);
   }
+
 }

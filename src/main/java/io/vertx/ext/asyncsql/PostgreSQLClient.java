@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ *  Copyright 2015 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -24,7 +24,6 @@ import io.vertx.ext.asyncsql.impl.ClientHelper;
 import java.util.UUID;
 
 /**
- *
  * Represents an PostgreSQL client
  *
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
@@ -33,12 +32,41 @@ import java.util.UUID;
 @VertxGen
 public interface PostgreSQLClient extends AsyncSQLClient {
 
-  public static final String DEFAULT_DS_NAME = "DEFAULT_POSTGRESQL_DS";
+  /**
+   * The default name used for the PostGreSQL pool.
+   */
+  String DEFAULT_DS_NAME = "DEFAULT_POSTGRESQL_DS";
+
+  /**
+   * The default host.
+   */
+  String DEFAULT_HOST = "localhost";
+
+  /**
+   * The default port.
+   */
+  int DEFAULT_PORT = 5432;
+
+  /**
+   * The default database name.
+   */
+  String DEFAULT_DATABASE = "testdb";
+
+  /**
+   * The default database user.
+   */
+  String DEFAULT_USER = "vertx";
+
+  /**
+   * The default user password.
+   */
+  String DEFAULT_PASSWORD = "password";
+
 
   /**
    * Create a PostgreSQL client which maintains its own pool.
    *
-   * @param vertx  the Vert.x instance
+   * @param vertx   the Vert.x instance
    * @param config  the configuration
    * @return the client
    */
@@ -48,20 +76,22 @@ public interface PostgreSQLClient extends AsyncSQLClient {
 
   /**
    * Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same
-   * pool name
+   * pool name.
    *
-   * @param vertx  the Vert.x instance
-   * @param config  the configuration
-   * @param poolName  the pool name
+   * @param vertx    the Vert.x instance
+   * @param config   the configuration
+   * @param poolName the pool name
    * @return the client
    */
-  static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String poolName) {
+  static AsyncSQLClient createShared(Vertx vertx,JsonObject config, String poolName) {
     return ClientHelper.getOrCreate(vertx, config, poolName, false);
   }
 
+
   /**
    * Like {@link #createShared(io.vertx.core.Vertx, JsonObject, String)} but with the default pool name
-   * @param vertx  the Vert.x instance
+   *
+   * @param vertx   the Vert.x instance
    * @param config  the configuration
    * @return the client
    */

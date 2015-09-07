@@ -23,7 +23,6 @@ var JsonObject = io.vertx.core.json.JsonObject;
 var JAsyncSQLClient = io.vertx.ext.asyncsql.AsyncSQLClient;
 
 /**
-
  Represents an asynchronous SQL client
 
  @class

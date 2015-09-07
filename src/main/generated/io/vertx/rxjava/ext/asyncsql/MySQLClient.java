@@ -23,7 +23,6 @@ import io.vertx.rxjava.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 /**
- *
  * Represents an asynchronous MySQL client
  *
  * <p/>

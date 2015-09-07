@@ -23,7 +23,6 @@ import io.vertx.rxjava.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 /**
- *
  * Represents an PostgreSQL client
  *
  * <p/>
@@ -56,7 +55,7 @@ public class PostgreSQLClient extends AsyncSQLClient {
 
   /**
    * Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same
-   * pool name
+   * pool name.
    * @param vertx the Vert.x instance
    * @param config the configuration
    * @param poolName the pool name

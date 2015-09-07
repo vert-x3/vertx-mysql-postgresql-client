@@ -1,8 +1,8 @@
 require 'vertx-mysql-postgresql/async_sql_client'
+require 'vertx/vertx'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.asyncsql.PostgreSQLClient
 module VertxMysqlPostgresql
-  # 
   #  Represents an PostgreSQL client
   class PostgreSQLClient < ::VertxMysqlPostgresql::AsyncSQLClient
     # @private
@@ -27,7 +27,7 @@ module VertxMysqlPostgresql
       raise ArgumentError, "Invalid arguments when calling create_non_shared(vertx,config)"
     end
     #  Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same
-    #  pool name
+    #  pool name.
     # @param [::Vertx::Vertx] vertx the Vert.x instance
     # @param [Hash{String => Object}] config the configuration
     # @param [String] poolName the pool name

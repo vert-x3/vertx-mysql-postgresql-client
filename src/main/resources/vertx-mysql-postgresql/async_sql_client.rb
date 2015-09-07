@@ -2,7 +2,6 @@ require 'vertx-sql/sql_connection'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.asyncsql.AsyncSQLClient
 module VertxMysqlPostgresql
-  # 
   #  Represents an asynchronous SQL client
   class AsyncSQLClient
     # @private

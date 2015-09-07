@@ -24,7 +24,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
 /**
- *
  * Represents an asynchronous SQL client
  *
  * <p/>

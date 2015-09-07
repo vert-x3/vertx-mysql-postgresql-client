@@ -1,3 +1,19 @@
+/*
+ *  Copyright 2015 Red Hat, Inc.
+ *
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  and Apache License v2.0 which accompanies this distribution.
+ *
+ *  The Eclipse Public License is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
+ *
+ *  The Apache License v2.0 is available at
+ *  http://www.opensource.org/licenses/apache2.0.php
+ *
+ *  You may elect to redistribute this code under either of these licenses.
+ */
+
 package io.vertx.ext.asyncsql;
 
 import io.vertx.core.json.JsonArray;
@@ -16,7 +32,9 @@ public class PostgreSQLTest extends VertxTestBase {
 
   final String address = "campudus.postgresql";
 
-  final JsonObject config = new JsonObject().put("postgresql", new JsonObject().put("address", address));
+  final JsonObject config = new JsonObject()
+      .put("host", System.getProperty("db.host", "localhost"))
+      .put("postgresql", new JsonObject().put("address", address));
 
   @Override
   public void setUp() throws Exception {
@@ -42,6 +60,7 @@ public class PostgreSQLTest extends VertxTestBase {
   public void someTest() throws Exception {
     asyncSqlClient.getConnection(onSuccess(conn -> {
       conn.query("SELECT 1 AS something", onSuccess(resultSet -> {
+        System.out.println(resultSet.getResults());
         assertNotNull(resultSet);
         assertNotNull(resultSet.getColumnNames());
         assertNotNull(resultSet.getResults());

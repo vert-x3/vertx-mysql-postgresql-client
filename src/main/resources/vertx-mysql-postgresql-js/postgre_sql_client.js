@@ -17,13 +17,13 @@
 /** @module vertx-mysql-postgresql-js/postgre_sql_client */
 var utils = require('vertx-js/util/utils');
 var AsyncSQLClient = require('vertx-mysql-postgresql-js/async_sql_client');
+var Vertx = require('vertx-js/vertx');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
 var JPostgreSQLClient = io.vertx.ext.asyncsql.PostgreSQLClient;
 
 /**
-
  Represents an PostgreSQL client
 
  @class
@@ -57,7 +57,7 @@ PostgreSQLClient.createNonShared = function(vertx, config) {
 
 /**
  Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same
- pool name
+ pool name.
 
  @memberof module:vertx-mysql-postgresql-js/postgre_sql_client
  @param vertx {Vertx} the Vert.x instance 
