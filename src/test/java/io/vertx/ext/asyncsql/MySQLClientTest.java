@@ -55,8 +55,7 @@ public class MySQLClientTest extends SQLTestBase {
       // INFO: we ignore the result of this call because it is a mysql specific feature and not all versions support it
       // what is means is that we want the sql parser to be strict even if the engine e.g.: myisam does not implement
       // all constraints such as is the date Feb 31 a valid date. By specifying this we will tell for example that the
-      // previous date is invalid. For Postgres this is an uknown config so it will report an error, so we ignore it
-      // too.
+      // previous date is invalid.
       handler.handle(null);
     });
   }
