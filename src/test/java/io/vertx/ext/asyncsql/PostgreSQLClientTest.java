@@ -33,7 +33,7 @@ public class PostgreSQLClientTest extends SQLTestBase {
 
 
   /**
-   * @return the String form of the time returned for "2015-02-22T07:15:01.234Z".
+   * @return the String form of the time returned for "2015-02-22T07:15:01.234".
    */
   @Override
   public String getExpectedTime1() {
@@ -41,7 +41,7 @@ public class PostgreSQLClientTest extends SQLTestBase {
   }
 
   /**
-   * @return the String form of the time returned for "2014-06-27T17:50:02.468+02:00".
+   * @return the String form of the time returned for "2014-06-27T17:50:02.468".
    */
   @Override
   public String getExpectedTime2() {
