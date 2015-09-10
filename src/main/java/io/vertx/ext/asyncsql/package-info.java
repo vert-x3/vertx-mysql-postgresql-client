@@ -137,7 +137,7 @@
  * `database`:: The name of the database you want to connect to. Defaults to `test`.
  */
 @Document(fileName = "index.adoc")
-@GenModule(name = "vertx-mysql-postgresql") package io.vertx.ext.asyncsql;
+@ModuleGen(name = "vertx-mysql-postgresql", groupPackage = "io.vertx") package io.vertx.ext.asyncsql;
 
-import io.vertx.codegen.annotations.GenModule;
+import io.vertx.codegen.annotations.ModuleGen;
 import io.vertx.docgen.Document;
