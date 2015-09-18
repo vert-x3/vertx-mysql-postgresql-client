@@ -3,8 +3,50 @@
 The `link:yardoc/VertxMysqlPostgresql/AsyncSQLClient.html[MySQL / PostgreSQL Client]` is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
-It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[open source driver] to interact with the MySQL
+It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[async driver] to interact with the MySQL
 or PostgreSQL databases in a non blocking way
+
+== Using the MySQL and PostgreSQL client
+
+This section describes how to configure your project to be able to use the MySQL / PostgreSQL client in your
+application.
+
+=== In a regular application
+
+To use this client, you need to add the following jar to your `CLASSPATH`:
+
+* {maven-artifactId} {maven-version} (the client)
+* scala-library 2.11.4
+* the postgress-async-2.11 and mysdql-async-2.11 from https://github.com/mauricio/postgresql-async
+* joda time
+
+All these jars are downloadable from Maven Central.
+
+=== In an application packaged in a fat jar
+
+If you are building a _Fat-jar_ using Maven or Gradle, just add the following dependencies:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>{maven-groupId}</groupId>
+  <artifactId>{maven-artifactId}</artifactId>
+  <version>{maven-version}</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+compile "{maven-groupId}:{maven-artifactId}:{maven-version}"
+----
+
+=== In an application using a vert.x distributions
+
+If you are using a vert.x distribution, add the jar files listed above to the `$VERTX_HOME/lib` directory.
 
 == Creating a the client
 

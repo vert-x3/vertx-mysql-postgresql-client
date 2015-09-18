@@ -32,7 +32,7 @@
  *
  * To use this client, you need to add the following jar to your `CLASSPATH`:
  *
- * * {artifactId} {version} (the client)
+ * * {maven-artifactId} {maven-version} (the client)
  * * scala-library 2.11.4
  * * the postgress-async-2.11 and mysdql-async-2.11 from https://github.com/mauricio/postgresql-async
  * * joda time
