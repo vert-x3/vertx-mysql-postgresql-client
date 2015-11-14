@@ -233,11 +233,11 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   private ResultSet queryResultToResultSet(QueryResult qr) {
     final Option<com.github.mauricio.async.db.ResultSet> rows = qr.rows();
     if (!rows.isDefined()) {
-      return new ResultSet(Collections.emptyList(), Collections.emptyList());
+      return ResultSet.create(Collections.emptyList(), Collections.emptyList());
     } else {
       final List<String> names = ScalaUtils.toJavaList(rows.get().columnNames().toList());
       final List<JsonArray> arrays = rowDataSeqToJsonArray(rows.get());
-      return new ResultSet(names, arrays);
+      return ResultSet.create(names, arrays);
     }
   }
 
@@ -245,9 +245,9 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     int affected = (int) qr.rowsAffected();
     final Option<com.github.mauricio.async.db.ResultSet> maybeRow = qr.rows();
     if (maybeRow.isDefined()) {
-      return new UpdateResult(affected, new JsonArray(ScalaUtils.toJavaList(maybeRow.get().columnNames().toList())));
+      return UpdateResult.create(affected, new JsonArray(ScalaUtils.toJavaList(maybeRow.get().columnNames().toList())));
     } else {
-      return new UpdateResult(affected, new JsonArray());
+      return UpdateResult.create(affected, new JsonArray());
     }
   }
 
