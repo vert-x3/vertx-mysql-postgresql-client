@@ -58,6 +58,16 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   }
 
   @Override
+  public SQLConnection call(String sql, Handler<AsyncResult<ResultSet>> resultHandler) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public SQLConnection callWithParams(String sql, JsonArray params, JsonArray outputs, Handler<AsyncResult<ResultSet>> resultHandler) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
   public SQLConnection setAutoCommit(boolean autoCommit, Handler<AsyncResult<Void>> handler) {
     Future<Void> fut;
 

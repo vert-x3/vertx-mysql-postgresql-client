@@ -51,7 +51,7 @@ var AsyncSQLClient = function(j_val) {
         __args[0](null, ar.cause());
       }
     });
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -71,7 +71,7 @@ var AsyncSQLClient = function(j_val) {
         handler(null, ar.cause());
       }
     });
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate

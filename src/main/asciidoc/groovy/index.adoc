@@ -1,6 +1,6 @@
 = Vert.x MySQL / PostgreSQL client
 
-The `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html[MySQL / PostgreSQL Client]` is responsible for providing an
+The `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html[MySQL / PostgreSQL Client]` is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
 It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[async driver] to interact with the MySQL
@@ -83,8 +83,8 @@ def postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConf
 
 ----
 
-The first call to `link:groovydoc/io/vertx/groovy/ext/asyncsql/MySQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject)[MySQLClient.createShared]`
-or `link:groovydoc/io/vertx/groovy/ext/asyncsql/PostgreSQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject)[PostgreSQLClient.createShared]`
+The first call to `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/MySQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject)[MySQLClient.createShared]`
+or `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/PostgreSQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject)[PostgreSQLClient.createShared]`
 will actually create the data source, and the specified config will be used.
 
 Subsequent calls will return a new client instance that uses the same data source, so the configuration won't be used.
@@ -118,8 +118,8 @@ def postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConf
 If different clients are created using the same Vert.x instance and specifying the same pool name, they will
 share the same data source.
 
-The first call to `link:groovydoc/io/vertx/groovy/ext/asyncsql/MySQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject,%20java.lang.String)[MySQLClient.createShared]`
-or `link:groovydoc/io/vertx/groovy/ext/asyncsql/PostgreSQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject,%20java.lang.String)[PostgreSQLClient.createShared]`
+The first call to `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/MySQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject,%20java.lang.String)[MySQLClient.createShared]`
+or `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/PostgreSQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject,%20java.lang.String)[PostgreSQLClient.createShared]`
 will actually create the data source, and the specified config will be used.
 
 Subsequent calls will return a new client instance that uses the same pool, so the configuration won't be used.
@@ -132,8 +132,8 @@ interacting with different databases.
 In most cases you will want to share a pool between different client instances.
 However, it's possible you want to create a client instance that doesn't share its pool with any other client.
 
-In that case you can use `link:groovydoc/io/vertx/groovy/ext/asyncsql/MySQLClient.html#createNonShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject)[MySQLClient.createNonShared]`
-or `link:groovydoc/io/vertx/groovy/ext/asyncsql/PostgreSQLClient.html#createNonShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject)[PostgreSQLClient.createNonShared]`
+In that case you can use `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/MySQLClient.html#createNonShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject)[MySQLClient.createNonShared]`
+or `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/PostgreSQLClient.html#createNonShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject)[PostgreSQLClient.createNonShared]`
 
 [source,java]
 ----
@@ -157,19 +157,19 @@ def postgreSQLClient = PostgreSQLClient.createNonShared(vertx, postgreSQLClientC
 
 ----
 
-This is equivalent to calling `link:groovydoc/io/vertx/groovy/ext/asyncsql/MySQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject,%20java.lang.String)[MySQLClient.createShared]`
-or `link:groovydoc/io/vertx/groovy/ext/asyncsql/PostgreSQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject,%20java.lang.String)[PostgreSQLClient.createShared]`
+This is equivalent to calling `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/MySQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject,%20java.lang.String)[MySQLClient.createShared]`
+or `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/PostgreSQLClient.html#createShared(io.vertx.core.Vertx,%20io.vertx.core.json.JsonObject,%20java.lang.String)[PostgreSQLClient.createShared]`
 with a unique pool name each time.
 
 == Closing the client
 
 You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
-it, you should close it using `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html#close(io.vertx.core.Handler)[close]` or
-`link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html#close()[close]`
+it, you should close it using `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html#close(io.vertx.core.Handler)[close]` or
+`link:../../groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html#close()[close]`
 
 == Getting a connection
 
-Use `link:groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html#getConnection(io.vertx.core.Handler)[getConnection]` to get a connection.
+Use `link:../../groovydoc/io/vertx/groovy/ext/asyncsql/AsyncSQLClient.html#getConnection(io.vertx.core.Handler)[getConnection]` to get a connection.
 
 This will return the connection in the handler when one is ready from the pool.
 
@@ -195,7 +195,7 @@ client.getConnection({ res ->
 
 Once you've finished with the connection make sure you close it afterwards.
 
-The connection is an instance of `link:../../vertx-sql-common/groovy/groovydoc/io/vertx/groovy/ext/sql/SQLConnection.html[SQLConnection]` which is a common interface used by
+The connection is an instance of `link:../../groovydoc/io/vertx/groovy/ext/sql/SQLConnection.html[SQLConnection]` which is a common interface used by
 othe SQL clients.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.

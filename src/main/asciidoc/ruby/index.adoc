@@ -1,6 +1,6 @@
 = Vert.x MySQL / PostgreSQL client
 
-The `link:yardoc/VertxMysqlPostgresql/AsyncSQLClient.html[MySQL / PostgreSQL Client]` is responsible for providing an
+The `link:../../yardoc/VertxMysqlPostgresql/AsyncSQLClient.html[MySQL / PostgreSQL Client]` is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
 It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[async driver] to interact with the MySQL
@@ -83,8 +83,8 @@ postgreSQLClient = VertxMysqlPostgresql::PostgreSQLClient.create_shared(vertx, p
 
 ----
 
-The first call to `link:yardoc/VertxMysqlPostgresql/MySQLClient.html#create_shared-class_method[MySQLClient.createShared]`
-or `link:yardoc/VertxMysqlPostgresql/PostgreSQLClient.html#create_shared-class_method[PostgreSQLClient.createShared]`
+The first call to `link:../../yardoc/VertxMysqlPostgresql/MySQLClient.html#create_shared-class_method[MySQLClient.createShared]`
+or `link:../../yardoc/VertxMysqlPostgresql/PostgreSQLClient.html#create_shared-class_method[PostgreSQLClient.createShared]`
 will actually create the data source, and the specified config will be used.
 
 Subsequent calls will return a new client instance that uses the same data source, so the configuration won't be used.
@@ -118,8 +118,8 @@ postgreSQLClient = VertxMysqlPostgresql::PostgreSQLClient.create_shared(vertx, p
 If different clients are created using the same Vert.x instance and specifying the same pool name, they will
 share the same data source.
 
-The first call to `link:yardoc/VertxMysqlPostgresql/MySQLClient.html#create_shared-class_method[MySQLClient.createShared]`
-or `link:yardoc/VertxMysqlPostgresql/PostgreSQLClient.html#create_shared-class_method[PostgreSQLClient.createShared]`
+The first call to `link:../../yardoc/VertxMysqlPostgresql/MySQLClient.html#create_shared-class_method[MySQLClient.createShared]`
+or `link:../../yardoc/VertxMysqlPostgresql/PostgreSQLClient.html#create_shared-class_method[PostgreSQLClient.createShared]`
 will actually create the data source, and the specified config will be used.
 
 Subsequent calls will return a new client instance that uses the same pool, so the configuration won't be used.
@@ -132,8 +132,8 @@ interacting with different databases.
 In most cases you will want to share a pool between different client instances.
 However, it's possible you want to create a client instance that doesn't share its pool with any other client.
 
-In that case you can use `link:yardoc/VertxMysqlPostgresql/MySQLClient.html#create_non_shared-class_method[MySQLClient.createNonShared]`
-or `link:yardoc/VertxMysqlPostgresql/PostgreSQLClient.html#create_non_shared-class_method[PostgreSQLClient.createNonShared]`
+In that case you can use `link:../../yardoc/VertxMysqlPostgresql/MySQLClient.html#create_non_shared-class_method[MySQLClient.createNonShared]`
+or `link:../../yardoc/VertxMysqlPostgresql/PostgreSQLClient.html#create_non_shared-class_method[PostgreSQLClient.createNonShared]`
 
 [source,java]
 ----
@@ -157,19 +157,19 @@ postgreSQLClient = VertxMysqlPostgresql::PostgreSQLClient.create_non_shared(vert
 
 ----
 
-This is equivalent to calling `link:yardoc/VertxMysqlPostgresql/MySQLClient.html#create_shared-class_method[MySQLClient.createShared]`
-or `link:yardoc/VertxMysqlPostgresql/PostgreSQLClient.html#create_shared-class_method[PostgreSQLClient.createShared]`
+This is equivalent to calling `link:../../yardoc/VertxMysqlPostgresql/MySQLClient.html#create_shared-class_method[MySQLClient.createShared]`
+or `link:../../yardoc/VertxMysqlPostgresql/PostgreSQLClient.html#create_shared-class_method[PostgreSQLClient.createShared]`
 with a unique pool name each time.
 
 == Closing the client
 
 You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
-it, you should close it using `link:yardoc/VertxMysqlPostgresql/AsyncSQLClient.html#close-instance_method[close]` or
-`link:yardoc/VertxMysqlPostgresql/AsyncSQLClient.html#close-instance_method[close]`
+it, you should close it using `link:../../yardoc/VertxMysqlPostgresql/AsyncSQLClient.html#close-instance_method[close]` or
+`link:../../yardoc/VertxMysqlPostgresql/AsyncSQLClient.html#close-instance_method[close]`
 
 == Getting a connection
 
-Use `link:yardoc/VertxMysqlPostgresql/AsyncSQLClient.html#get_connection-instance_method[getConnection]` to get a connection.
+Use `link:../../yardoc/VertxMysqlPostgresql/AsyncSQLClient.html#get_connection-instance_method[getConnection]` to get a connection.
 
 This will return the connection in the handler when one is ready from the pool.
 
@@ -195,7 +195,7 @@ client.get_connection() { |res_err,res|
 
 Once you've finished with the connection make sure you close it afterwards.
 
-The connection is an instance of `link:../../vertx-sql-common/ruby/yardoc/VertxSql/SQLConnection.html[SQLConnection]` which is a common interface used by
+The connection is an instance of `link:../../yardoc/VertxSql/SQLConnection.html[SQLConnection]` which is a common interface used by
 othe SQL clients.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.
