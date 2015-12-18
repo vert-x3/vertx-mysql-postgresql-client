@@ -77,6 +77,9 @@ public abstract class SQLTestBase {
           context.assertNotNull(result);
           JsonObject expected = new JsonObject()
               .put("columnNames", new JsonArray().add("something"))
+              .put("numColumns", 1)
+              .put("numRows", 1)
+              .put("rows", new JsonArray().add(new JsonObject().put("something", 1)))
               .put("results", new JsonArray().add(new JsonArray().add(1)));
           context.assertEquals(expected, result.toJson());
           async.complete();
