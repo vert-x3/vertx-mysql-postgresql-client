@@ -16,9 +16,17 @@
 
 package io.vertx.ext.asyncsql;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.sql.ResultSet;
+import io.vertx.ext.sql.SQLConnection;
+import io.vertx.ext.sql.UpdateResult;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
 import org.junit.Before;
+import org.junit.Test;
 
 public class MySQLClientTest extends SQLTestBase {
 
@@ -26,8 +34,8 @@ public class MySQLClientTest extends SQLTestBase {
   @Before
   public void init() {
     client = MySQLClient.createNonShared(vertx,
-      new JsonObject()
-        .put("host", System.getProperty("db.host", "localhost"))
+        new JsonObject()
+            .put("host", System.getProperty("db.host", "localhost"))
     );
   }
 
@@ -58,5 +66,38 @@ public class MySQLClientTest extends SQLTestBase {
       // previous date is invalid.
       handler.handle(null);
     });
+  }
+
+  @Test
+  public void testInsertedIds(TestContext context) {
+    String name1 = "Adele";
+    String name2 = "Betty";
+    Async async = context.async();
+
+    client.getConnection(ar -> {
+      ensureSuccess(context, ar);
+      conn = ar.result();
+      setupAutoIncrementTable(conn, ar2 -> {
+        ensureSuccess(context, ar2);
+        conn.updateWithParams("INSERT INTO test_table (name) VALUES (?)", new JsonArray().add(name1), ar3 -> {
+          ensureSuccess(context, ar3);
+          UpdateResult updateResult1 = ar3.result();
+          long id1 = updateResult1.getKeys().getLong(0);
+          conn.updateWithParams("INSERT INTO test_table (name) VALUES (?)", new JsonArray().add(name2), ar4 -> {
+            ensureSuccess(context, ar4);
+            UpdateResult updateResult2 = ar4.result();
+            long id2 = updateResult2.getKeys().getLong(0);
+            checkConsistency(context, async, conn, id1, name1, id2, name2);
+          });
+        });
+      });
+    });
+  }
+
+  private void setupAutoIncrementTable(SQLConnection conn, Handler<AsyncResult<Void>> handler) {
+    conn.execute("BEGIN",
+        ar -> conn.execute("DROP TABLE IF EXISTS test_table",
+            ar2 -> conn.execute("CREATE TABLE test_table (id BIGINT AUTO_INCREMENT, name VARCHAR(255), PRIMARY KEY(id))",
+                ar3 -> conn.execute("COMMIT", handler::handle))));
   }
 }

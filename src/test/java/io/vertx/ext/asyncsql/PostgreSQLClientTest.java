@@ -16,8 +16,18 @@
 
 package io.vertx.ext.asyncsql;
 
+import com.github.mauricio.async.db.QueryResult;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.sql.ResultSet;
+import io.vertx.ext.sql.SQLConnection;
+import io.vertx.ext.sql.UpdateResult;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
 import org.junit.Before;
+import org.junit.Test;
 
 public class PostgreSQLClientTest extends SQLTestBase {
 
@@ -46,5 +56,38 @@ public class PostgreSQLClientTest extends SQLTestBase {
   @Override
   public String getExpectedTime2() {
     return "2014-06-27T17:50:02.468";
+  }
+
+  @Test
+  public void testInsertedIds(TestContext context) {
+    String name1 = "Adele";
+    String name2 = "Betty";
+    Async async = context.async();
+
+    client.getConnection(ar -> {
+      ensureSuccess(context, ar);
+      conn = ar.result();
+      setupAutoIncrementTable(conn, ar2 -> {
+        ensureSuccess(context, ar2);
+        conn.queryWithParams("INSERT INTO test_table (name) VALUES (?) RETURNING id", new JsonArray().add(name1), ar3 -> {
+          ensureSuccess(context, ar3);
+          ResultSet updateResult1 = ar3.result();
+          long id1 = updateResult1.getResults().get(0).getLong(0);
+          conn.queryWithParams("INSERT INTO test_table (name) VALUES (?) RETURNING id", new JsonArray().add(name2), ar4 -> {
+            ensureSuccess(context, ar4);
+            ResultSet updateResult2 = ar4.result();
+            long id2 = updateResult2.getResults().get(0).getLong(0);
+            checkConsistency(context, async, conn, id1, name1, id2, name2);
+          });
+        });
+      });
+    });
+  }
+
+  private void setupAutoIncrementTable(SQLConnection conn, Handler<AsyncResult<Void>> handler) {
+    conn.execute("BEGIN",
+        ar -> conn.execute("DROP TABLE IF EXISTS test_table",
+            ar2 -> conn.execute("CREATE TABLE test_table (id BIGSERIAL, name VARCHAR(255), PRIMARY KEY(id))",
+                ar3 -> conn.execute("COMMIT", handler::handle))));
   }
 }

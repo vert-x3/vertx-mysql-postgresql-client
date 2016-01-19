@@ -17,6 +17,7 @@
 package io.vertx.ext.asyncsql.impl;
 
 import com.github.mauricio.async.db.Configuration;
+import com.github.mauricio.async.db.Connection;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import io.vertx.core.AsyncResult;
@@ -56,13 +57,14 @@ public abstract class BaseSQLClient {
   }
 
   protected abstract AsyncConnectionPool pool();
+  protected abstract SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec);
 
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
     pool().take(ar -> {
       if (ar.succeeded()) {
         final AsyncConnectionPool pool = pool();
         ExecutionContext ec = VertxEventLoopExecutionContext.create(vertx);
-        handler.handle(Future.succeededFuture(new AsyncSQLConnectionImpl(ar.result(), pool, ec)));
+        handler.handle(Future.succeededFuture(createFromPool(ar.result(), pool, ec)));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }
@@ -99,7 +101,7 @@ public abstract class BaseSQLClient {
     log.info("Creating configuration for " + host + ":" + port);
     return new Configuration(username, host, port, Option.apply(password), Option.apply(database),
         CharsetUtil.UTF_8, 16777216, PooledByteBufAllocator.DEFAULT,
-        Duration.apply(5, TimeUnit.SECONDS), Duration.apply(5, TimeUnit.SECONDS));
+        Duration.apply(5, TimeUnit.SECONDS), Duration.apply(5, TimeUnit.SECONDS), Option.empty());
   }
 
 

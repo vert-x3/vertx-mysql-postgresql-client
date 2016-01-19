@@ -16,11 +16,14 @@
 
 package io.vertx.ext.asyncsql.impl;
 
+import com.github.mauricio.async.db.Connection;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.MySQLClient;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.asyncsql.impl.pool.MysqlAsyncConnectionPool;
+import io.vertx.ext.sql.SQLConnection;
+import scala.concurrent.ExecutionContext;
 
 /**
  * Implementation of the {@link BaseSQLClient} for MYSQL.
@@ -46,5 +49,10 @@ public class MYSQLClientImpl extends BaseSQLClient {
   @Override
   protected AsyncConnectionPool pool() {
     return pool;
+  }
+
+  @Override
+  protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec) {
+    return new MySQLConnectionImpl(conn, pool, ec);
   }
 }

@@ -167,6 +167,18 @@ You can learn how to use it in the http://foobar[common sql interface] documenta
 Whenever you get dates back from the database, this service will implicitly convert them into ISO 8601
 (`yyyy-MM-ddTHH:mm:ss.SSS`) formatted strings. MySQL usually discards milliseconds, so you will regularly see `.000`.
 
+=== Note about last inserted ids
+
+When inserting new rows into a table, you might want to retrieve auto-incremented ids from the database. The JDBC API
+usually lets you retrieve the last inserted id from a connection. If you use MySQL, it will work the way it does like
+the JDBC API. In PostgreSQL you can add the
+http://www.postgresql.org/docs/current/static/sql-insert.html["RETURNING" clause] to get the latest inserted ids. Use
+one of the `query` methods to get access to the returned columns.
+
+=== Note about stored procedures
+
+The `call` and `callWithParams` methods are not implemented currently.
+
 == Configuration
 
 Both the PostgreSql and MySql clients take the same configuration:

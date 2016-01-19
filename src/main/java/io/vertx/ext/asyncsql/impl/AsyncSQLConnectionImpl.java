@@ -19,6 +19,7 @@ package io.vertx.ext.asyncsql.impl;
 import com.github.mauricio.async.db.Connection;
 import com.github.mauricio.async.db.QueryResult;
 import com.github.mauricio.async.db.RowData;
+import com.github.mauricio.async.db.mysql.MySQLQueryResult;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -251,14 +252,9 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     }
   }
 
-  private UpdateResult queryResultToUpdateResult(QueryResult qr) {
+  protected UpdateResult queryResultToUpdateResult(QueryResult qr) {
     int affected = (int) qr.rowsAffected();
-    final Option<com.github.mauricio.async.db.ResultSet> maybeRow = qr.rows();
-    if (maybeRow.isDefined()) {
-      return new UpdateResult(affected, new JsonArray(ScalaUtils.toJavaList(maybeRow.get().columnNames().toList())));
-    } else {
-      return new UpdateResult(affected, new JsonArray());
-    }
+    return new UpdateResult(affected, new JsonArray());
   }
 
   private List<JsonArray> rowDataSeqToJsonArray(com.github.mauricio.async.db.ResultSet set) {
