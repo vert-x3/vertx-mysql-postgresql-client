@@ -17,7 +17,6 @@
 package io.vertx.ext.asyncsql.impl;
 
 import com.github.mauricio.async.db.Connection;
-import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.PostgreSQLClient;

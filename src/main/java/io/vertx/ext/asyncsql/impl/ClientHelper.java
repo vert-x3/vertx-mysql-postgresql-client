@@ -16,7 +16,6 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;

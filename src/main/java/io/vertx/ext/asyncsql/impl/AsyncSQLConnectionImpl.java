@@ -19,7 +19,6 @@ package io.vertx.ext.asyncsql.impl;
 import com.github.mauricio.async.db.Connection;
 import com.github.mauricio.async.db.QueryResult;
 import com.github.mauricio.async.db.RowData;
-import com.github.mauricio.async.db.mysql.MySQLQueryResult;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
