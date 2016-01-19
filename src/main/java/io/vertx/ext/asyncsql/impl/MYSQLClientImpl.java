@@ -31,9 +31,8 @@ public class MYSQLClientImpl extends BaseSQLClient {
 
   private final MysqlAsyncConnectionPool pool;
 
-  public MYSQLClientImpl(Vertx vertx,
-                         JsonObject config) {
-    super(vertx, config);
+  public MYSQLClientImpl(Vertx vertx, JsonObject config) {
+    super(vertx, config.put("supportsReturning", false));
     pool = new MysqlAsyncConnectionPool(vertx, maxPoolSize, getConfiguration(
         MySQLClient.DEFAULT_HOST,
         MySQLClient.DEFAULT_PORT,

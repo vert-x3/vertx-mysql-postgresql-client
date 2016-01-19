@@ -50,11 +50,26 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   private final Connection connection;
   private final AsyncConnectionPool pool;
+  private final boolean supportsReturning;
 
-  public AsyncSQLConnectionImpl(Connection connection, AsyncConnectionPool pool, ExecutionContext executionContext) {
+  public AsyncSQLConnectionImpl(Connection connection, AsyncConnectionPool pool, ExecutionContext executionContext, boolean supportsReturning) {
     this.connection = connection;
     this.pool = pool;
     this.executionContext = executionContext;
+    this.supportsReturning = supportsReturning;
+  }
+
+  private String addReturning(String sql) {
+    sql = sql.trim();
+    if (supportsReturning) {
+      if (sql.endsWith(";")) {
+        sql = sql.substring(0, sql.length() - 1);
+      }
+
+      return sql + " RETURNING *";
+    }
+
+    return sql;
   }
 
   @Override
@@ -140,7 +155,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection update(String sql, Handler<AsyncResult<UpdateResult>> handler) {
     beginTransactionIfNeeded(v -> {
-      final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
+      final scala.concurrent.Future<QueryResult> future = connection.sendQuery(addReturning(sql));
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
         if (ar.failed()) {
           handler.handle(Future.failedFuture(ar.cause()));
@@ -156,7 +171,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection updateWithParams(String sql, JsonArray params, Handler<AsyncResult<UpdateResult>> handler) {
     beginTransactionIfNeeded(v -> {
-      final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(sql,
+      final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(addReturning(sql),
           ScalaUtils.toScalaList(params.getList()));
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
         if (ar.failed()) {
