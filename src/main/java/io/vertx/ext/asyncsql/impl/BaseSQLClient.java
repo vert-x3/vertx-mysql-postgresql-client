@@ -48,11 +48,14 @@ public abstract class BaseSQLClient {
   protected int transactionTimeout;
   protected String registerAddress;
 
+  private final boolean supportsReturning;
+
   public BaseSQLClient(Vertx vertx, JsonObject config) {
     this.vertx = vertx;
     this.maxPoolSize = config.getInteger("maxPoolSize", 10);
     this.transactionTimeout = config.getInteger("transactionTimeout", 500);
     this.registerAddress = config.getString("address");
+    this.supportsReturning = config.getBoolean("supportsReturning", false);
   }
 
   protected abstract AsyncConnectionPool pool();
@@ -62,7 +65,7 @@ public abstract class BaseSQLClient {
       if (ar.succeeded()) {
         final AsyncConnectionPool pool = pool();
         ExecutionContext ec = VertxEventLoopExecutionContext.create(vertx);
-        handler.handle(Future.succeededFuture(new AsyncSQLConnectionImpl(ar.result(), pool, ec)));
+        handler.handle(Future.succeededFuture(new AsyncSQLConnectionImpl(ar.result(), pool, ec, supportsReturning)));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }

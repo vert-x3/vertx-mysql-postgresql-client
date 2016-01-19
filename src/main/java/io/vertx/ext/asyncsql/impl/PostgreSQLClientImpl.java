@@ -33,7 +33,7 @@ public class PostgreSQLClientImpl extends BaseSQLClient {
   private final PostgresqlAsyncConnectionPool pool;
 
   public PostgreSQLClientImpl(Vertx vertx, JsonObject config) {
-    super(vertx, config);
+    super(vertx, config.put("supportsReturning", true));
     pool = new PostgresqlAsyncConnectionPool(vertx, maxPoolSize, getConfiguration(
         PostgreSQLClient.DEFAULT_HOST,
         PostgreSQLClient.DEFAULT_PORT,
