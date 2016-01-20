@@ -29,6 +29,8 @@ import io.vertx.ext.unit.TestContext;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.UUID;
+
 public class PostgreSQLClientTest extends SQLTestBase {
 
   @Before
@@ -84,10 +86,44 @@ public class PostgreSQLClientTest extends SQLTestBase {
     });
   }
 
+  @Test
+  public void testUsingUUIDsInTables(TestContext context) {
+    Async async = context.async();
+    final UUID uuid = UUID.randomUUID();
+    final String name = "xyz";
+
+    client.getConnection(ar -> {
+      ensureSuccess(context, ar);
+      conn = ar.result();
+      setupTableWithUUIDs(conn, ar2 -> {
+        ensureSuccess(context, ar2);
+        conn.queryWithParams("INSERT INTO test_table (some_uuid, name) VALUES (?, ?)", new JsonArray().add(uuid.toString()).add(name), ar3 -> {
+          ensureSuccess(context, ar3);
+          conn.queryWithParams("SELECT some_uuid FROM test_table WHERE name = ?", new JsonArray().add(name), ar4 -> {
+            ensureSuccess(context, ar4);
+            ResultSet resultSet = ar4.result();
+            context.assertEquals(1, resultSet.getNumRows());
+            context.assertEquals("some_uuid", resultSet.getColumnNames().get(0));
+            context.assertEquals(new JsonObject().put("some_uuid", uuid.toString()), resultSet.getRows().get(0));
+
+            async.complete();
+          });
+        });
+      });
+    });
+  }
+
   private void setupAutoIncrementTable(SQLConnection conn, Handler<AsyncResult<Void>> handler) {
     conn.execute("BEGIN",
         ar -> conn.execute("DROP TABLE IF EXISTS test_table",
             ar2 -> conn.execute("CREATE TABLE test_table (id BIGSERIAL, name VARCHAR(255), PRIMARY KEY(id))",
+                ar3 -> conn.execute("COMMIT", handler::handle))));
+  }
+
+  private void setupTableWithUUIDs(SQLConnection conn, Handler<AsyncResult<Void>> handler) {
+    conn.execute("BEGIN",
+        ar -> conn.execute("DROP TABLE IF EXISTS test_table",
+            ar2 -> conn.execute("CREATE TABLE test_table (some_uuid UUID, name VARCHAR(255))",
                 ar3 -> conn.execute("COMMIT", handler::handle))));
   }
 }

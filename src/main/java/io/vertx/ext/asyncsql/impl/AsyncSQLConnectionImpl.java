@@ -36,6 +36,7 @@ import scala.runtime.AbstractFunction1;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
@@ -278,6 +279,8 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
         } else if (value instanceof LocalDateTime) {
           array.add(value.toString());
         } else if (value instanceof LocalDate) {
+          array.add(value.toString());
+        } else if (value instanceof UUID) {
           array.add(value.toString());
         } else {
           array.add(value);
