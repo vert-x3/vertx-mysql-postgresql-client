@@ -251,14 +251,9 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     }
   }
 
-  private UpdateResult queryResultToUpdateResult(QueryResult qr) {
+  protected UpdateResult queryResultToUpdateResult(QueryResult qr) {
     int affected = (int) qr.rowsAffected();
-    final Option<com.github.mauricio.async.db.ResultSet> maybeRow = qr.rows();
-    if (maybeRow.isDefined()) {
-      return new UpdateResult(affected, new JsonArray(ScalaUtils.toJavaList(maybeRow.get().columnNames().toList())));
-    } else {
-      return new UpdateResult(affected, new JsonArray());
-    }
+    return new UpdateResult(affected, new JsonArray());
   }
 
   private List<JsonArray> rowDataSeqToJsonArray(com.github.mauricio.async.db.ResultSet set) {

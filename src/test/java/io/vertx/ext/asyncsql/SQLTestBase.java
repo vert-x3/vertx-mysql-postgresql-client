@@ -498,6 +498,21 @@ public abstract class SQLTestBase {
     handler.handle(null);
   }
 
+  protected void checkConsistency(TestContext context, Async async, SQLConnection conn, long id1, String name1, long id2, String name2) {
+    conn.queryWithParams("SELECT name FROM test_table WHERE id = ?", new JsonArray().add(id1), ar5 -> {
+      ensureSuccess(context, ar5);
+      ResultSet resultSet1 = ar5.result();
+      context.assertEquals(name1, resultSet1.getResults().get(0).getString(0));
+      conn.queryWithParams("SELECT name FROM test_table WHERE id = ?", new JsonArray().add(id2), ar6 -> {
+        ensureSuccess(context, ar6);
+        ResultSet resultSet2 = ar6.result();
+        context.assertNotEquals(id1, id2);
+        context.assertEquals(name2, resultSet2.getResults().get(0).getString(0));
+        async.complete();
+      });
+    });
+  }
+
   private void setupSimpleTable(SQLConnection conn, Handler<AsyncResult<Void>> handler) {
     conn.execute("BEGIN",
         ar -> conn.execute("DROP TABLE IF EXISTS test_table",
