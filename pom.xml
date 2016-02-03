@@ -37,6 +37,12 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.6.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-sql-common</artifactId>
     </dependency>
@@ -54,11 +60,23 @@
       <groupId>com.github.mauricio</groupId>
       <artifactId>postgresql-async_2.11</artifactId>
       <version>${asyncdriver.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.github.mauricio</groupId>
       <artifactId>mysql-async_2.11</artifactId>
       <version>${asyncdriver.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
