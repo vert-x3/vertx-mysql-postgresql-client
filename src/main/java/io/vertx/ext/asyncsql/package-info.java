@@ -17,7 +17,7 @@
 /**
  * = Vert.x MySQL / PostgreSQL client
  *
- * The {@link io.vertx.ext.asyncsql.AsyncSQLClient MySQL / PostgreSQL Client} is responsible for providing an
+ * The Async MySQL / PostgreSQL Client is responsible for providing an
  * interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
  *
  * It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[async driver] to interact with the MySQL
@@ -32,7 +32,7 @@
  *
  * To use this client, you need to add the following jar to your `CLASSPATH`:
  *
- * * {maven-artifactId} {maven-version} (the client)
+ * * ${maven.artifactId} ${maven.version} (the client)
  * * scala-library 2.11.4
  * * the postgress-async-2.11 and mysdql-async-2.11 from https://github.com/mauricio/postgresql-async
  * * joda time
@@ -48,9 +48,9 @@
  * [source,xml,subs="+attributes"]
  * ----
  * <dependency>
- *   <groupId>{maven-groupId}</groupId>
- *   <artifactId>{maven-artifactId}</artifactId>
- *   <version>{maven-version}</version>
+ *   <groupId>${maven.groupId}</groupId>
+ *   <artifactId>${maven.artifactId}</artifactId>
+ *   <version>${maven.version}</version>
  * </dependency>
  * ----
  *
@@ -58,12 +58,16 @@
  *
  * [source,groovy,subs="+attributes"]
  * ----
- * compile "{maven-groupId}:{maven-artifactId}:{maven-version}"
+ * compile '${maven.groupId}:${maven.artifactId}:${maven.version}'
  * ----
  *
  * === In an application using a vert.x distributions
  *
  * If you are using a vert.x distribution, add the jar files listed above to the `$VERTX_HOME/lib` directory.
+ *
+ * Alternatively, you can edit the `vertx-stack.json` file located in `$VERTX_HOME`, and set `"included": true`
+ * for the `vertx-mysql-postgresql-client` dependency. Once done, launch: `vertx resolve --dir=lib --stack=
+ * ./vertx-stack.json`. It downloads the client and its dependencies.
  *
  * == Creating a the client
  *
