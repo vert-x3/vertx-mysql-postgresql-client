@@ -78,4 +78,25 @@ public class PostgreSQLTest extends VertxTestBase {
     await();
   }
 
+  @Test
+  public void queryTypeTimestampWithTimezoneTest() throws Exception {
+    asyncSqlClient.getConnection(onSuccess(conn -> {
+      conn.execute("CREATE TABLE IF NOT EXISTS timestamptest (ts timestamp with time zone)", onSuccess(resultSet -> {
+        conn.execute("INSERT INTO timestamptest (ts) VALUES (now())", onSuccess(rs1 -> {
+          conn.query("SELECT * FROM timestamptest;", onSuccess(rs2 -> {
+
+            conn.close((ar) -> {
+              if (ar.succeeded()) {
+                testComplete();
+              } else {
+                fail("should be able to close the asyncSqlClient");
+              }
+            });
+          }));
+        }));
+      }));
+    }));
+
+    await();
+  }
 }
