@@ -43,6 +43,9 @@ public class MYSQLClientImpl extends BaseSQLClient {
         MySQLClient.DEFAULT_DATABASE,
         MySQLClient.DEFAULT_USER,
         MySQLClient.DEFAULT_PASSWORD,
+        MySQLClient.DEFAULT_CHARSET,
+        MySQLClient.DEFAULT_CONNECT_TIMEOUT,
+        MySQLClient.DEFAULT_TEST_TIMEOUT,
         config));
   }
 

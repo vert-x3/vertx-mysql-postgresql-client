@@ -62,12 +62,27 @@ public interface PostgreSQLClient extends AsyncSQLClient {
    */
   String DEFAULT_PASSWORD = "password";
 
+  /**
+   * The default charset.
+   */
+  String DEFAULT_CHARSET = "UTF-8";
+
+  /**
+   * The default timeout for connect.
+   */
+  long DEFAULT_CONNECT_TIMEOUT = 10000L;
+
+  /**
+   * The default timeout for tests.
+   */
+  long DEFAULT_TEST_TIMEOUT = 10000L;
+
 
   /**
    * Create a PostgreSQL client which maintains its own pool.
    *
-   * @param vertx   the Vert.x instance
-   * @param config  the configuration
+   * @param vertx  the Vert.x instance
+   * @param config the configuration
    * @return the client
    */
   static AsyncSQLClient createNonShared(Vertx vertx, JsonObject config) {
@@ -75,15 +90,14 @@ public interface PostgreSQLClient extends AsyncSQLClient {
   }
 
   /**
-   * Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same
-   * pool name.
+   * Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same pool name.
    *
    * @param vertx    the Vert.x instance
    * @param config   the configuration
    * @param poolName the pool name
    * @return the client
    */
-  static AsyncSQLClient createShared(Vertx vertx,JsonObject config, String poolName) {
+  static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String poolName) {
     return ClientHelper.getOrCreate(vertx, config, poolName, false);
   }
 
@@ -91,8 +105,8 @@ public interface PostgreSQLClient extends AsyncSQLClient {
   /**
    * Like {@link #createShared(io.vertx.core.Vertx, JsonObject, String)} but with the default pool name
    *
-   * @param vertx   the Vert.x instance
-   * @param config  the configuration
+   * @param vertx  the Vert.x instance
+   * @param config the configuration
    * @return the client
    */
   static AsyncSQLClient createShared(Vertx vertx, JsonObject config) {
