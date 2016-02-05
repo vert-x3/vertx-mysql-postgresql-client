@@ -27,6 +27,7 @@ import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import scala.Option;
@@ -281,6 +282,8 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
         } else if (value instanceof LocalDate) {
           array.add(value.toString());
         } else if (value instanceof UUID) {
+          array.add(value.toString());
+        } else if (value instanceof DateTime) {
           array.add(value.toString());
         } else {
           array.add(value);
