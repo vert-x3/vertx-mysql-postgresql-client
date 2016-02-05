@@ -86,13 +86,15 @@ public class PostgreSQLTest extends VertxTestBase {
           conn.query("SELECT * FROM timestamptest;", onSuccess(rs2 -> {
             assertNotNull(rs2);
             assertNotNull(rs2.getResults());
-            conn.close((ar) -> {
-              if (ar.succeeded()) {
-                testComplete();
-              } else {
-                fail("should be able to close the asyncSqlClient");
-              }
-            });
+            conn.execute("DROP TABLE timestamptest", onSuccess(rs3 -> {
+              conn.close((ar) -> {
+                if (ar.succeeded()) {
+                  testComplete();
+                } else {
+                  fail("should be able to close the asyncSqlClient");
+                }
+              });
+            }));
           }));
         }));
       }));
@@ -109,13 +111,15 @@ public class PostgreSQLTest extends VertxTestBase {
           conn.query("SELECT * FROM timestamptest;", onSuccess(rs2 -> {
             assertNotNull(rs2);
             assertNotNull(rs2.getResults());
-            conn.close((ar) -> {
-              if (ar.succeeded()) {
-                testComplete();
-              } else {
-                fail("should be able to close the asyncSqlClient");
-              }
-            });
+            conn.execute("DROP TABLE timestamptest", onSuccess(rs3 -> {
+              conn.close((ar) -> {
+                if (ar.succeeded()) {
+                  testComplete();
+                } else {
+                  fail("should be able to close the asyncSqlClient");
+                }
+              });
+            }));
           }));
         }));
       }));
