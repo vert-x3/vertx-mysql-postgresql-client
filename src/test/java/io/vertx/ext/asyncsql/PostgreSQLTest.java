@@ -18,113 +18,88 @@ package io.vertx.ext.asyncsql;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.sql.ResultSet;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.test.core.VertxTestBase;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-public class PostgreSQLTest extends VertxTestBase {
-
-  AsyncSQLClient asyncSqlClient;
-
-  final String address = "campudus.postgresql";
+public class PostgreSQLTest extends AbstractTestBase {
 
   final JsonObject config = new JsonObject()
-      .put("host", System.getProperty("db.host", "localhost"))
-      .put("postgresql", new JsonObject().put("address", address));
+      .put("host", System.getProperty("db.host", "localhost"));
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    asyncSqlClient = PostgreSQLClient.createNonShared(vertx, config);
+  @Before
+  public void init() {
+    client = PostgreSQLClient.createNonShared(vertx, config);
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    CountDownLatch latch;
-    if (this.asyncSqlClient != null) {
-      latch = new CountDownLatch(1);
-      this.asyncSqlClient.close((ar) -> {
-        latch.countDown();
+  @Test
+  public void someTest(TestContext context) throws Exception {
+    Async async = context.async();
+    client.getConnection(connAr -> {
+      ensureSuccess(context, connAr);
+      conn = connAr.result();
+      conn.query("SELECT 1 AS something", resultSetAr -> {
+        ensureSuccess(context, resultSetAr);
+        ResultSet resultSet = resultSetAr.result();
+        context.assertNotNull(resultSet);
+        context.assertNotNull(resultSet.getColumnNames());
+        context.assertNotNull(resultSet.getResults());
+        context.assertEquals(new JsonArray().add(1), resultSet.getResults().get(0));
+        async.complete();
       });
-      this.awaitLatch(latch);
-    }
-
-    super.tearDown();
+    });
   }
 
   @Test
-  public void someTest() throws Exception {
-    asyncSqlClient.getConnection(onSuccess(conn -> {
-      conn.query("SELECT 1 AS something", onSuccess(resultSet -> {
-        System.out.println(resultSet.getResults());
-        assertNotNull(resultSet);
-        assertNotNull(resultSet.getColumnNames());
-        assertNotNull(resultSet.getResults());
-        assertEquals(new JsonArray().add(1), resultSet.getResults().get(0));
-        conn.close((ar) -> {
-          if (ar.succeeded()) {
-            testComplete();
-          } else {
-            fail("should be able to close the asyncSqlClient");
-          }
-        });
-      }));
-    }));
-
-    await();
-  }
-
-  @Test
-  public void queryTypeTimestampWithTimezoneTest() throws Exception {
-    asyncSqlClient.getConnection(onSuccess(conn -> {
-      conn.execute("CREATE TABLE IF NOT EXISTS timestamptest (ts timestamp with time zone)", onSuccess(resultSet -> {
-        conn.execute("INSERT INTO timestamptest (ts) VALUES (now())", onSuccess(rs1 -> {
-          conn.query("SELECT * FROM timestamptest;", onSuccess(rs2 -> {
-            assertNotNull(rs2);
-            assertNotNull(rs2.getResults());
-            conn.execute("DROP TABLE timestamptest", onSuccess(rs3 -> {
-              conn.close((ar) -> {
-                if (ar.succeeded()) {
-                  testComplete();
-                } else {
-                  fail("should be able to close the asyncSqlClient");
-                }
-              });
+  public void queryTypeTimestampWithTimezoneTest(TestContext context) throws Exception {
+    Async async = context.async();
+    client.getConnection(connAr -> {
+      ensureSuccess(context, connAr);
+      conn = connAr.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", onSuccess(context, dropped -> {
+        conn.execute("CREATE TABLE IF NOT EXISTS test_table (ts timestamp with time zone)", onSuccess(context, created -> {
+          conn.execute("INSERT INTO test_table (ts) VALUES (now())", onSuccess(context, inserted -> {
+            conn.query("SELECT * FROM test_table;", onSuccess(context, timestampSelect -> {
+              context.assertNotNull(timestampSelect);
+              context.assertNotNull(timestampSelect.getResults());
+              context.assertTrue(timestampSelect.getResults().get(0).getString(0).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}(Z|[+-]\\d{2}:\\d{2})"));
+              async.complete();
             }));
           }));
         }));
       }));
-    }));
-
-    await();
+    });
   }
 
   @Test
-  public void queryTypeTimestampWithoutTimezoneTest() throws Exception {
-    asyncSqlClient.getConnection(onSuccess(conn -> {
-      conn.execute("CREATE TABLE IF NOT EXISTS timestamptest (ts timestamp without time zone)", onSuccess(resultSet -> {
-        conn.execute("INSERT INTO timestamptest (ts) VALUES (now())", onSuccess(rs1 -> {
-          conn.query("SELECT * FROM timestamptest;", onSuccess(rs2 -> {
-            assertNotNull(rs2);
-            assertNotNull(rs2.getResults());
-            conn.execute("DROP TABLE timestamptest", onSuccess(rs3 -> {
-              conn.close((ar) -> {
-                if (ar.succeeded()) {
-                  testComplete();
-                } else {
-                  fail("should be able to close the asyncSqlClient");
-                }
-              });
+  public void queryTypeTimestampWithoutTimezoneTest(TestContext context) throws Exception {
+    Async async = context.async();
+    client.getConnection(connAr -> {
+      ensureSuccess(context, connAr);
+      conn = connAr.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", onSuccess(context, dropped -> {
+        conn.execute("CREATE TABLE IF NOT EXISTS test_table (ts timestamp without time zone)", onSuccess(context, created -> {
+          conn.execute("INSERT INTO test_table (ts) VALUES (now())", onSuccess(context, inserted -> {
+            conn.query("SELECT * FROM test_table;", onSuccess(context, timestampSelect -> {
+              context.assertNotNull(timestampSelect);
+              context.assertNotNull(timestampSelect.getResults());
+              context.assertTrue(timestampSelect.getResults().get(0).getString(0).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+              async.complete();
             }));
           }));
         }));
       }));
-    }));
-
-    await();
+    });
   }
+
 }
