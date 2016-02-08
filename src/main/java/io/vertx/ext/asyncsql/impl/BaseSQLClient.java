@@ -19,7 +19,6 @@ package io.vertx.ext.asyncsql.impl;
 import com.github.mauricio.async.db.Configuration;
 import com.github.mauricio.async.db.Connection;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.util.CharsetUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;

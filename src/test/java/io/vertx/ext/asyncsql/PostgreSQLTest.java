@@ -21,13 +21,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.test.core.VertxTestBase;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
