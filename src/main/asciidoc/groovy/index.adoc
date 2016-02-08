@@ -15,7 +15,7 @@ application.
 
 To use this client, you need to add the following jar to your `CLASSPATH`:
 
-* vertx-mysql-postgresql-client 3.2.1 (the client)
+* vertx-mysql-postgresql-client 3.3.0-SNAPSHOT (the client)
 * scala-library 2.11.4
 * the postgress-async-2.11 and mysdql-async-2.11 from https://github.com/mauricio/postgresql-async
 * joda time
@@ -33,7 +33,7 @@ If you are building a _Fat-jar_ using Maven or Gradle, just add the following de
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-mysql-postgresql-client</artifactId>
-  <version>3.2.1</version>
+  <version>3.3.0-SNAPSHOT</version>
 </dependency>
 ----
 
@@ -41,7 +41,7 @@ If you are building a _Fat-jar_ using Maven or Gradle, just add the following de
 
 [source,groovy,subs="+attributes"]
 ----
-compile 'io.vertx:vertx-mysql-postgresql-client:3.2.1'
+compile 'io.vertx:vertx-mysql-postgresql-client:3.3.0-SNAPSHOT'
 ----
 
 === In an application using a vert.x distributions
@@ -232,7 +232,9 @@ Both the PostgreSql and MySql clients take the same configuration:
   "maxPoolSize" : <maximum-number-of-open-connections>,
   "username" : <your-username>,
   "password" : <your-password>,
-  "database" : <name-of-your-database>
+  "database" : <name-of-your-database>,
+  "charset" : <name-of-the-character-set>,
+  "queryTimeout" : <timeout-in-milliseconds>
 }
 ----
 
@@ -242,3 +244,5 @@ Both the PostgreSql and MySql clients take the same configuration:
 `username`:: The username to connect to the database. Defaults to `postgres` for PostgreSQL and `root` for MySQL.
 `password`:: The password to connect to the database. Default is not set, i.e. it uses no password.
 `database`:: The name of the database you want to connect to. Defaults to `test`.
+`charset`:: The name of the character set you want to use for the connection. Defaults to `UTF-8`.
+`queryTimeout`:: The timeout to wait for a query in milliseconds. Defaults to `10000` (= 10 seconds).

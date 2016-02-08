@@ -26,8 +26,7 @@ module VertxMysqlPostgresql
       end
       raise ArgumentError, "Invalid arguments when calling create_non_shared(vertx,config)"
     end
-    #  Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same
-    #  pool name.
+    #  Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same pool name.
     # @param [::Vertx::Vertx] vertx the Vert.x instance
     # @param [Hash{String => Object}] config the configuration
     # @param [String] poolName the pool name

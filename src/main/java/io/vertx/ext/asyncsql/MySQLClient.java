@@ -62,6 +62,21 @@ public interface MySQLClient extends AsyncSQLClient {
    */
   String DEFAULT_PASSWORD = "password";
 
+  /**
+   * The default charset.
+   */
+  String DEFAULT_CHARSET = "UTF-8";
+
+  /**
+   * The default timeout for connect.
+   */
+  long DEFAULT_CONNECT_TIMEOUT = 10000L;
+
+  /**
+   * The default timeout for tests.
+   */
+  long DEFAULT_TEST_TIMEOUT = 10000L;
+
 
   /**
    * Create a MySQL client which maintains its own pool.

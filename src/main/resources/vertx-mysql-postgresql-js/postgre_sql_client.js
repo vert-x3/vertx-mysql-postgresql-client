@@ -56,8 +56,7 @@ PostgreSQLClient.createNonShared = function(vertx, config) {
 };
 
 /**
- Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same
- pool name.
+ Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same pool name.
 
  @memberof module:vertx-mysql-postgresql-js/postgre_sql_client
  @param vertx {Vertx} the Vert.x instance 

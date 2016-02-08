@@ -183,7 +183,9 @@
  *   "maxPoolSize" : <maximum-number-of-open-connections>,
  *   "username" : <your-username>,
  *   "password" : <your-password>,
- *   "database" : <name-of-your-database>
+ *   "database" : <name-of-your-database>,
+ *   "charset" : <name-of-the-character-set>,
+ *   "queryTimeout" : <timeout-in-milliseconds>
  * }
  * ----
  *
@@ -193,6 +195,8 @@
  * `username`:: The username to connect to the database. Defaults to `postgres` for PostgreSQL and `root` for MySQL.
  * `password`:: The password to connect to the database. Default is not set, i.e. it uses no password.
  * `database`:: The name of the database you want to connect to. Defaults to `test`.
+ * `charset`:: The name of the character set you want to use for the connection. Defaults to `UTF-8`.
+ * `queryTimeout`:: The timeout to wait for a query in milliseconds. Defaults to `10000` (= 10 seconds).
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-mysql-postgresql", groupPackage = "io.vertx") package io.vertx.ext.asyncsql;
