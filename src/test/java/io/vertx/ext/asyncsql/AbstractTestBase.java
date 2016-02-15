@@ -1,6 +1,7 @@
 package io.vertx.ext.asyncsql;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.unit.TestContext;
@@ -43,4 +44,13 @@ public abstract class AbstractTestBase {
     }
   }
 
+  protected <A> Handler<AsyncResult<A>> onSuccess(TestContext context, Handler<A> fn) {
+    return ar -> {
+      if (ar.succeeded()) {
+        fn.handle(ar.result());
+      } else {
+        context.fail("Should have been a success");
+      }
+    };
+  }
 }

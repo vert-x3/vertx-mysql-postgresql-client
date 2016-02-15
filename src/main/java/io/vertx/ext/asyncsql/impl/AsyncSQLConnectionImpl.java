@@ -27,6 +27,7 @@ import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import scala.Option;
@@ -92,10 +93,10 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
-        if (ar.failed()) {
-          handler.handle(Future.failedFuture(ar.cause()));
-        } else {
+        if (ar.succeeded()) {
           handler.handle(Future.succeededFuture());
+        } else {
+          handler.handle(Future.failedFuture(ar.cause()));
         }
       }), executionContext);
     });
@@ -107,14 +108,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   public SQLConnection query(String sql, Handler<AsyncResult<ResultSet>> handler) {
     beginTransactionIfNeeded(v -> {
       final Future<QueryResult> future = ScalaUtils.scalaToVertx(connection.sendQuery(sql), executionContext);
-      future.setHandler(ar -> {
-        if (ar.succeeded()) {
-          handler.handle(Future.succeededFuture(queryResultToResultSet(ar.result())));
-        } else {
-          handler.handle(Future.failedFuture(ar.cause()));
-        }
-
-      });
+      future.setHandler(handleAsyncQueryResultToResultSet(handler));
     });
 
     return this;
@@ -125,14 +119,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(sql,
           ScalaUtils.toScalaList(params.getList()));
-      future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
-        if (ar.succeeded()) {
-          handler.handle(Future.succeededFuture(queryResultToResultSet(ar.result())));
-        } else {
-          handler.handle(Future.failedFuture(ar.cause()));
-        }
-
-      }), executionContext);
+      future.onComplete(ScalaUtils.toFunction1(handleAsyncQueryResultToResultSet(handler)), executionContext);
     });
 
     return this;
@@ -143,10 +130,14 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
-        if (ar.failed()) {
-          handler.handle(Future.failedFuture(ar.cause()));
+        if (ar.succeeded()) {
+          try {
+            handler.handle(Future.succeededFuture(queryResultToUpdateResult(ar.result())));
+          } catch (Throwable e) {
+            handler.handle(Future.failedFuture(e));
+          }
         } else {
-          handler.handle(Future.succeededFuture(queryResultToUpdateResult(ar.result())));
+          handler.handle(Future.failedFuture(ar.cause()));
         }
       }), executionContext);
     });
@@ -160,10 +151,10 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
       final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(sql,
           ScalaUtils.toScalaList(params.getList()));
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
-        if (ar.failed()) {
-          handler.handle(Future.failedFuture(ar.cause()));
-        } else {
+        try {
           handler.handle(Future.succeededFuture(queryResultToUpdateResult(ar.result())));
+        } catch (Throwable e) {
+          handler.handle(Future.failedFuture(e));
         }
       }), executionContext);
     });
@@ -241,6 +232,20 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     }
   }
 
+  private Handler<AsyncResult<QueryResult>> handleAsyncQueryResultToResultSet(Handler<AsyncResult<ResultSet>> handler) {
+    return ar -> {
+      if (ar.succeeded()) {
+        try {
+          handler.handle(Future.succeededFuture(queryResultToResultSet(ar.result())));
+        } catch (Throwable e) {
+          handler.handle(Future.failedFuture(e));
+        }
+      } else {
+        handler.handle(Future.failedFuture(ar.cause()));
+      }
+    };
+  }
+
   private ResultSet queryResultToResultSet(QueryResult qr) {
     final Option<com.github.mauricio.async.db.ResultSet> rows = qr.rows();
     if (!rows.isDefined()) {
@@ -279,6 +284,8 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
         } else if (value instanceof LocalDateTime) {
           array.add(value.toString());
         } else if (value instanceof LocalDate) {
+          array.add(value.toString());
+        } else if (value instanceof DateTime) {
           array.add(value.toString());
         } else if (value instanceof UUID) {
           array.add(value.toString());
