@@ -20,12 +20,15 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 public class MySQLClientTest extends SQLTestBase {
 
@@ -91,6 +94,36 @@ public class MySQLClientTest extends SQLTestBase {
         });
       });
     });
+  }
+
+  @Override
+  protected String createByteArray1TableColumn() {
+    return "BIT(1)";
+  }
+
+  @Override
+  protected String createByteArray2TableColumn() {
+    return "BIT(2)";
+  }
+
+  @Override
+  protected String createByteArray3TableColumn() {
+    return "BIT(9)";
+  }
+
+  @Override
+  protected String[] insertByteArray1Values() {
+    return new String[]{"B'1'", "B'0'", "B'1'"};
+  }
+
+  @Override
+  protected String[] insertByteArray2Values() {
+    return new String[]{"B'10'", "B'01'", "B'11'"};
+  }
+
+  @Override
+  protected String[] insertByteArray3Values() {
+    return new String[]{"B'100000000'", "B'000000001'", "B'100000001'"};
   }
 
   private void setupAutoIncrementTable(SQLConnection conn, Handler<AsyncResult<Void>> handler) {

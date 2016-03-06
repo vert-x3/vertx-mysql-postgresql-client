@@ -492,6 +492,94 @@ public abstract class SQLTestBase extends AbstractTestBase {
     });
   }
 
+  protected abstract String createByteArray1TableColumn();
+  protected abstract String createByteArray2TableColumn();
+  protected abstract String createByteArray3TableColumn();
+  protected abstract String[] insertByteArray1Values();
+  protected abstract String[] insertByteArray2Values();
+  protected abstract String[] insertByteArray3Values();
+
+  @Test
+  public void testByteA1Fields(TestContext context) {
+    Async async = context.async();
+    client.getConnection(arConn -> {
+      ensureSuccess(context, arConn);
+      conn = arConn.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", arDrop -> {
+        ensureSuccess(context, arDrop);
+        conn.execute("CREATE TABLE test_table (id INT, some_bit " + createByteArray1TableColumn() + ")", arCreate -> {
+          ensureSuccess(context, arCreate);
+          String[] s = insertByteArray1Values();
+          conn.execute("INSERT INTO test_table (id, some_bit) VALUES (1, " + s[0] + "),(2, " + s[1] + "),(3, " + s[2] + ")", arInsert -> {
+            ensureSuccess(context, arInsert);
+            conn.query("SELECT some_bit FROM test_table ORDER BY id", arQuery -> {
+              ensureSuccess(context, arQuery);
+              ResultSet res = arQuery.result();
+              context.assertTrue(Arrays.equals(new byte[]{0b1}, res.getRows().get(0).getBinary("some_bit")));
+              context.assertTrue(Arrays.equals(new byte[]{0b0}, res.getResults().get(1).getBinary(0)));
+              context.assertTrue(Arrays.equals(new byte[]{0b1}, res.getRows().get(2).getBinary("some_bit")));
+              async.complete();
+            });
+          });
+        });
+      });
+    });
+  }
+
+  @Test
+  public void testByteA2Fields(TestContext context) {
+    Async async = context.async();
+    client.getConnection(arConn -> {
+      ensureSuccess(context, arConn);
+      conn = arConn.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", arDrop -> {
+        ensureSuccess(context, arDrop);
+        conn.execute("CREATE TABLE test_table (id INT, some_bit " + createByteArray2TableColumn() + ")", arCreate -> {
+          ensureSuccess(context, arCreate);
+          String[] s = insertByteArray2Values();
+          conn.execute("INSERT INTO test_table (id, some_bit) VALUES (1, " + s[0] + "),(2, " + s[1] + "),(3, " + s[2] + ")", arInsert -> {
+            ensureSuccess(context, arInsert);
+            conn.query("SELECT some_bit FROM test_table ORDER BY id", arQuery -> {
+              ensureSuccess(context, arQuery);
+              ResultSet res = arQuery.result();
+              context.assertTrue(Arrays.equals(new byte[]{0b10}, res.getRows().get(0).getBinary("some_bit")));
+              context.assertTrue(Arrays.equals(new byte[]{0b01}, res.getResults().get(1).getBinary(0)));
+              context.assertTrue(Arrays.equals(new byte[]{0b11}, res.getRows().get(2).getBinary("some_bit")));
+              async.complete();
+            });
+          });
+        });
+      });
+    });
+  }
+
+  @Test
+  public void testByteA3Fields(TestContext context) {
+    Async async = context.async();
+    client.getConnection(arConn -> {
+      ensureSuccess(context, arConn);
+      conn = arConn.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", arDrop -> {
+        ensureSuccess(context, arDrop);
+        conn.execute("CREATE TABLE test_table (id INT, some_bit " + createByteArray3TableColumn() + ")", arCreate -> {
+          ensureSuccess(context, arCreate);
+          String[] s = insertByteArray3Values();
+          conn.execute("INSERT INTO test_table (id, some_bit) VALUES (1, " + s[0] + "),(2, " + s[1] + "),(3, " + s[2] + ")", arInsert -> {
+            ensureSuccess(context, arInsert);
+            conn.query("SELECT some_bit FROM test_table ORDER BY id", arQuery -> {
+              ensureSuccess(context, arQuery);
+              ResultSet res = arQuery.result();
+              context.assertTrue(Arrays.equals(new byte[]{0b1, 0b0}, res.getRows().get(0).getBinary("some_bit")));
+              context.assertTrue(Arrays.equals(new byte[]{0b0, 0b1}, res.getResults().get(1).getBinary(0)));
+              context.assertTrue(Arrays.equals(new byte[]{0b1, 0b1}, res.getRows().get(2).getBinary("some_bit")));
+              async.complete();
+            });
+          });
+        });
+      });
+    });
+  }
+
   protected void setSqlModeIfPossible(Handler<Void> handler) {
     handler.handle(null);
   }
