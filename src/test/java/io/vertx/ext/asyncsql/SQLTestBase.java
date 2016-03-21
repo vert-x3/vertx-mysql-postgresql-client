@@ -28,6 +28,8 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class SQLTestBase extends AbstractTestBase {
@@ -452,6 +454,37 @@ public abstract class SQLTestBase extends AbstractTestBase {
                   async.complete();
                 });
               });
+            });
+          });
+        });
+      });
+    });
+  }
+
+  @Test
+  public void testDecimalFields(TestContext context) {
+    Async async = context.async();
+    client.getConnection(arConn -> {
+      ensureSuccess(context, arConn);
+      conn = arConn.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", arDrop -> {
+        ensureSuccess(context, arDrop);
+        conn.execute("CREATE TABLE test_table (id INT, some_decimal DECIMAL(65,6))", arCreate -> {
+          ensureSuccess(context, arCreate);
+          conn.execute("INSERT INTO test_table (id, some_decimal) VALUES " +
+              "(1, 43210987654321098765432109876543210987654321098765432109871.123451)," +
+              "(2, 43210987654321098765432109876543210987654321098765432109872.123452)," +
+              "(3, 43210987654321098765432109876543210987654321098765432109873.123453)", arInsert -> {
+            ensureSuccess(context, arInsert);
+            conn.query("SELECT some_decimal FROM test_table ORDER BY id", arQuery -> {
+              ensureSuccess(context, arQuery);
+              ResultSet res = arQuery.result();
+              context.assertEquals(new BigDecimal("43210987654321098765432109876543210987654321098765432109871.123451"), new BigDecimal(res.getRows().get(0).getString("some_decimal")));
+              context.assertEquals(new BigDecimal("43210987654321098765432109876543210987654321098765432109872.123452"), new BigDecimal(res.getResults().get(1).getString(0)));
+              context.assertEquals(new BigDecimal("43210987654321098765432109876543210987654321098765432109873.123453"), new BigDecimal(res.getRows().get(2).getString("some_decimal")));
+              // This will convert both (big) numbers into a double which will loose some information
+              context.assertEquals(43210987654321098765432109876543210987654321098765432109873.123453, Double.parseDouble(res.getRows().get(2).getString("some_decimal")));
+              async.complete();
             });
           });
         });

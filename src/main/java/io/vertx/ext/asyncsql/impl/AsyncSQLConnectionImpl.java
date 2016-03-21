@@ -34,10 +34,7 @@ import scala.Option;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
@@ -281,6 +278,8 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
       public Void apply(Object value) {
         if (value == null) {
           array.addNull();
+        } else if (value instanceof scala.math.BigDecimal) {
+          array.add(value.toString());
         } else if (value instanceof LocalDateTime) {
           array.add(value.toString());
         } else if (value instanceof LocalDate) {
