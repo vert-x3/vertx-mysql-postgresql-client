@@ -27,6 +27,7 @@ import io.vertx.ext.unit.TestContext;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 public class PostgreSQLClientTest extends SQLTestBase {
@@ -109,6 +110,36 @@ public class PostgreSQLClientTest extends SQLTestBase {
         });
       });
     });
+  }
+
+  @Override
+  protected String createByteArray1TableColumn() {
+    return "BYTEA";
+  }
+
+  @Override
+  protected String createByteArray2TableColumn() {
+    return "BYTEA";
+  }
+
+  @Override
+  protected String createByteArray3TableColumn() {
+    return "BYTEA";
+  }
+
+  @Override
+  protected String[] insertByteArray1Values() {
+    return new String[]{"E'\\x01'", "E'\\\\x00'", "E'\\\\x01'"};
+  }
+
+  @Override
+  protected String[] insertByteArray2Values() {
+    return new String[]{"E'\\\\x02'", "E'\\\\x01'", "E'\\\\x03'"};
+  }
+
+  @Override
+  protected String[] insertByteArray3Values() {
+    return new String[]{"E'\\\\x0100'", "E'\\\\x0001'", "E'\\\\x0101'"};
   }
 
   private void setupAutoIncrementTable(SQLConnection conn, Handler<AsyncResult<Void>> handler) {
