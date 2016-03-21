@@ -18,7 +18,7 @@
   <properties>
     <stack.version>3.3.0-SNAPSHOT</stack.version>
     <scala.version>2.11.4</scala.version>
-    <asyncdriver.version>0.2.18</asyncdriver.version>
+    <asyncdriver.version>0.2.19</asyncdriver.version>
 
     <host>localhost</host>
   </properties>
