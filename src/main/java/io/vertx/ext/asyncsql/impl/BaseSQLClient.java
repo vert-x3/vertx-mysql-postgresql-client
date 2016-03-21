@@ -18,6 +18,7 @@ package io.vertx.ext.asyncsql.impl;
 
 import com.github.mauricio.async.db.Configuration;
 import com.github.mauricio.async.db.Connection;
+import com.github.mauricio.async.db.SSLConfiguration;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -29,6 +30,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
 import scala.Option;
+import scala.collection.Map$;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
 
@@ -116,7 +118,13 @@ public abstract class BaseSQLClient {
         Option.empty() : Option.apply(Duration.apply(queryTimeout, TimeUnit.MILLISECONDS));
 
     log.info("Creating configuration for " + host + ":" + port);
-    return new Configuration(username, host, port, Option.apply(password), Option.apply(database),
+    return new Configuration(
+        username,
+        host,
+        port,
+        Option.apply(password),
+        Option.apply(database),
+        SSLConfiguration.apply(Map$.MODULE$.empty()),
         charset,
         16777216,
         PooledByteBufAllocator.DEFAULT,
