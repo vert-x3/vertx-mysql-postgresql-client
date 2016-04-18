@@ -27,14 +27,13 @@ import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import scala.Option;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
@@ -272,28 +271,15 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   }
 
   private JsonArray rowToJsonArray(RowData data) {
-    JsonArray array = new JsonArray();
+    List<Object> list = new ArrayList<>();
     data.foreach(new AbstractFunction1<Object, Void>() {
       @Override
       public Void apply(Object value) {
-        if (value == null) {
-          array.addNull();
-        } else if (value instanceof scala.math.BigDecimal) {
-          array.add(value.toString());
-        } else if (value instanceof LocalDateTime) {
-          array.add(value.toString());
-        } else if (value instanceof LocalDate) {
-          array.add(value.toString());
-        } else if (value instanceof DateTime) {
-          array.add(value.toString());
-        } else if (value instanceof UUID) {
-          array.add(value.toString());
-        } else {
-          array.add(value);
-        }
+        list.add(value);
         return null;
       }
     });
+    JsonArray array = new JsonArray(list);
     return array;
   }
 }
