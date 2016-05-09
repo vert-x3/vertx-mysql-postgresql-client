@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.asyncsql;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -49,7 +48,7 @@ public class MySQLClient extends AsyncSQLClient {
    * @return the client
    */
   public static AsyncSQLClient createNonShared(Vertx vertx, JsonObject config) { 
-    AsyncSQLClient ret= AsyncSQLClient.newInstance(io.vertx.ext.asyncsql.MySQLClient.createNonShared((io.vertx.core.Vertx) vertx.getDelegate(), config));
+    AsyncSQLClient ret = AsyncSQLClient.newInstance(io.vertx.ext.asyncsql.MySQLClient.createNonShared((io.vertx.core.Vertx)vertx.getDelegate(), config));
     return ret;
   }
 
@@ -62,7 +61,7 @@ public class MySQLClient extends AsyncSQLClient {
    * @return the client
    */
   public static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String poolName) { 
-    AsyncSQLClient ret= AsyncSQLClient.newInstance(io.vertx.ext.asyncsql.MySQLClient.createShared((io.vertx.core.Vertx) vertx.getDelegate(), config, poolName));
+    AsyncSQLClient ret = AsyncSQLClient.newInstance(io.vertx.ext.asyncsql.MySQLClient.createShared((io.vertx.core.Vertx)vertx.getDelegate(), config, poolName));
     return ret;
   }
 
@@ -73,7 +72,7 @@ public class MySQLClient extends AsyncSQLClient {
    * @return the client
    */
   public static AsyncSQLClient createShared(Vertx vertx, JsonObject config) { 
-    AsyncSQLClient ret= AsyncSQLClient.newInstance(io.vertx.ext.asyncsql.MySQLClient.createShared((io.vertx.core.Vertx) vertx.getDelegate(), config));
+    AsyncSQLClient ret = AsyncSQLClient.newInstance(io.vertx.ext.asyncsql.MySQLClient.createShared((io.vertx.core.Vertx)vertx.getDelegate(), config));
     return ret;
   }
 

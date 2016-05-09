@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.asyncsql;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.sql.SQLConnection;
 import io.vertx.core.AsyncResult;
@@ -47,7 +46,7 @@ public class AsyncSQLClient {
    * Note that closing is asynchronous.
    */
   public void close() { 
-    this.delegate.close();
+    delegate.close();
   }
 
   /**
@@ -56,7 +55,15 @@ public class AsyncSQLClient {
    * @param whenDone handler that will be called when close is complete
    */
   public void close(Handler<AsyncResult<Void>> whenDone) { 
-    this.delegate.close(whenDone);
+    delegate.close(new Handler<AsyncResult<java.lang.Void>>() {
+      public void handle(AsyncResult<java.lang.Void> ar) {
+        if (ar.succeeded()) {
+          whenDone.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          whenDone.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   /**
@@ -76,15 +83,13 @@ public class AsyncSQLClient {
    * @param handler the handler which is called when the <code>JdbcConnection</code> object is ready for use.
    */
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) { 
-    this.delegate.getConnection(new Handler<AsyncResult<io.vertx.ext.sql.SQLConnection>>() {
-      public void handle(AsyncResult<io.vertx.ext.sql.SQLConnection> event) {
-        AsyncResult<SQLConnection> f;
-        if (event.succeeded()) {
-          f = InternalHelper.<SQLConnection>result(new SQLConnection(event.result()));
+    delegate.getConnection(new Handler<AsyncResult<io.vertx.ext.sql.SQLConnection>>() {
+      public void handle(AsyncResult<io.vertx.ext.sql.SQLConnection> ar) {
+        if (ar.succeeded()) {
+          handler.handle(io.vertx.core.Future.succeededFuture(SQLConnection.newInstance(ar.result())));
         } else {
-          f = InternalHelper.<SQLConnection>failure(event.cause());
+          handler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        handler.handle(f);
       }
     });
   }

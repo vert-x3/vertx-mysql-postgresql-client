@@ -38,7 +38,7 @@ public class AsyncSQLClient {
    * Note that closing is asynchronous.
    */
   public void close() {
-    this.delegate.close();
+    delegate.close();
   }
   /**
    * Close the client and release all resources.
@@ -46,7 +46,7 @@ public class AsyncSQLClient {
    * @param whenDone handler that will be called when close is complete
    */
   public void close(Handler<AsyncResult<Void>> whenDone) {
-    this.delegate.close(whenDone);
+    delegate.close(whenDone);
   }
   /**
    * Returns a connection that can be used to perform SQL operations on. It's important to remember to close the
@@ -54,16 +54,14 @@ public class AsyncSQLClient {
    * @param handler the handler which is called when the <code>JdbcConnection</code> object is ready for use.
    */
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
-    this.delegate.getConnection(new Handler<AsyncResult<io.vertx.ext.sql.SQLConnection>>() {
-      public void handle(AsyncResult<io.vertx.ext.sql.SQLConnection> event) {
-        AsyncResult<SQLConnection> f
-        if (event.succeeded()) {
-          f = InternalHelper.<SQLConnection>result(new SQLConnection(event.result()))
+    delegate.getConnection(handler != null ? new Handler<AsyncResult<io.vertx.ext.sql.SQLConnection>>() {
+      public void handle(AsyncResult<io.vertx.ext.sql.SQLConnection> ar) {
+        if (ar.succeeded()) {
+          handler.handle(io.vertx.core.Future.succeededFuture(InternalHelper.safeCreate(ar.result(), io.vertx.groovy.ext.sql.SQLConnection.class)));
         } else {
-          f = InternalHelper.<SQLConnection>failure(event.cause())
+          handler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        handler.handle(f)
       }
-    });
+    } : null);
   }
 }

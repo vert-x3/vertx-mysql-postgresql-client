@@ -26,6 +26,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
+import io.vertx.ext.sql.TransactionIsolation;
 import io.vertx.ext.sql.UpdateResult;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -190,6 +191,21 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection rollback(Handler<AsyncResult<Void>> handler) {
     return endAndStartTransaction("ROLLBACK", handler);
+  }
+
+  @Override
+  public SQLConnection setQueryTimeout(int i) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public SQLConnection setTransactionIsolation(TransactionIsolation transactionIsolation, Handler<AsyncResult<Void>> handler) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public SQLConnection getTransactionIsolation(Handler<AsyncResult<TransactionIsolation>> handler) {
+    throw new UnsupportedOperationException("Not implemented");
   }
 
   private SQLConnection endAndStartTransaction(String command, Handler<AsyncResult<Void>> handler) {
