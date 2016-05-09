@@ -97,4 +97,35 @@ public class PostgreSQLTest extends AbstractTestBase {
     });
   }
 
+  @Test
+  public void testUpdatingNumericField(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      ensureSuccess(context, ar);
+      conn = ar.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", ar1 -> {
+        ensureSuccess(context, ar1);
+        conn.execute("CREATE TABLE test_table (id BIGSERIAL, numcol NUMERIC)", ar2 -> {
+          ensureSuccess(context, ar2);
+          conn.query("INSERT INTO test_table DEFAULT VALUES RETURNING id", ar3 -> {
+            ensureSuccess(context, ar3);
+            System.out.println("result: " + ar3.result().toJson().encode());
+            final long id = ar3.result().getResults().get(0).getLong(0);
+            conn.updateWithParams("UPDATE test_table SET numcol = ? WHERE id = ?", new JsonArray().add(1234).add(id), ar4 -> {
+              ensureSuccess(context, ar4);
+              conn.updateWithParams("UPDATE test_table SET numcol = ? WHERE id = ?", new JsonArray().addNull().add(id), ar5 -> {
+                ensureSuccess(context, ar5);
+                conn.updateWithParams("UPDATE test_table SET numcol = ? WHERE id = ?", new JsonArray().add(123.123).add(id), ar6 -> {
+                  ensureSuccess(context, ar6);
+
+                  async.complete();
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  }
+
 }
