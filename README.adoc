@@ -18,3 +18,10 @@ Please see the in source asciidoc documentation or the main documentation on the
 * A working PostgreSQL or MySQL server
 * For testing PostgreSQL: A `testdb` database on a local PostgreSQL install and a user called `vertx` with password `password`
 * For testing MySQL: A `testdb` database on a local MySQL install and a user called `vertx` with password `password`
+
+Setting up test databases with Docker:
+
+````
+docker run -d --name vertx-postgres -e POSTGRES_USER=vertx -e POSTGRES_PASSWORD=password -e POSTGRES_DB=testdb -p 5432:5432 postgres
+docker run -d --name vertx-mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_USER=vertx -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=testdb -p 3306:3306 mysql
+````
