@@ -27,8 +27,8 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.impl.ScalaUtils;
 import io.vertx.ext.asyncsql.impl.VertxEventLoopExecutionContext;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * Manages a pool of connection.
@@ -44,8 +44,8 @@ public abstract class AsyncConnectionPool {
   protected final Vertx vertx;
 
   private int poolSize = 0;
-  private final List<Connection> availableConnections = new ArrayList<>();
-  private final List<Handler<AsyncResult<Connection>>> waiters = new ArrayList<>();
+  private final Deque<Connection> availableConnections = new ArrayDeque<>();
+  private final Deque<Handler<AsyncResult<Connection>>> waiters = new ArrayDeque<>();
 
   public AsyncConnectionPool(Vertx vertx, int maxPoolSize, Configuration configuration) {
     this.vertx = vertx;
@@ -81,10 +81,10 @@ public abstract class AsyncConnectionPool {
   }
 
   public synchronized void take(Handler<AsyncResult<Connection>> handler) {
-    if (availableConnections.isEmpty()) {
+    Connection connection = availableConnections.poll();
+    if (connection == null) {
       createOrWaitForAvailableConnection(handler);
     } else {
-      Connection connection = availableConnections.remove(0);
       if (connection.isConnected()) {
         handler.handle(Future.succeededFuture(connection));
       } else {
@@ -95,8 +95,8 @@ public abstract class AsyncConnectionPool {
   }
 
   private synchronized void notifyWaitersAboutAvailableConnection() {
-    if (!waiters.isEmpty()) {
-      Handler<AsyncResult<Connection>> handler = waiters.remove(0);
+    Handler<AsyncResult<Connection>> handler = waiters.poll();
+    if (handler != null) {
       take(handler);
     }
   }
