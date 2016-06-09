@@ -325,6 +325,8 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
           array.add(value.toString());
         } else if (value instanceof UUID) {
           array.add(value.toString());
+        } else if (value instanceof DateTime) {
+          array.add(value.toString());
         } else {
           array.add(value);
         }
