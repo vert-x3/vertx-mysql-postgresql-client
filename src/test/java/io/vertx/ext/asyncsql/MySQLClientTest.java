@@ -16,19 +16,17 @@
 
 package io.vertx.ext.asyncsql;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.Arrays;
 
 public class MySQLClientTest extends SQLTestBase {
 
@@ -94,22 +92,6 @@ public class MySQLClientTest extends SQLTestBase {
         });
       });
     });
-  }
-  
-  @Test
-  public void testInvalidInsertStatement(TestContext context) {
-    Async async = context.async();
-
-    client.getConnection(ar -> {
-      ensureSuccess(context, ar);
-      conn = ar.result();
-      conn.updateWithParams("INVALID INSERT", new JsonArray(), ar2 -> {
-    	  if (ar2.failed() && ar2.cause() instanceof com.github.mauricio.async.db.mysql.exceptions.MySQLException) {
-    		  async.complete(); 
-    	  }
-      });
-    });
-    async.awaitSuccess(500);
   }
 
   @Override
