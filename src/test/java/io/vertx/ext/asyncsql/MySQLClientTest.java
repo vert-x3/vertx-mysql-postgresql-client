@@ -95,6 +95,22 @@ public class MySQLClientTest extends SQLTestBase {
       });
     });
   }
+  
+  @Test
+  public void testInvalidInsertStatement(TestContext context) {
+    Async async = context.async();
+
+    client.getConnection(ar -> {
+      ensureSuccess(context, ar);
+      conn = ar.result();
+      conn.updateWithParams("INVALID INSERT", new JsonArray(), ar2 -> {
+    	  if (ar2.failed() && ar2.cause() instanceof com.github.mauricio.async.db.mysql.exceptions.MySQLException) {
+    		  async.complete(); 
+    	  }
+      });
+    });
+    async.awaitSuccess(500);
+  }
 
   @Override
   protected String createByteArray1TableColumn() {

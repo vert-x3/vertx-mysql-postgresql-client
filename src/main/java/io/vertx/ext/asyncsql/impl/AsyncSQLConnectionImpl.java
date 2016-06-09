@@ -150,7 +150,11 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
           ScalaUtils.toScalaList(params.getList()));
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
         try {
-          handler.handle(Future.succeededFuture(queryResultToUpdateResult(ar.result())));
+          if (ar.failed()) {
+        	handler.handle(Future.failedFuture(ar.cause()));
+          } else {
+            handler.handle(Future.succeededFuture(queryResultToUpdateResult(ar.result())));
+          }
         } catch (Throwable e) {
           handler.handle(Future.failedFuture(e));
         }
