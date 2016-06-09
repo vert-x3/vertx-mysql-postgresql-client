@@ -589,7 +589,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
       ensureSuccess(context, ar);
       conn = ar.result();
       conn.updateWithParams("INVALID INSERT", new JsonArray(), ar2 -> {
-        if (ar2.failed() && ar2.cause() instanceof com.github.mauricio.async.db.mysql.exceptions.MySQLException) {
+        if (ar2.failed() && ar2.cause() instanceof com.github.mauricio.async.db.exceptions.DatabaseException) {
           async.complete(); 
         }
       });
