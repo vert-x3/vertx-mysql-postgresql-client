@@ -17,6 +17,12 @@
 package io.vertx.ext.asyncsql;
 
 
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Test;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
@@ -26,11 +32,6 @@ import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import org.junit.Test;
-
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
 
 public abstract class SQLTestBase extends AbstractTestBase {
 
@@ -578,6 +579,22 @@ public abstract class SQLTestBase extends AbstractTestBase {
         });
       });
     });
+  }
+  
+  @Test
+  public void testInvalidInsertStatement(TestContext context) {
+    Async async = context.async();
+
+    client.getConnection(ar -> {
+      ensureSuccess(context, ar);
+      conn = ar.result();
+      conn.updateWithParams("INVALID INSERT", new JsonArray(), ar2 -> {
+        if (ar2.failed() && ar2.cause() instanceof com.github.mauricio.async.db.mysql.exceptions.MySQLException) {
+          async.complete(); 
+        }
+      });
+    });
+    async.awaitSuccess(500);
   }
 
   protected void setSqlModeIfPossible(Handler<Void> handler) {

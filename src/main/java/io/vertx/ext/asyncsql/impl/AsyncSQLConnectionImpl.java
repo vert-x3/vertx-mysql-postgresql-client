@@ -16,9 +16,19 @@
 
 package io.vertx.ext.asyncsql.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
 import com.github.mauricio.async.db.Connection;
 import com.github.mauricio.async.db.QueryResult;
 import com.github.mauricio.async.db.RowData;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -28,14 +38,9 @@ import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.TransactionIsolation;
 import io.vertx.ext.sql.UpdateResult;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import scala.Option;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
-
-import java.util.*;
 
 /**
  * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
@@ -149,14 +154,14 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
       final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(sql,
           ScalaUtils.toScalaList(params.getList()));
       future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
-        try {
-          if (ar.failed()) {
-        	handler.handle(Future.failedFuture(ar.cause()));
-          } else {
+        if (ar.succeeded()) {
+    	  try {
             handler.handle(Future.succeededFuture(queryResultToUpdateResult(ar.result())));
+          } catch (Throwable e) {
+            handler.handle(Future.failedFuture(e));
           }
-        } catch (Throwable e) {
-          handler.handle(Future.failedFuture(e));
+        } else {
+          handler.handle(Future.failedFuture(ar.cause()));
         }
       }), executionContext);
     });
