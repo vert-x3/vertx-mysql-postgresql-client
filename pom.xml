@@ -17,8 +17,8 @@
 
   <properties>
     <stack.version>3.3.0-SNAPSHOT</stack.version>
-    <scala.version>2.11.4</scala.version>
-    <asyncdriver.version>0.2.19</asyncdriver.version>
+    <scala.version>2.11.7</scala.version>
+    <asyncdriver.version>0.2.20</asyncdriver.version>
 
     <host>localhost</host>
   </properties>
@@ -39,7 +39,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.6.2</version>
+      <version>1.7.21</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
