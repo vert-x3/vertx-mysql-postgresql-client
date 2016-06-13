@@ -17,12 +17,6 @@
 package io.vertx.ext.asyncsql;
 
 
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Test;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
@@ -32,6 +26,11 @@ import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import org.junit.Test;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class SQLTestBase extends AbstractTestBase {
 
@@ -494,10 +493,15 @@ public abstract class SQLTestBase extends AbstractTestBase {
   }
 
   protected abstract String createByteArray1TableColumn();
+
   protected abstract String createByteArray2TableColumn();
+
   protected abstract String createByteArray3TableColumn();
+
   protected abstract String[] insertByteArray1Values();
+
   protected abstract String[] insertByteArray2Values();
+
   protected abstract String[] insertByteArray3Values();
 
   @Test
@@ -580,7 +584,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
       });
     });
   }
-  
+
   @Test
   public void testInvalidInsertStatement(TestContext context) {
     Async async = context.async();
@@ -590,11 +594,12 @@ public abstract class SQLTestBase extends AbstractTestBase {
       conn = ar.result();
       conn.updateWithParams("INVALID INSERT", new JsonArray(), ar2 -> {
         if (ar2.failed() && ar2.cause() instanceof com.github.mauricio.async.db.exceptions.DatabaseException) {
-          async.complete(); 
+          async.complete();
+        } else {
+          context.fail("Should receive an exception of type DatabaseException.");
         }
       });
     });
-    async.awaitSuccess(500);
   }
 
   protected void setSqlModeIfPossible(Handler<Void> handler) {
