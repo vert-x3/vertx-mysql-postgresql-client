@@ -35,7 +35,10 @@ import scala.Option;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
@@ -127,17 +130,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   public SQLConnection update(String sql, Handler<AsyncResult<UpdateResult>> handler) {
     beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
-      future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
-        if (ar.succeeded()) {
-          try {
-            handler.handle(Future.succeededFuture(queryResultToUpdateResult(ar.result())));
-          } catch (Throwable e) {
-            handler.handle(Future.failedFuture(e));
-          }
-        } else {
-          handler.handle(Future.failedFuture(ar.cause()));
-        }
-      }), executionContext);
+      future.onComplete(ScalaUtils.toFunction1(handleAsyncUpdateResultToResultSet(handler)), executionContext);
     });
 
     return this;
@@ -148,13 +141,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(sql,
           ScalaUtils.toScalaList(params.getList()));
-      future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
-        try {
-          handler.handle(Future.succeededFuture(queryResultToUpdateResult(ar.result())));
-        } catch (Throwable e) {
-          handler.handle(Future.failedFuture(e));
-        }
-      }), executionContext);
+      future.onComplete(ScalaUtils.toFunction1(handleAsyncUpdateResultToResultSet(handler)), executionContext);
     });
 
     return this;
@@ -289,6 +276,20 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
       final List<JsonArray> arrays = rowDataSeqToJsonArray(rows.get());
       return new ResultSet(names, arrays);
     }
+  }
+
+  private Handler<AsyncResult<QueryResult>> handleAsyncUpdateResultToResultSet(Handler<AsyncResult<UpdateResult>> handler) {
+    return ar -> {
+      if (ar.succeeded()) {
+        try {
+          handler.handle(Future.succeededFuture(queryResultToUpdateResult(ar.result())));
+        } catch (Throwable e) {
+          handler.handle(Future.failedFuture(e));
+        }
+      } else {
+        handler.handle(Future.failedFuture(ar.cause()));
+      }
+    };
   }
 
   protected UpdateResult queryResultToUpdateResult(QueryResult qr) {

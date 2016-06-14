@@ -493,10 +493,15 @@ public abstract class SQLTestBase extends AbstractTestBase {
   }
 
   protected abstract String createByteArray1TableColumn();
+
   protected abstract String createByteArray2TableColumn();
+
   protected abstract String createByteArray3TableColumn();
+
   protected abstract String[] insertByteArray1Values();
+
   protected abstract String[] insertByteArray2Values();
+
   protected abstract String[] insertByteArray3Values();
 
   @Test
@@ -576,6 +581,23 @@ public abstract class SQLTestBase extends AbstractTestBase {
             });
           });
         });
+      });
+    });
+  }
+
+  @Test
+  public void testInvalidInsertStatement(TestContext context) {
+    Async async = context.async();
+
+    client.getConnection(ar -> {
+      ensureSuccess(context, ar);
+      conn = ar.result();
+      conn.updateWithParams("INVALID INSERT", new JsonArray(), ar2 -> {
+        if (ar2.failed() && ar2.cause() instanceof com.github.mauricio.async.db.exceptions.DatabaseException) {
+          async.complete();
+        } else {
+          context.fail("Should receive an exception of type DatabaseException.");
+        }
       });
     });
   }
