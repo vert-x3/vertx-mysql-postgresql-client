@@ -15,7 +15,7 @@ application.
 
 To use this client, you need to add the following jar to your `CLASSPATH`:
 
-* vertx-mysql-postgresql-client 3.3.0-SNAPSHOT (the client)
+* vertx-mysql-postgresql-client 3.3.0.CR2 (the client)
 * scala-library 2.11.4
 * the postgress-async-2.11 and mysdql-async-2.11 from https://github.com/mauricio/postgresql-async
 * joda time
@@ -33,7 +33,7 @@ If you are building a _Fat-jar_ using Maven or Gradle, just add the following de
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-mysql-postgresql-client</artifactId>
-  <version>3.3.0-SNAPSHOT</version>
+  <version>3.3.0.CR2</version>
 </dependency>
 ----
 
@@ -41,7 +41,7 @@ If you are building a _Fat-jar_ using Maven or Gradle, just add the following de
 
 [source,groovy,subs="+attributes"]
 ----
-compile 'io.vertx:vertx-mysql-postgresql-client:3.3.0-SNAPSHOT'
+compile 'io.vertx:vertx-mysql-postgresql-client:3.3.0.CR2'
 ----
 
 === In an application using a vert.x distributions
@@ -87,8 +87,8 @@ var postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConf
 
 ----
 
-The first call to `link:../../jsdoc/my_sql_client-MySQLClient.html#createShared[MySQLClient.createShared]`
-or `link:../../jsdoc/postgre_sql_client-PostgreSQLClient.html#createShared[PostgreSQLClient.createShared]`
+The first call to `link:../../jsdoc/module-vertx-mysql-postgresql-js_my_sql_client-MySQLClient.html#createShared[MySQLClient.createShared]`
+or `link:../../jsdoc/module-vertx-mysql-postgresql-js_postgre_sql_client-PostgreSQLClient.html#createShared[PostgreSQLClient.createShared]`
 will actually create the data source, and the specified config will be used.
 
 Subsequent calls will return a new client instance that uses the same data source, so the configuration won't be used.
@@ -122,8 +122,8 @@ var postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConf
 If different clients are created using the same Vert.x instance and specifying the same pool name, they will
 share the same data source.
 
-The first call to `link:../../jsdoc/my_sql_client-MySQLClient.html#createShared[MySQLClient.createShared]`
-or `link:../../jsdoc/postgre_sql_client-PostgreSQLClient.html#createShared[PostgreSQLClient.createShared]`
+The first call to `link:../../jsdoc/module-vertx-mysql-postgresql-js_my_sql_client-MySQLClient.html#createShared[MySQLClient.createShared]`
+or `link:../../jsdoc/module-vertx-mysql-postgresql-js_postgre_sql_client-PostgreSQLClient.html#createShared[PostgreSQLClient.createShared]`
 will actually create the data source, and the specified config will be used.
 
 Subsequent calls will return a new client instance that uses the same pool, so the configuration won't be used.
@@ -136,8 +136,8 @@ interacting with different databases.
 In most cases you will want to share a pool between different client instances.
 However, it's possible you want to create a client instance that doesn't share its pool with any other client.
 
-In that case you can use `link:../../jsdoc/my_sql_client-MySQLClient.html#createNonShared[MySQLClient.createNonShared]`
-or `link:../../jsdoc/postgre_sql_client-PostgreSQLClient.html#createNonShared[PostgreSQLClient.createNonShared]`
+In that case you can use `link:../../jsdoc/module-vertx-mysql-postgresql-js_my_sql_client-MySQLClient.html#createNonShared[MySQLClient.createNonShared]`
+or `link:../../jsdoc/module-vertx-mysql-postgresql-js_postgre_sql_client-PostgreSQLClient.html#createNonShared[PostgreSQLClient.createNonShared]`
 
 [source,java]
 ----
@@ -161,19 +161,19 @@ var postgreSQLClient = PostgreSQLClient.createNonShared(vertx, postgreSQLClientC
 
 ----
 
-This is equivalent to calling `link:../../jsdoc/my_sql_client-MySQLClient.html#createShared[MySQLClient.createShared]`
-or `link:../../jsdoc/postgre_sql_client-PostgreSQLClient.html#createShared[PostgreSQLClient.createShared]`
+This is equivalent to calling `link:../../jsdoc/module-vertx-mysql-postgresql-js_my_sql_client-MySQLClient.html#createShared[MySQLClient.createShared]`
+or `link:../../jsdoc/module-vertx-mysql-postgresql-js_postgre_sql_client-PostgreSQLClient.html#createShared[PostgreSQLClient.createShared]`
 with a unique pool name each time.
 
 == Closing the client
 
 You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
-it, you should close it using `link:../../jsdoc/async_sql_client-AsyncSQLClient.html#close[close]` or
-`link:../../jsdoc/async_sql_client-AsyncSQLClient.html#close[close]`
+it, you should close it using `link:../../jsdoc/module-vertx-mysql-postgresql-js_async_sql_client-AsyncSQLClient.html#close[close]` or
+`link:../../jsdoc/module-vertx-mysql-postgresql-js_async_sql_client-AsyncSQLClient.html#close[close]`
 
 == Getting a connection
 
-Use `link:../../jsdoc/async_sql_client-AsyncSQLClient.html#getConnection[getConnection]` to get a connection.
+Use `link:../../jsdoc/module-vertx-mysql-postgresql-js_async_sql_client-AsyncSQLClient.html#getConnection[getConnection]` to get a connection.
 
 This will return the connection in the handler when one is ready from the pool.
 
@@ -199,7 +199,7 @@ client.getConnection(function (res, res_err) {
 
 Once you've finished with the connection make sure you close it afterwards.
 
-The connection is an instance of `link:../../jsdoc/sql_connection-SQLConnection.html[SQLConnection]` which is a common interface used by
+The connection is an instance of `link:../../jsdoc/module-vertx-sql-js_sql_connection-SQLConnection.html[SQLConnection]` which is a common interface used by
 othe SQL clients.
 
 You can learn how to use it in the http://foobar[common sql interface] documentation.
