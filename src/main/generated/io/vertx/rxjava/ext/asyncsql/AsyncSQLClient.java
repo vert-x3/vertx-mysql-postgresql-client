@@ -55,15 +55,7 @@ public class AsyncSQLClient {
    * @param whenDone handler that will be called when close is complete
    */
   public void close(Handler<AsyncResult<Void>> whenDone) { 
-    delegate.close(new Handler<AsyncResult<java.lang.Void>>() {
-      public void handle(AsyncResult<java.lang.Void> ar) {
-        if (ar.succeeded()) {
-          whenDone.handle(io.vertx.core.Future.succeededFuture(ar.result()));
-        } else {
-          whenDone.handle(io.vertx.core.Future.failedFuture(ar.cause()));
-        }
-      }
-    });
+    delegate.close(whenDone);
   }
 
   /**
