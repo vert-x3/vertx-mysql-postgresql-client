@@ -29,16 +29,15 @@ import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.TransactionIsolation;
 import io.vertx.ext.sql.UpdateResult;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import scala.Option;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.*;
 
 /**
  * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
@@ -323,7 +322,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
         } else if (value instanceof LocalDate) {
           array.add(value.toString());
         } else if (value instanceof DateTime) {
-          array.add(value.toString());
+          array.add(Instant.ofEpochMilli(((DateTime) value).getMillis()));
         } else if (value instanceof UUID) {
           array.add(value.toString());
         } else {
