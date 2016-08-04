@@ -95,6 +95,11 @@ public class MySQLClientTest extends SQLTestBase {
   }
 
   @Override
+  protected void compareInstantStrings(TestContext context, String result, String expected) {
+    context.assertEquals(result, expected.replaceFirst("\\.\\d{3}$", ".000"));
+  }
+
+  @Override
   protected String createByteArray1TableColumn() {
     return "BIT(1)";
   }
