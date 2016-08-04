@@ -154,4 +154,28 @@ public class PostgreSQLTest extends AbstractTestBase {
       });
     });
   }
+
+  @Test
+  public void testInstantWithTimeZone(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      ensureSuccess(context, ar);
+      conn = ar.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", ar1 -> {
+        ensureSuccess(context, ar1);
+        conn.execute("CREATE TABLE test_table (instant TIMESTAMP WITH TIME ZONE)", ar2 -> {
+          ensureSuccess(context, ar2);
+          Instant now = Instant.now();
+          conn.queryWithParams("INSERT INTO test_table (instant) VALUES (?)", new JsonArray().add(now), ar3 -> {
+            ensureSuccess(context, ar3);
+            conn.query("SELECT instant FROM test_table", ar4 -> {
+              ensureSuccess(context, ar4);
+              context.assertEquals(ar4.result().getResults().get(0).getInstant(0), now);
+              async.complete();
+            });
+          });
+        });
+      });
+    });
+  }
 }
