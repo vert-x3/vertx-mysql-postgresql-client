@@ -17,6 +17,7 @@
 /** @module vertx-mysql-postgresql-js/postgre_sql_client */
 var utils = require('vertx-js/util/utils');
 var AsyncSQLClient = require('vertx-mysql-postgresql-js/async_sql_client');
+var SQLConnection = require('vertx-sql-js/sql_connection');
 var Vertx = require('vertx-js/vertx');
 
 var io = Packages.io;
@@ -33,6 +34,48 @@ var PostgreSQLClient = function(j_val) {
   var j_postgreSQLClient = j_val;
   var that = this;
   AsyncSQLClient.call(this, j_val);
+
+  /**
+   Close the client and release all resources.
+   Call the handler when close is complete.
+
+   @public
+   @param whenDone {function} handler that will be called when close is complete 
+   */
+  this.close = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      j_postgreSQLClient["close()"]();
+    }  else if (__args.length === 1 && typeof __args[0] === 'function') {
+      j_postgreSQLClient["close(io.vertx.core.Handler)"](function(ar) {
+      if (ar.succeeded()) {
+        __args[0](null, null);
+      } else {
+        __args[0](null, ar.cause());
+      }
+    });
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Returns a connection that can be used to perform SQL operations on. It's important to remember to close the
+   connection when you are done, so it is returned to the pool.
+
+   @public
+   @param handler {function} the handler which is called when the <code>JdbcConnection</code> object is ready for use. 
+   */
+  this.getConnection = function(handler) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'function') {
+      j_postgreSQLClient["getConnection(io.vertx.core.Handler)"](function(ar) {
+      if (ar.succeeded()) {
+        handler(utils.convReturnVertxGen(ar.result(), SQLConnection), null);
+      } else {
+        handler(null, ar.cause());
+      }
+    });
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
 
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.

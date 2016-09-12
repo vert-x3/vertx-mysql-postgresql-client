@@ -18,8 +18,11 @@ package io.vertx.rxjava.ext.asyncsql;
 
 import java.util.Map;
 import rx.Observable;
+import io.vertx.rxjava.ext.sql.SQLConnection;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 
 /**
  * Represents an PostgreSQL client
