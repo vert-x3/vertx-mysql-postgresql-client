@@ -1,0 +1,4 @@
+moduleName = vertx-unit-module
+moduleVersion = 1.0
+extensionClasses = io.vertx.groovy.ext.asyncsql.GroovyExtension
+staticExtensionClasses = io.vertx.groovy.ext.asyncsql.GroovyStaticExtension
