@@ -10,7 +10,6 @@ jdk:
 before_install:
 - cp .travis.maven.settings.xml $HOME/.m2/settings.xml
 - sudo /etc/init.d/postgresql stop
-- sudo /etc/init.d/mysql start
 - docker run -e POSTGRES_USER=vertx -e POSTGRES_PASSWORD=password -e POSTGRES_DB=testdb -p 5432:5432 -d postgres
 - docker run -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_USER=vertx -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=testdb -p 3306:3306 -d mysql
 install: true
