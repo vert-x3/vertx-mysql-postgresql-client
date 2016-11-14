@@ -24,13 +24,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
-import io.vertx.ext.sql.ResultSet;
-import io.vertx.ext.sql.SQLConnection;
-import io.vertx.ext.sql.SQLRowStream;
-import io.vertx.ext.sql.TransactionIsolation;
-import io.vertx.ext.sql.UpdateResult;
+import io.vertx.ext.sql.*;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import scala.Option;
@@ -126,11 +121,31 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   }
 
   @Override
+  public SQLConnection queryStream(String sql, Handler<AsyncResult<SQLRowStream>> handler) {
+    beginTransactionIfNeeded(v -> {
+      final Future<QueryResult> future = ScalaUtils.scalaToVertx(connection.sendQuery(sql), executionContext);
+      future.setHandler(handleAsyncQueryResultToRowStream(handler));
+    });
+
+    return this;
+  }
+
+  @Override
   public SQLConnection queryWithParams(String sql, JsonArray params, Handler<AsyncResult<ResultSet>> handler) {
     beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(sql,
           ScalaUtils.toScalaList(params.getList()));
       future.onComplete(ScalaUtils.toFunction1(handleAsyncQueryResultToResultSet(handler)), executionContext);
+    });
+
+    return this;
+  }
+
+  @Override
+  public SQLConnection queryStreamWithParams(String sql, JsonArray params, Handler<AsyncResult<SQLRowStream>> handler) {
+    beginTransactionIfNeeded(v -> {
+      final Future<QueryResult> future = ScalaUtils.scalaToVertx(connection.sendPreparedStatement(sql, ScalaUtils.toScalaList(params.getList())), executionContext);
+      future.setHandler(handleAsyncQueryResultToRowStream(handler));
     });
 
     return this;
@@ -268,6 +283,20 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
       if (ar.succeeded()) {
         try {
           handler.handle(Future.succeededFuture(queryResultToResultSet(ar.result())));
+        } catch (Throwable e) {
+          handler.handle(Future.failedFuture(e));
+        }
+      } else {
+        handler.handle(Future.failedFuture(ar.cause()));
+      }
+    };
+  }
+
+  private Handler<AsyncResult<QueryResult>> handleAsyncQueryResultToRowStream(Handler<AsyncResult<SQLRowStream>> handler) {
+    return ar -> {
+      if (ar.succeeded()) {
+        try {
+          handler.handle(Future.succeededFuture(new AsyncSQLRowStream(ar.result())));
         } catch (Throwable e) {
           handler.handle(Future.failedFuture(e));
         }
