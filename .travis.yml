@@ -21,10 +21,10 @@ before_install:
 - docker run -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_USER=vertx -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=testdb -p 3306:3306 -d mysql
 install: true
 script:
-- travis_wait 30 mvn -q -Dmaven.test.redirectTestOutputToFile verify -B
+- travis_wait 30 mvn -q -Dmaven.test.redirectTestOutputToFile clean verify -B
 after_success:
 - PROJECT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -B | grep -v '\[')
 - if [[ "$PROJECT_VERSION" =~ .*SNAPSHOT ]] && [[ "${TRAVIS_BRANCH}" = "master" ]] && [[ "${TRAVIS_PULL_REQUEST}" = "false" ]];
   then
-    mvn deploy -DskipTests -B;
+    mvn clean deploy -DskipTests -B;
   fi
