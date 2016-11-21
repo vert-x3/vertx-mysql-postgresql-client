@@ -17,6 +17,22 @@ module VertxMysqlPostgresql
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == PostgreSQLClient
+    end
+    def @@j_api_type.wrap(obj)
+      PostgreSQLClient.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtAsyncsql::PostgreSQLClient.java_class
+    end
     #  Close the client and release all resources.
     #  Call the handler when close is complete.
     # @yield handler that will be called when close is complete
@@ -47,7 +63,7 @@ module VertxMysqlPostgresql
       if vertx.class.method_defined?(:j_del) && config.class == Hash && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtAsyncsql::PostgreSQLClient.java_method(:createNonShared, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxCoreJson::JsonObject.java_class]).call(vertx.j_del,::Vertx::Util::Utils.to_json_object(config)),::VertxMysqlPostgresql::AsyncSQLClient)
       end
-      raise ArgumentError, "Invalid arguments when calling create_non_shared(vertx,config)"
+      raise ArgumentError, "Invalid arguments when calling create_non_shared(#{vertx},#{config})"
     end
     #  Create a PostgreSQL client which shares its pool with any other MySQL clients created with the same pool name.
     # @param [::Vertx::Vertx] vertx the Vert.x instance
@@ -60,7 +76,7 @@ module VertxMysqlPostgresql
       elsif vertx.class.method_defined?(:j_del) && config.class == Hash && poolName.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtAsyncsql::PostgreSQLClient.java_method(:createShared, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxCoreJson::JsonObject.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,::Vertx::Util::Utils.to_json_object(config),poolName),::VertxMysqlPostgresql::AsyncSQLClient)
       end
-      raise ArgumentError, "Invalid arguments when calling create_shared(vertx,config,poolName)"
+      raise ArgumentError, "Invalid arguments when calling create_shared(#{vertx},#{config},#{poolName})"
     end
   end
 end

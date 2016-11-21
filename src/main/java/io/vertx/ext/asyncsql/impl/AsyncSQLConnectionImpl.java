@@ -26,6 +26,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
+import io.vertx.ext.sql.SQLRowStream;
 import io.vertx.ext.sql.TransactionIsolation;
 import io.vertx.ext.sql.UpdateResult;
 import org.joda.time.DateTime;
@@ -57,6 +58,16 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     this.connection = connection;
     this.pool = pool;
     this.executionContext = executionContext;
+  }
+
+  @Override
+  public SQLConnection queryStream(String s, Handler<AsyncResult<SQLRowStream>> handler) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public SQLConnection queryStreamWithParams(String s, JsonArray jsonArray, Handler<AsyncResult<SQLRowStream>> handler) {
+    throw new UnsupportedOperationException("Not implemented");
   }
 
   @Override

@@ -14,6 +14,22 @@ module VertxMysqlPostgresql
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == AsyncSQLClient
+    end
+    def @@j_api_type.wrap(obj)
+      AsyncSQLClient.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtAsyncsql::AsyncSQLClient.java_class
+    end
     #  Close the client and release all resources.
     #  Call the handler when close is complete.
     # @yield handler that will be called when close is complete

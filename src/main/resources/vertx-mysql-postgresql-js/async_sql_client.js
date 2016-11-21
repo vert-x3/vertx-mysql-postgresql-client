@@ -66,7 +66,7 @@ var AsyncSQLClient = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_asyncSQLClient["getConnection(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(ar.result(), SQLConnection), null);
+        handler(utils.convReturnVertxGen(SQLConnection, ar.result()), null);
       } else {
         handler(null, ar.cause());
       }
@@ -80,5 +80,23 @@ var AsyncSQLClient = function(j_val) {
   this._jdel = j_asyncSQLClient;
 };
 
-// We export the Constructor function
+AsyncSQLClient._jclass = utils.getJavaClass("io.vertx.ext.asyncsql.AsyncSQLClient");
+AsyncSQLClient._jtype = {
+  accept: function(obj) {
+    return AsyncSQLClient._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(AsyncSQLClient.prototype, {});
+    AsyncSQLClient.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+AsyncSQLClient._create = function(jdel) {
+  var obj = Object.create(AsyncSQLClient.prototype, {});
+  AsyncSQLClient.apply(obj, arguments);
+  return obj;
+}
 module.exports = AsyncSQLClient;

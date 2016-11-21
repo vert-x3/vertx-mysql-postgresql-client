@@ -69,7 +69,7 @@ var PostgreSQLClient = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_postgreSQLClient["getConnection(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(ar.result(), SQLConnection), null);
+        handler(utils.convReturnVertxGen(SQLConnection, ar.result()), null);
       } else {
         handler(null, ar.cause());
       }
@@ -83,6 +83,25 @@ var PostgreSQLClient = function(j_val) {
   this._jdel = j_postgreSQLClient;
 };
 
+PostgreSQLClient._jclass = utils.getJavaClass("io.vertx.ext.asyncsql.PostgreSQLClient");
+PostgreSQLClient._jtype = {
+  accept: function(obj) {
+    return PostgreSQLClient._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(PostgreSQLClient.prototype, {});
+    PostgreSQLClient.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+PostgreSQLClient._create = function(jdel) {
+  var obj = Object.create(PostgreSQLClient.prototype, {});
+  PostgreSQLClient.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a PostgreSQL client which maintains its own pool.
 
@@ -94,7 +113,7 @@ var PostgreSQLClient = function(j_val) {
 PostgreSQLClient.createNonShared = function(vertx, config) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && (typeof __args[1] === 'object' && __args[1] != null)) {
-    return utils.convReturnVertxGen(JPostgreSQLClient["createNonShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](vertx._jdel, utils.convParamJsonObject(config)), AsyncSQLClient);
+    return utils.convReturnVertxGen(AsyncSQLClient, JPostgreSQLClient["createNonShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](vertx._jdel, utils.convParamJsonObject(config)));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
@@ -110,11 +129,10 @@ PostgreSQLClient.createNonShared = function(vertx, config) {
 PostgreSQLClient.createShared = function() {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && (typeof __args[1] === 'object' && __args[1] != null)) {
-    return utils.convReturnVertxGen(JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](__args[0]._jdel, utils.convParamJsonObject(__args[1])), AsyncSQLClient);
+    return utils.convReturnVertxGen(AsyncSQLClient, JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject)"](__args[0]._jdel, utils.convParamJsonObject(__args[1])));
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && (typeof __args[1] === 'object' && __args[1] != null) && typeof __args[2] === 'string') {
-    return utils.convReturnVertxGen(JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject,java.lang.String)"](__args[0]._jdel, utils.convParamJsonObject(__args[1]), __args[2]), AsyncSQLClient);
+    return utils.convReturnVertxGen(AsyncSQLClient, JPostgreSQLClient["createShared(io.vertx.core.Vertx,io.vertx.core.json.JsonObject,java.lang.String)"](__args[0]._jdel, utils.convParamJsonObject(__args[1]), __args[2]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = PostgreSQLClient;
