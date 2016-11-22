@@ -25,14 +25,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.*;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import scala.Option;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
 
-import java.time.Instant;
 import java.util.*;
 
 /**
@@ -341,36 +337,10 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     set.foreach(new AbstractFunction1<RowData, Void>() {
       @Override
       public Void apply(RowData row) {
-        list.add(rowToJsonArray(row));
+        list.add(ScalaUtils.rowToJsonArray(row));
         return null;
       }
     });
     return list;
-  }
-
-  private JsonArray rowToJsonArray(RowData data) {
-    JsonArray array = new JsonArray();
-    data.foreach(new AbstractFunction1<Object, Void>() {
-      @Override
-      public Void apply(Object value) {
-        if (value == null) {
-          array.addNull();
-        } else if (value instanceof scala.math.BigDecimal) {
-          array.add(value.toString());
-        } else if (value instanceof LocalDateTime) {
-          array.add(value.toString());
-        } else if (value instanceof LocalDate) {
-          array.add(value.toString());
-        } else if (value instanceof DateTime) {
-          array.add(Instant.ofEpochMilli(((DateTime) value).getMillis()));
-        } else if (value instanceof UUID) {
-          array.add(value.toString());
-        } else {
-          array.add(value);
-        }
-        return null;
-      }
-    });
-    return array;
   }
 }

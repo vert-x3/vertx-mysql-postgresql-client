@@ -7,18 +7,12 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.sql.SQLRowStream;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import scala.Option;
 
 import com.github.mauricio.async.db.ResultSet;
 import scala.collection.Iterator;
-import scala.runtime.AbstractFunction1;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class AsyncSQLRowStream implements SQLRowStream {
@@ -88,7 +82,7 @@ class AsyncSQLRowStream implements SQLRowStream {
   private void nextRow() {
     if (!paused.get()) {
       if (cursor.hasNext()) {
-        handler.handle(rowToJsonArray(cursor.next()));
+        handler.handle(ScalaUtils.rowToJsonArray(cursor.next()));
         nextRow();
       } else {
         // mark as ended if the handler was registered too late
@@ -120,31 +114,5 @@ class AsyncSQLRowStream implements SQLRowStream {
     pause();
     // call the provided handler
     handler.handle(Future.succeededFuture());
-  }
-
-  private JsonArray rowToJsonArray(RowData data) {
-    JsonArray array = new JsonArray();
-    data.foreach(new AbstractFunction1<Object, Void>() {
-      @Override
-      public Void apply(Object value) {
-        if (value == null) {
-          array.addNull();
-        } else if (value instanceof scala.math.BigDecimal) {
-          array.add(value.toString());
-        } else if (value instanceof LocalDateTime) {
-          array.add(value.toString());
-        } else if (value instanceof LocalDate) {
-          array.add(value.toString());
-        } else if (value instanceof DateTime) {
-          array.add(Instant.ofEpochMilli(((DateTime) value).getMillis()));
-        } else if (value instanceof UUID) {
-          array.add(value.toString());
-        } else {
-          array.add(value);
-        }
-        return null;
-      }
-    });
-    return array;
   }
 }
