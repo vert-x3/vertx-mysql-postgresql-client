@@ -52,16 +52,6 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   }
 
   @Override
-  public SQLConnection queryStream(String s, Handler<AsyncResult<SQLRowStream>> handler) {
-    throw new UnsupportedOperationException("Not implemented");
-  }
-
-  @Override
-  public SQLConnection queryStreamWithParams(String s, JsonArray jsonArray, Handler<AsyncResult<SQLRowStream>> handler) {
-    throw new UnsupportedOperationException("Not implemented");
-  }
-
-  @Override
   public SQLConnection call(String sql, Handler<AsyncResult<ResultSet>> resultHandler) {
     throw new UnsupportedOperationException("Not implemented");
   }
@@ -94,7 +84,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   public SQLConnection execute(String sql, Handler<AsyncResult<Void>> handler) {
     beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
-      future.onComplete(ScalaUtils.<QueryResult>toFunction1(ar -> {
+      future.onComplete(ScalaUtils.toFunction1(ar -> {
         if (ar.succeeded()) {
           handler.handle(Future.succeededFuture());
         } else {
