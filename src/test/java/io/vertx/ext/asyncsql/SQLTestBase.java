@@ -613,8 +613,9 @@ public abstract class SQLTestBase extends AbstractTestBase {
         ensureSuccess(context, ar1);
         conn.execute("CREATE TABLE test_table (instant TIMESTAMP)", ar2 -> {
           ensureSuccess(context, ar2);
-          Instant now = Instant.now();
-          conn.queryWithParams("INSERT INTO test_table (instant) VALUES (?)", new JsonArray().add(now), ar3 -> {
+          JsonArray args = new JsonArray().add(Instant.now());
+          String now = args.getString(0);
+          conn.queryWithParams("INSERT INTO test_table (instant) VALUES (?)", args, ar3 -> {
             ensureSuccess(context, ar3);
             conn.query("SELECT instant FROM test_table", ar4 -> {
               ensureSuccess(context, ar4);
@@ -623,7 +624,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
               compareInstantStrings(
                   context,
                   ar4.result().getResults().get(0).getString(0),
-                  now.toString().substring(0, 23)
+                  now.substring(0, 23)
               );
               async.complete();
             });
@@ -661,7 +662,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
         ar -> conn.execute("DROP TABLE IF EXISTS test_table",
             ar2 -> conn.execute(CREATE_TABLE_STATEMENT,
                 ar3 -> conn.update("INSERT INTO test_table (id, name) VALUES " + Data.get(),
-                    ar4 -> conn.execute("COMMIT", handler::handle)))));
+                    ar4 -> conn.execute("COMMIT", handler)))));
   }
 
 
