@@ -23,6 +23,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
+import io.vertx.ext.sql.SQLRowStream;
 import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -32,6 +33,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class SQLTestBase extends AbstractTestBase {
 
@@ -51,11 +53,11 @@ public abstract class SQLTestBase extends AbstractTestBase {
           ResultSet result = ar2.result();
           context.assertNotNull(result);
           JsonObject expected = new JsonObject()
-              .put("columnNames", new JsonArray().add("something"))
-              .put("numColumns", 1)
-              .put("numRows", 1)
-              .put("rows", new JsonArray().add(new JsonObject().put("something", 1)))
-              .put("results", new JsonArray().add(new JsonArray().add(1)));
+            .put("columnNames", new JsonArray().add("something"))
+            .put("numColumns", 1)
+            .put("numRows", 1)
+            .put("rows", new JsonArray().add(new JsonObject().put("something", 1)))
+            .put("results", new JsonArray().add(new JsonArray().add(1)));
           context.assertEquals(expected, result.toJson());
           async.complete();
         }
@@ -75,18 +77,18 @@ public abstract class SQLTestBase extends AbstractTestBase {
       // Create table
       conn = ar.result();
       setupSimpleTable(conn, ar2 -> conn.queryWithParams("SELECT name FROM test_table WHERE id=?",
-          new JsonArray().add(2), ar3 -> {
-            if (ar3.failed()) {
-              context.fail(ar3.cause());
-            } else {
-              final ResultSet res = ar3.result();
-              context.assertNotNull(res);
-              context.assertEquals(res.getColumnNames().size(), 1);
-              context.assertEquals(res.getColumnNames().get(0), "name");
-              context.assertEquals(Data.NAMES.get(2), res.getResults().get(0).getString(0));
-              async.complete();
-            }
-          }));
+        new JsonArray().add(2), ar3 -> {
+          if (ar3.failed()) {
+            context.fail(ar3.cause());
+          } else {
+            final ResultSet res = ar3.result();
+            context.assertNotNull(res);
+            context.assertEquals(res.getColumnNames().size(), 1);
+            context.assertEquals(res.getColumnNames().get(0), "name");
+            context.assertEquals(Data.NAMES.get(2), res.getResults().get(0).getString(0));
+            async.complete();
+          }
+        }));
     });
   }
 
@@ -139,20 +141,20 @@ public abstract class SQLTestBase extends AbstractTestBase {
       setupSimpleTable(conn, ar2 -> {
         ensureSuccess(context, ar2);
         conn.updateWithParams("UPDATE test_table SET name=? WHERE id=?",
-            new JsonArray().add(name).add(id),
-            ar3 -> {
-              ensureSuccess(context, ar3);
-              UpdateResult updateRes = ar3.result();
-              conn.query("SELECT name FROM test_table ORDER BY id", ar4 -> {
-                ensureSuccess(context, ar4);
-                ResultSet selectRes = ar4.result();
-                context.assertNotNull(updateRes);
-                context.assertNotNull(selectRes);
-                context.assertEquals(1, updateRes.getUpdated());
-                context.assertEquals("Adele", selectRes.getResults().get(0).getString(0));
-                async.complete();
-              });
+          new JsonArray().add(name).add(id),
+          ar3 -> {
+            ensureSuccess(context, ar3);
+            UpdateResult updateRes = ar3.result();
+            conn.query("SELECT name FROM test_table ORDER BY id", ar4 -> {
+              ensureSuccess(context, ar4);
+              ResultSet selectRes = ar4.result();
+              context.assertNotNull(updateRes);
+              context.assertNotNull(selectRes);
+              context.assertEquals(1, updateRes.getUpdated());
+              context.assertEquals("Adele", selectRes.getResults().get(0).getString(0));
+              async.complete();
             });
+          });
       });
     });
 
@@ -177,24 +179,24 @@ public abstract class SQLTestBase extends AbstractTestBase {
         conn.setAutoCommit(false, ar3 -> {
           ensureSuccess(context, ar3);
           conn.updateWithParams("UPDATE test_table SET name=? WHERE id=?",
-              new JsonArray().add(name).add(id),
-              ar4 -> {
-                ensureSuccess(context, ar4);
-                UpdateResult updateRes = ar4.result();
-                conn.rollback(ar5 -> {
-                  ensureSuccess(context, ar5);
-                  conn.query("SELECT name FROM test_table ORDER BY id", ar6 -> {
-                    ensureSuccess(context, ar6);
-                    ResultSet selectRes = ar6.result();
-                    context.assertNotNull(updateRes);
-                    context.assertNotNull(selectRes);
-                    context.assertEquals(1, updateRes.getUpdated());
-                    context.assertEquals("Albert",
-                        selectRes.getResults().get(0).getString(0));
-                    async.complete();
-                  });
+            new JsonArray().add(name).add(id),
+            ar4 -> {
+              ensureSuccess(context, ar4);
+              UpdateResult updateRes = ar4.result();
+              conn.rollback(ar5 -> {
+                ensureSuccess(context, ar5);
+                conn.query("SELECT name FROM test_table ORDER BY id", ar6 -> {
+                  ensureSuccess(context, ar6);
+                  ResultSet selectRes = ar6.result();
+                  context.assertNotNull(updateRes);
+                  context.assertNotNull(selectRes);
+                  context.assertEquals(1, updateRes.getUpdated());
+                  context.assertEquals("Albert",
+                    selectRes.getResults().get(0).getString(0));
+                  async.complete();
                 });
               });
+            });
         });
       });
     });
@@ -219,17 +221,17 @@ public abstract class SQLTestBase extends AbstractTestBase {
           connections[0].setAutoCommit(false, ar31 -> {
             ensureSuccess(context, ar31);
             connections[0].updateWithParams("UPDATE test_table SET name=? WHERE id=?",
-                new JsonArray().add(name).add(id), ar32 -> {
-                  ensureSuccess(context, ar32);
-                  context.assertEquals(ar32.result().getUpdated(), 1);
-                  connections[0].rollback(ar33 -> {
-                    ensureSuccess(context, ar33);
-                    connections[0].close(v -> {
-                      ensureSuccess(context, v);
-                      async1.complete();
-                    });
+              new JsonArray().add(name).add(id), ar32 -> {
+                ensureSuccess(context, ar32);
+                context.assertEquals(ar32.result().getUpdated(), 1);
+                connections[0].rollback(ar33 -> {
+                  ensureSuccess(context, ar33);
+                  connections[0].close(v -> {
+                    ensureSuccess(context, v);
+                    async1.complete();
                   });
                 });
+              });
           });
         });
         client.getConnection(ar4 -> {
@@ -265,24 +267,24 @@ public abstract class SQLTestBase extends AbstractTestBase {
           conn1.setAutoCommit(false, ar4 -> {
             ensureSuccess(context, ar4);
             conn1.updateWithParams("UPDATE test_table SET name=? WHERE id=?",
-                new JsonArray().add(name).add(id),
-                ar5 -> {
-                  ensureSuccess(context, ar5);
-                  conn1.setAutoCommit(true, ar6 -> {
-                    ensureSuccess(context, ar6);
-                    context.assertEquals(1, ar5.result().getUpdated());
-                    client.getConnection(ar7 -> {
-                      ensureSuccess(context, ar7);
-                      SQLConnection conn2 = ar7.result();
-                      conn2.query("SELECT name FROM test_table ORDER BY id", ar8 -> {
-                        ensureSuccess(context, ar8);
-                        context.assertEquals(ar8.result().getResults()
-                            .get(0).getString(0), name);
-                        conn2.close(v -> conn1.close(v2 -> async.complete()));
-                      });
+              new JsonArray().add(name).add(id),
+              ar5 -> {
+                ensureSuccess(context, ar5);
+                conn1.setAutoCommit(true, ar6 -> {
+                  ensureSuccess(context, ar6);
+                  context.assertEquals(1, ar5.result().getUpdated());
+                  client.getConnection(ar7 -> {
+                    ensureSuccess(context, ar7);
+                    SQLConnection conn2 = ar7.result();
+                    conn2.query("SELECT name FROM test_table ORDER BY id", ar8 -> {
+                      ensureSuccess(context, ar8);
+                      context.assertEquals(ar8.result().getResults()
+                        .get(0).getString(0), name);
+                      conn2.close(v -> conn1.close(v2 -> async.complete()));
                     });
                   });
                 });
+              });
           });
         });
       });
@@ -304,16 +306,16 @@ public abstract class SQLTestBase extends AbstractTestBase {
         conn.setAutoCommit(false, ar3 -> {
           ensureSuccess(context, ar3);
           conn.updateWithParams("UPDATE test_table SET name=? WHERE id=?",
-              new JsonArray().add(name).add(id), ar4 -> {
-                ensureSuccess(context, ar4);
-                conn.setAutoCommit(true, ar5 -> {
-                  ensureSuccess(context, ar5);
-                  conn.rollback(ar6 -> {
-                    context.assertTrue(ar6.failed());
-                    async.complete();
-                  });
+            new JsonArray().add(name).add(id), ar4 -> {
+              ensureSuccess(context, ar4);
+              conn.setAutoCommit(true, ar5 -> {
+                ensureSuccess(context, ar5);
+                conn.rollback(ar6 -> {
+                  context.assertTrue(ar6.failed());
+                  async.complete();
                 });
               });
+            });
         });
       });
     });
@@ -332,16 +334,16 @@ public abstract class SQLTestBase extends AbstractTestBase {
         conn.setAutoCommit(false, ar3 -> {
           ensureSuccess(context, ar3);
           conn.updateWithParams("UPDATE test_table SET name=? WHERE id=?",
-              new JsonArray().add(name).add(id), ar4 -> {
-                ensureSuccess(context, ar4);
-                conn.setAutoCommit(true, ar5 -> {
-                  ensureSuccess(context, ar5);
-                  conn.commit(ar6 -> {
-                    context.assertTrue(ar6.failed());
-                    async.complete();
-                  });
+            new JsonArray().add(name).add(id), ar4 -> {
+              ensureSuccess(context, ar4);
+              conn.setAutoCommit(true, ar5 -> {
+                ensureSuccess(context, ar5);
+                conn.commit(ar6 -> {
+                  context.assertTrue(ar6.failed());
+                  async.complete();
                 });
               });
+            });
         });
       });
     });
@@ -359,16 +361,16 @@ public abstract class SQLTestBase extends AbstractTestBase {
       setupSimpleTable(conn, ar2 -> {
         ensureSuccess(context, ar2);
         conn.updateWithParams("INSERT INTO test_table (id, name) VALUES (?, ?)",
-            new JsonArray().add(id).add(name), ar3 -> {
-              ensureSuccess(context, ar3);
-              conn.query("SELECT id, name FROM test_table ORDER BY id", ar4 -> {
-                ensureSuccess(context, ar4);
-                ResultSet resultSet = ar4.result();
-                context.assertEquals("Adele",
-                    resultSet.getResults().get(id - 1).getString(1));
-                async.complete();
-              });
+          new JsonArray().add(id).add(name), ar3 -> {
+            ensureSuccess(context, ar3);
+            conn.query("SELECT id, name FROM test_table ORDER BY id", ar4 -> {
+              ensureSuccess(context, ar4);
+              ResultSet resultSet = ar4.result();
+              context.assertEquals("Adele",
+                resultSet.getResults().get(id - 1).getString(1));
+              async.complete();
             });
+          });
       });
     });
   }
@@ -382,26 +384,26 @@ public abstract class SQLTestBase extends AbstractTestBase {
       conn.execute("DROP TABLE IF EXISTS test_nulls_table", ar2 -> {
         ensureSuccess(context, ar2);
         conn.execute("CREATE TABLE test_nulls_table (id BIGINT, name VARCHAR(255) NULL)",
-            ar3 -> {
-              ensureSuccess(context, ar3);
-              conn.execute("INSERT INTO test_nulls_table (id, name) VALUES (1, NULL)", ar4 -> {
-                ensureSuccess(context, ar4);
-                conn.query("SELECT id, name FROM test_nulls_table ORDER BY id", ar5 -> {
-                  ensureSuccess(context, ar5);
-                  ResultSet rs = ar5.result();
+          ar3 -> {
+            ensureSuccess(context, ar3);
+            conn.execute("INSERT INTO test_nulls_table (id, name) VALUES (1, NULL)", ar4 -> {
+              ensureSuccess(context, ar4);
+              conn.query("SELECT id, name FROM test_nulls_table ORDER BY id", ar5 -> {
+                ensureSuccess(context, ar5);
+                ResultSet rs = ar5.result();
 
-                  List<String> columns = rs.getColumnNames();
-                  context.assertEquals(2, columns.size());
-                  context.assertEquals(columns.get(0), "id");
-                  context.assertEquals(columns.get(1), "name");
+                List<String> columns = rs.getColumnNames();
+                context.assertEquals(2, columns.size());
+                context.assertEquals(columns.get(0), "id");
+                context.assertEquals(columns.get(1), "name");
 
-                  context.assertEquals(rs.getResults().size(), 1);
-                  context.assertEquals(rs.getResults().get(0).getInteger(0), 1);
-                  context.assertEquals(rs.getResults().get(0).getString(1), null);
-                  async.complete();
-                });
+                context.assertEquals(rs.getResults().size(), 1);
+                context.assertEquals(rs.getResults().get(0).getInteger(0), 1);
+                context.assertEquals(rs.getResults().get(0).getString(1), null);
+                async.complete();
               });
             });
+          });
       });
     });
   }
@@ -473,9 +475,9 @@ public abstract class SQLTestBase extends AbstractTestBase {
         conn.execute("CREATE TABLE test_table (id INT, some_decimal DECIMAL(65,6))", arCreate -> {
           ensureSuccess(context, arCreate);
           conn.execute("INSERT INTO test_table (id, some_decimal) VALUES " +
-              "(1, 43210987654321098765432109876543210987654321098765432109871.123451)," +
-              "(2, 43210987654321098765432109876543210987654321098765432109872.123452)," +
-              "(3, 43210987654321098765432109876543210987654321098765432109873.123453)", arInsert -> {
+            "(1, 43210987654321098765432109876543210987654321098765432109871.123451)," +
+            "(2, 43210987654321098765432109876543210987654321098765432109872.123452)," +
+            "(3, 43210987654321098765432109876543210987654321098765432109873.123453)", arInsert -> {
             ensureSuccess(context, arInsert);
             conn.query("SELECT some_decimal FROM test_table ORDER BY id", arQuery -> {
               ensureSuccess(context, arQuery);
@@ -613,17 +615,18 @@ public abstract class SQLTestBase extends AbstractTestBase {
         ensureSuccess(context, ar1);
         conn.execute("CREATE TABLE test_table (instant TIMESTAMP)", ar2 -> {
           ensureSuccess(context, ar2);
-          Instant now = Instant.now();
-          conn.queryWithParams("INSERT INTO test_table (instant) VALUES (?)", new JsonArray().add(now), ar3 -> {
+          JsonArray args = new JsonArray().add(Instant.now());
+          String now = args.getString(0);
+          conn.queryWithParams("INSERT INTO test_table (instant) VALUES (?)", args, ar3 -> {
             ensureSuccess(context, ar3);
             conn.query("SELECT instant FROM test_table", ar4 -> {
               ensureSuccess(context, ar4);
               // timestamps with out time zone are returned as strings, so we must compare to the original instant
               // ignoring the timezone offset (meaning ignore everything after char 23)
               compareInstantStrings(
-                  context,
-                  ar4.result().getResults().get(0).getString(0),
-                  now.toString().substring(0, 23)
+                context,
+                ar4.result().getResults().get(0).getString(0),
+                now.substring(0, 23)
               );
               async.complete();
             });
@@ -658,14 +661,49 @@ public abstract class SQLTestBase extends AbstractTestBase {
 
   private void setupSimpleTable(SQLConnection conn, Handler<AsyncResult<Void>> handler) {
     conn.execute("BEGIN",
-        ar -> conn.execute("DROP TABLE IF EXISTS test_table",
-            ar2 -> conn.execute(CREATE_TABLE_STATEMENT,
-                ar3 -> conn.update("INSERT INTO test_table (id, name) VALUES " + Data.get(),
-                    ar4 -> conn.execute("COMMIT", handler::handle)))));
+      ar -> conn.execute("DROP TABLE IF EXISTS test_table",
+        ar2 -> conn.execute(CREATE_TABLE_STATEMENT,
+          ar3 -> conn.update("INSERT INTO test_table (id, name) VALUES " + Data.get(),
+            ar4 -> conn.execute("COMMIT", handler)))));
   }
 
 
   private static final String CREATE_TABLE_STATEMENT = "CREATE TABLE test_table " +
-      "(id BIGINT, name VARCHAR(255))";
+    "(id BIGINT, name VARCHAR(255))";
 
+  @Test
+  public void testSimpleStream(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      // Create table
+      conn = ar.result();
+      setupSimpleTable(conn, ar2 -> {
+
+        conn.queryStream("SELECT name FROM test_table ORDER BY name ASC", ar3 -> {
+          if (ar3.failed()) {
+            context.fail(ar3.cause());
+          } else {
+            final SQLRowStream res = ar3.result();
+            context.assertNotNull(res);
+
+            final AtomicInteger count = new AtomicInteger();
+
+            res
+              .handler(row -> {
+                context.assertEquals(Data.NAMES.get(count.getAndIncrement()) ,row.getString(0));
+              })
+              .endHandler(v -> {
+                context.assertEquals(Data.NAMES.size(), count.get());
+                async.complete();
+              });
+          }
+        });
+      });
+    });
+  }
 }

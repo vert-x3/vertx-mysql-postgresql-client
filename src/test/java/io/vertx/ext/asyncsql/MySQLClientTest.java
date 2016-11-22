@@ -96,7 +96,9 @@ public class MySQLClientTest extends SQLTestBase {
 
   @Override
   protected void compareInstantStrings(TestContext context, String result, String expected) {
-    context.assertEquals(result, expected.replaceFirst("\\.\\d{3}$", ".000"));
+    // mysql will perform some rounding since it does not have the precision to store the full TS
+    // therefore we must ignore the milliseconds and ignore the second digit due to the rounding
+    context.assertEquals(result.substring(0, 19), expected.substring(0, 19));
   }
 
   @Override
