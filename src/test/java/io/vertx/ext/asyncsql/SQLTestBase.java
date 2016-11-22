@@ -684,22 +684,21 @@ public abstract class SQLTestBase extends AbstractTestBase {
       conn = ar.result();
       setupSimpleTable(conn, ar2 -> {
 
-        conn.queryStream("SELECT name FROM test_table", ar3 -> {
+        conn.queryStream("SELECT name FROM test_table ORDER BY name ASC", ar3 -> {
           if (ar3.failed()) {
             context.fail(ar3.cause());
           } else {
             final SQLRowStream res = ar3.result();
             context.assertNotNull(res);
 
-            final AtomicInteger cnt = new AtomicInteger();
+            final AtomicInteger count = new AtomicInteger();
 
             res
               .handler(row -> {
-                context.assertTrue(Data.NAMES.contains(row.getString(0)));
-                cnt.incrementAndGet();
+                context.assertEquals(Data.NAMES.get(count.getAndIncrement()) ,row.getString(0));
               })
               .endHandler(v -> {
-                context.assertEquals(Data.NAMES.size(), cnt.get());
+                context.assertEquals(Data.NAMES.size(), count.get());
                 async.complete();
               });
           }
