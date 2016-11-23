@@ -97,8 +97,15 @@ public class MySQLClientTest extends SQLTestBase {
   @Override
   protected void compareInstantStrings(TestContext context, String result, String expected) {
     // mysql will perform some rounding since it does not have the precision to store the full TS
-    // therefore we must ignore the milliseconds and ignore the second digit due to the rounding
-    context.assertEquals(result.substring(0, 19), expected.substring(0, 19));
+
+    // this will perform a small hack it will parse the dates and assert that they difference is less or equal to 1 second
+    JsonObject test = new JsonObject()
+      .put("expected", expected + "Z")
+      .put("result", result + "Z");
+
+    final int oneSecond = 1000000000;
+
+    context.assertTrue(Math.abs(test.getInstant("expected").getNano() - test.getInstant("result").getNano()) <= oneSecond);
   }
 
   @Override
