@@ -1,6 +1,7 @@
 package io.vertx.ext.asyncsql.impl;
 
 import com.github.mauricio.async.db.QueryResult;
+import com.github.mauricio.async.db.ResultSet;
 import com.github.mauricio.async.db.RowData;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -8,8 +9,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.sql.SQLRowStream;
 import scala.Option;
-
-import com.github.mauricio.async.db.ResultSet;
 import scala.collection.Iterator;
 
 import java.util.List;
@@ -109,10 +108,17 @@ class AsyncSQLRowStream implements SQLRowStream {
   }
 
   @Override
+  public void close() {
+    close(null);
+  }
+
+  @Override
   public void close(Handler<AsyncResult<Void>> handler) {
     // make sure we stop pumping data
     pause();
     // call the provided handler
-    handler.handle(Future.succeededFuture());
+    if (handler != null) {
+      handler.handle(Future.succeededFuture());
+    }
   }
 }
