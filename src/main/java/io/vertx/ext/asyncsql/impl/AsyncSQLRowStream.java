@@ -88,6 +88,7 @@ class AsyncSQLRowStream implements SQLRowStream {
       } else {
         // mark as ended if the handler was registered too late
         ended.set(true);
+        rsClosed.set(true);
         // automatically close resources
         if (rsClosedHandler != null) {
           // only notify (since the rs is closed by the underlying driver)
