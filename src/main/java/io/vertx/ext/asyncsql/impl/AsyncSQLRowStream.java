@@ -22,7 +22,6 @@ class AsyncSQLRowStream implements SQLRowStream {
 
   private final AtomicBoolean paused = new AtomicBoolean(false);
   private final AtomicBoolean ended = new AtomicBoolean(false);
-  private final AtomicBoolean rsClosed = new AtomicBoolean(false);
 
   private Handler<JsonArray> handler;
   private Handler<Void> endHandler;
@@ -88,7 +87,6 @@ class AsyncSQLRowStream implements SQLRowStream {
       } else {
         // mark as ended if the handler was registered too late
         ended.set(true);
-        rsClosed.set(true);
         // automatically close resources
         if (rsClosedHandler != null) {
           // only notify (since the rs is closed by the underlying driver)
@@ -120,7 +118,7 @@ class AsyncSQLRowStream implements SQLRowStream {
   public SQLRowStream resultSetClosedHandler(Handler<Void> handler) {
     this.rsClosedHandler = handler;
     // registration was late but we're already ended, notify
-    if (rsClosed.compareAndSet(true, false)) {
+    if (ended.compareAndSet(true, false)) {
       // only notify once
       rsClosedHandler.handle(null);
     }
