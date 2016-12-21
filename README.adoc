@@ -26,5 +26,5 @@ docker run --rm --name vertx-postgres -e POSTGRES_USER=vertx -e POSTGRES_PASSWOR
 ----
 
 ----
-docker run --rm --name vertx-mysql -e MYSQL_ROOT_PASSWORD=password -e MYSQL_USER=vertx -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=testdb -p 3306:3306 mysql
+docker run --rm --name vertx-mysql -e MYSQL_ROOT_PASSWORD=password -e MYSQL_USER=vertx -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=testdb -p 3306:3306 mysql/mysql-server:5.6
 ----

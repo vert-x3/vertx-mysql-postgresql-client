@@ -295,11 +295,11 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   private ResultSet queryResultToResultSet(QueryResult qr) {
     final Option<com.github.mauricio.async.db.ResultSet> rows = qr.rows();
     if (!rows.isDefined()) {
-      return new ResultSet(Collections.emptyList(), Collections.emptyList());
+      return new ResultSet(Collections.emptyList(), Collections.emptyList(), null);
     } else {
       final List<String> names = ScalaUtils.toJavaList(rows.get().columnNames().toList());
       final List<JsonArray> arrays = rowDataSeqToJsonArray(rows.get());
-      return new ResultSet(names, arrays);
+      return new ResultSet(names, arrays, null);
     }
   }
 

@@ -25,6 +25,7 @@ class AsyncSQLRowStream implements SQLRowStream {
 
   private Handler<JsonArray> handler;
   private Handler<Void> endHandler;
+  private Handler<Void> rsClosedHandler;
 
   AsyncSQLRowStream(QueryResult qr) {
     final Option<ResultSet> rows = qr.rows();
@@ -87,11 +88,17 @@ class AsyncSQLRowStream implements SQLRowStream {
         // mark as ended if the handler was registered too late
         ended.set(true);
         // automatically close resources
-        close(c -> {
-          if (endHandler != null) {
-            endHandler.handle(null);
-          }
-        });
+        if (rsClosedHandler != null) {
+          // only notify (since the rs is closed by the underlying driver)
+          rsClosedHandler.handle(null);
+        } else {
+          // default behavior notify that everything ended
+          close(c -> {
+            if (endHandler != null) {
+              endHandler.handle(null);
+            }
+          });
+        }
       }
     }
   }
@@ -105,6 +112,22 @@ class AsyncSQLRowStream implements SQLRowStream {
       endHandler.handle(null);
     }
     return this;
+  }
+
+  @Override
+  public SQLRowStream resultSetClosedHandler(Handler<Void> handler) {
+    this.rsClosedHandler = handler;
+    // registration was late but we're already ended, notify
+    if (ended.compareAndSet(true, false)) {
+      // only notify once
+      rsClosedHandler.handle(null);
+    }
+    return this;
+  }
+
+  @Override
+  public void moreResults() {
+    // NO-OP since the underlying driver only returns 1 ResultSet
   }
 
   @Override
