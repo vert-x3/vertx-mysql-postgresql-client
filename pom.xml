@@ -17,8 +17,8 @@
 
   <properties>
     <stack.version>3.4.0-SNAPSHOT</stack.version>
-    <scala.version>2.11.7</scala.version>
-    <asyncdriver.version>0.2.20</asyncdriver.version>
+    <scala.version>2.12.1</scala.version>
+    <asyncdriver.version>0.2.21</asyncdriver.version>
 
     <host>localhost</host>
   </properties>
@@ -58,7 +58,7 @@
     </dependency>
     <dependency>
       <groupId>com.github.mauricio</groupId>
-      <artifactId>postgresql-async_2.11</artifactId>
+      <artifactId>postgresql-async_2.12</artifactId>
       <version>${asyncdriver.version}</version>
       <exclusions>
         <exclusion>
@@ -73,7 +73,7 @@
     </dependency>
     <dependency>
       <groupId>com.github.mauricio</groupId>
-      <artifactId>mysql-async_2.11</artifactId>
+      <artifactId>mysql-async_2.12</artifactId>
       <version>${asyncdriver.version}</version>
       <exclusions>
         <exclusion>
