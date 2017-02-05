@@ -22,7 +22,7 @@ var Vertx = require('vertx-js/vertx');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JMySQLClient = io.vertx.ext.asyncsql.MySQLClient;
+var JMySQLClient = Java.type('io.vertx.ext.asyncsql.MySQLClient');
 
 /**
  Represents an asynchronous MySQL client

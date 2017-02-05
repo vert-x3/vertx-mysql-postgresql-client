@@ -20,7 +20,7 @@ var SQLConnection = require('vertx-sql-js/sql_connection');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JAsyncSQLClient = io.vertx.ext.asyncsql.AsyncSQLClient;
+var JAsyncSQLClient = Java.type('io.vertx.ext.asyncsql.AsyncSQLClient');
 
 /**
  Represents an asynchronous SQL client

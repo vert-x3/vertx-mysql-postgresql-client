@@ -22,7 +22,7 @@ var Vertx = require('vertx-js/vertx');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JPostgreSQLClient = io.vertx.ext.asyncsql.PostgreSQLClient;
+var JPostgreSQLClient = Java.type('io.vertx.ext.asyncsql.PostgreSQLClient');
 
 /**
  Represents an PostgreSQL client
