@@ -19,8 +19,6 @@ package io.vertx.ext.asyncsql.impl;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import scala.concurrent.ExecutionContext;
 
 import java.util.Objects;
@@ -33,27 +31,18 @@ import java.util.Objects;
 public class VertxEventLoopExecutionContext implements ExecutionContext {
 
   public static ExecutionContext create(Vertx vertx) {
-    return new VertxEventLoopExecutionContext(vertx, (ex) -> LOGGER.error("An exception occurred", ex));
+    return new VertxEventLoopExecutionContext(vertx);
   }
-
-  public static ExecutionContext create(Vertx vertx, Handler<Throwable> handler) {
-    return new VertxEventLoopExecutionContext(vertx, handler);
-  }
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(VertxEventLoopExecutionContext.class);
 
   private final Context context;
-  private final Handler<Throwable> errorHandler;
 
-  private VertxEventLoopExecutionContext(Vertx vertx, Handler<Throwable> errorHandler) {
-    Objects.requireNonNull(errorHandler);
+  private VertxEventLoopExecutionContext(Vertx vertx) {
     Objects.requireNonNull(vertx);
     Context ctx = Vertx.currentContext();
     if (ctx == null) {
       ctx = vertx.getOrCreateContext();
     }
     this.context = ctx;
-    this.errorHandler = errorHandler;
   }
 
   @Override
@@ -77,7 +66,10 @@ public class VertxEventLoopExecutionContext implements ExecutionContext {
 
   @Override
   public void reportFailure(Throwable cause) {
-    errorHandler.handle(cause);
+    Handler<Throwable> exceptionHandler = context.exceptionHandler();
+    if (exceptionHandler != null) {
+      exceptionHandler.handle(cause);
+    }
   }
 
   @Override

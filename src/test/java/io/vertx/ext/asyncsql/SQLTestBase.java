@@ -18,6 +18,7 @@ package io.vertx.ext.asyncsql;
 
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -34,6 +35,9 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 public abstract class SQLTestBase extends AbstractTestBase {
 
@@ -703,6 +707,30 @@ public abstract class SQLTestBase extends AbstractTestBase {
               });
           }
         });
+      });
+    });
+  }
+
+  private static class UserDefinedException extends RuntimeException {
+  }
+
+  @Test
+  public void testUncaughtException(TestContext testContext) {
+    Async async = testContext.async();
+    Context context = vertx.getOrCreateContext();
+    context.exceptionHandler(throwable -> {
+      assertThat(throwable, instanceOf(UserDefinedException.class));
+      async.complete();
+    });
+    context.runOnContext(v -> {
+      client.getConnection(connection -> {
+        try {
+          throw new UserDefinedException();
+        } finally {
+          if (connection.succeeded()) {
+            connection.result().close();
+          }
+        }
       });
     });
   }
