@@ -194,7 +194,7 @@
  * `maxPoolSize`:: The number of connections that may be kept open. Defaults to `10`.
  * `username`:: The username to connect to the database. Defaults to `postgres` for PostgreSQL and `root` for MySQL.
  * `password`:: The password to connect to the database. Default is not set, i.e. it uses no password.
- * `database`:: The name of the database you want to connect to. Defaults to `test`.
+ * `database`:: The name of the database you want to connect to. Defaults to `testdb`.
  * `charset`:: The name of the character set you want to use for the connection. Defaults to `UTF-8`.
  * `queryTimeout`:: The timeout to wait for a query in milliseconds. Defaults to `10000` (= 10 seconds).
  */
