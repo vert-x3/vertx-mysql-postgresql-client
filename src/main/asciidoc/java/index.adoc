@@ -4,7 +4,7 @@ The Async MySQL / PostgreSQL Client is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
 It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[async driver] to interact with the MySQL
-or PostgreSQL databases in a non blocking way
+or PostgreSQL databases in a non blocking way.
 
 == Using the MySQL and PostgreSQL client
 
@@ -15,7 +15,7 @@ application.
 
 To use this client, you need to add the following jar to your `CLASSPATH`:
 
-* vertx-mysql-postgresql-client 3.4.0.Beta1 (the client)
+* vertx-mysql-postgresql-client 3.4.0-SNAPSHOT (the client)
 * scala-library 2.11.4
 * the postgress-async-2.11 and mysdql-async-2.11 from https://github.com/mauricio/postgresql-async
 * joda time
@@ -33,7 +33,7 @@ If you are building a _Fat-jar_ using Maven or Gradle, just add the following de
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-mysql-postgresql-client</artifactId>
-  <version>3.4.0.Beta1</version>
+  <version>3.4.0-SNAPSHOT</version>
 </dependency>
 ----
 
@@ -41,7 +41,7 @@ If you are building a _Fat-jar_ using Maven or Gradle, just add the following de
 
 [source,groovy,subs="+attributes"]
 ----
-compile 'io.vertx:vertx-mysql-postgresql-client:3.4.0.Beta1'
+compile 'io.vertx:vertx-mysql-postgresql-client:3.4.0-SNAPSHOT'
 ----
 
 === In an application using a vert.x distributions
@@ -52,7 +52,7 @@ Alternatively, you can edit the `vertx-stack.json` file located in `$VERTX_HOME`
 for the `vertx-mysql-postgresql-client` dependency. Once done, launch: `vertx resolve --dir=lib --stack=
 ./vertx-stack.json`. It downloads the client and its dependencies.
 
-== Creating a the client
+== Creating a client
 
 There are several ways to create a client. Let's go through them all.
 
@@ -162,9 +162,9 @@ client.getConnection(res -> {
 Once you've finished with the connection make sure you close it afterwards.
 
 The connection is an instance of `link:../../apidocs/io/vertx/ext/sql/SQLConnection.html[SQLConnection]` which is a common interface used by
-othe SQL clients.
+other SQL clients.
 
-You can learn how to use it in the http://foobar[common sql interface] documentation.
+You can learn how to use it in the http://vertx.io/docs/vertx-sql-common/java/[common sql interface] documentation.
 
 === Note about date and timestamps
 
@@ -205,6 +205,6 @@ Both the PostgreSql and MySql clients take the same configuration:
 `maxPoolSize`:: The number of connections that may be kept open. Defaults to `10`.
 `username`:: The username to connect to the database. Defaults to `postgres` for PostgreSQL and `root` for MySQL.
 `password`:: The password to connect to the database. Default is not set, i.e. it uses no password.
-`database`:: The name of the database you want to connect to. Defaults to `test`.
+`database`:: The name of the database you want to connect to. Defaults to `testdb`.
 `charset`:: The name of the character set you want to use for the connection. Defaults to `UTF-8`.
 `queryTimeout`:: The timeout to wait for a query in milliseconds. Defaults to `10000` (= 10 seconds).
