@@ -54,8 +54,8 @@ public class RefCountTest extends VertxTestBase {
     assertEquals(1, map.size());
     client3.close();
     assertEquals(0, map.size());
-    waitUntil(() -> getLocalMap().size() == 0);
-    waitUntil(() -> map != getLocalMap()); // Map has been closed
+    assertWaitUntil(() -> getLocalMap().size() == 0);
+    assertWaitUntil(() -> map != getLocalMap()); // Map has been closed
   }
 
   @Test
@@ -73,8 +73,8 @@ public class RefCountTest extends VertxTestBase {
     client2.close();
     assertEquals(1, map.size());
     client3.close();
-    waitUntil(() -> map.size() == 0);
-    waitUntil(() -> map != getLocalMap()); // Map has been closed
+    assertWaitUntil(() -> map.size() == 0);
+    assertWaitUntil(() -> map != getLocalMap()); // Map has been closed
   }
 
   @Test
@@ -100,14 +100,14 @@ public class RefCountTest extends VertxTestBase {
     client2.close();
     assertEquals(2, map.size());
     client3.close();
-    waitUntil(() -> map.size() == 1);
+    assertWaitUntil(() -> map.size() == 1);
 
     client4.close();
     assertEquals(1, map.size());
     client5.close();
     assertEquals(1, map.size());
     client6.close();
-    waitUntil(() -> map.size() == 0);
-    waitUntil(() -> map != getLocalMap()); // Map has been closed
+    assertWaitUntil(() -> map.size() == 0);
+    assertWaitUntil(() -> map != getLocalMap()); // Map has been closed
   }
 }
