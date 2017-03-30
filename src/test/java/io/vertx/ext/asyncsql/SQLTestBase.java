@@ -688,12 +688,23 @@ public abstract class SQLTestBase extends AbstractTestBase {
       conn = ar.result();
       setupSimpleTable(conn, ar2 -> {
 
-        conn.queryStream("SELECT name FROM test_table ORDER BY name ASC", ar3 -> {
+        conn.queryStream("SELECT name, id FROM test_table ORDER BY name ASC", ar3 -> {
           if (ar3.failed()) {
             context.fail(ar3.cause());
           } else {
             final SQLRowStream res = ar3.result();
             context.assertNotNull(res);
+
+            // assert that we have columns and they are valid
+            assertNotNull(res.columns());
+            assertEquals(Arrays.asList("name", "id"), res.columns());
+            // assert the collection is immutable
+            try {
+              res.columns().add("durp!");
+              fail();
+            } catch (RuntimeException e) {
+              // expected!
+            }
 
             final AtomicInteger count = new AtomicInteger();
 
