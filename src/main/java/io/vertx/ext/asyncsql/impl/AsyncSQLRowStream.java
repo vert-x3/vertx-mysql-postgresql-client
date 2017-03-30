@@ -53,6 +53,11 @@ class AsyncSQLRowStream implements SQLRowStream {
   }
 
   @Override
+  public List<String> columns() {
+    return columns;
+  }
+
+  @Override
   public SQLRowStream exceptionHandler(Handler<Throwable> handler) {
     return this;
   }
