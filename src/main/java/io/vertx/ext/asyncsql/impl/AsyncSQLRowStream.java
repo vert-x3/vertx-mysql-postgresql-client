@@ -11,6 +11,7 @@ import io.vertx.ext.sql.SQLRowStream;
 import scala.Option;
 import scala.collection.Iterator;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -46,14 +47,21 @@ class AsyncSQLRowStream implements SQLRowStream {
       throw new IndexOutOfBoundsException("'" + name + "' not found");
     }
 
-    if (columns == null) {
-      columns = ScalaUtils.toJavaList(rs.columnNames().toList());
-    }
-    return columns.indexOf(name);
+    // the columns value will be cached
+    return columns().indexOf(name);
   }
 
   @Override
   public List<String> columns() {
+    // populate the cache
+    if (columns == null) {
+      // quick escape
+      if (rs == null) {
+        return Collections.emptyList();
+      }
+      // this list is always read only
+      columns = Collections.unmodifiableList(ScalaUtils.toJavaList(rs.columnNames().toList()));
+    }
     return columns;
   }
 
