@@ -17,6 +17,9 @@
 package io.vertx.ext.asyncsql.impl;
 
 import com.github.mauricio.async.db.Connection;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.PostgreSQLClient;
@@ -55,6 +58,6 @@ public class PostgreSQLClientImpl extends BaseSQLClient {
 
   @Override
   protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec) {
-    return new AsyncSQLConnectionImpl(conn, pool, ec);
+    return new PostgreSQLConnectionImpl(conn, pool, ec);
   }
 }
