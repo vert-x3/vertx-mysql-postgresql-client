@@ -62,6 +62,11 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   }
 
   @Override
+  public SQLConnection setOptions(SQLOptions options) {
+    return null;
+  }
+
+  @Override
   public SQLConnection setAutoCommit(boolean autoCommit, Handler<AsyncResult<Void>> handler) {
     Future<Void> fut;
 
@@ -192,13 +197,33 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   }
 
   @Override
-  public SQLConnection setQueryTimeout(int i) {
-    throw new UnsupportedOperationException("Not implemented");
-  }
-
-  @Override
   public SQLConnection setTransactionIsolation(TransactionIsolation transactionIsolation, Handler<AsyncResult<Void>> handler) {
-    throw new UnsupportedOperationException("Not implemented");
+    String sql;
+    switch (transactionIsolation) {
+      case READ_UNCOMMITTED:
+        sql = "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED";
+        break;
+      case REPEATABLE_READ:
+        sql = "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ";
+        break;
+      case READ_COMMITTED:
+        sql = "SET TRANSACTION ISOLATION LEVEL READ COMMITTED";
+        break;
+      case SERIALIZABLE:
+        sql = "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE";
+        break;
+      case NONE:
+      default:
+        sql = null;
+        break;
+    }
+
+    if (sql == null) {
+      handler.handle(Future.succeededFuture());
+      return this;
+    }
+
+    return execute(sql, handler);
   }
 
   @Override
