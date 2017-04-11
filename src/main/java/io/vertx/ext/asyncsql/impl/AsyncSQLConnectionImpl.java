@@ -226,6 +226,11 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     throw new UnsupportedOperationException("Not implemented");
   }
 
+  @Override
+  @SuppressWarnings("unchecked")
+  public <C> C unwrap() {
+    return (C) connection;
+  }
 
   private SQLConnection endAndStartTransaction(String command, Handler<AsyncResult<Void>> handler) {
     if (inTransaction) {
