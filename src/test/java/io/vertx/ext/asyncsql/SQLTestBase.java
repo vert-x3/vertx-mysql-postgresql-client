@@ -25,10 +25,12 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.*;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -756,21 +758,45 @@ public abstract class SQLTestBase extends AbstractTestBase {
             return;
           }
 
-          client.getConnection(ar4 -> {
+          // set auto commit off to connection
+          final SQLConnection conn1 = ar3.result();
+
+          conn1.setAutoCommit(false, ar4 -> {
             if (ar4.failed()) {
               context.fail(ar4.cause());
               return;
             }
 
-            // run test
-            handler.handle(ar3.result(), ar4.result());
+            client.getConnection(ar5 -> {
+              if (ar5.failed()) {
+                context.fail(ar5.cause());
+                return;
+              }
+
+              // set auto commit off to connection
+              final SQLConnection conn2 = ar5.result();
+
+              conn2.setAutoCommit(false, ar6 -> {
+                if (ar6.failed()) {
+                  context.fail(ar6.cause());
+                  return;
+                }
+
+                // run test
+                handler.handle(
+                  conn1.setOptions(new SQLOptions().setQueryTimeout(5000)),
+                  conn2.setOptions(new SQLOptions().setQueryTimeout(5000)));
+              });
+            });
           });
+
         });
       });
     });
   }
 
   @Test
+  @Ignore
   public void testIsolationReadUncommited(TestContext context) {
     Async async = context.async();
 
@@ -785,9 +811,9 @@ public abstract class SQLTestBase extends AbstractTestBase {
 //      TX A: rollback;
 //      TX B: select * from test_txtable;                   -- val = 8
 //      TX B: commit;
-      conn1.setAutoCommit(false, onSuccess(context, res1 -> {
+      conn1.execute("start transaction", onSuccess(context, res1 -> {
         conn2.setTransactionIsolation(TransactionIsolation.READ_UNCOMMITTED, onSuccess(context, res2 -> {
-          conn2.setAutoCommit(false, onSuccess(context, res3 -> {
+          conn2.execute("start transaction", onSuccess(context, res3 -> {
             conn1.query("select * from test_txtable", res4 -> {
               ensureSuccess(context, res4);
               assertEquals(Integer.valueOf(8), res4.result().getRows().get(0).getInteger("val"));
@@ -823,6 +849,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
   }
 
   @Test
+  @Ignore
   public void testIsolationReadCommited(TestContext context) {
     Async async = context.async();
 
@@ -837,9 +864,9 @@ public abstract class SQLTestBase extends AbstractTestBase {
 //      TX A: commit
 //      TX B: select * from test;                   -- val = 9, commited read
 //
-      conn1.setAutoCommit(false, onSuccess(context, res1 -> {
+      conn1.execute("start transaction", onSuccess(context, res1 -> {
         conn2.setTransactionIsolation(TransactionIsolation.READ_COMMITTED, onSuccess(context, res2 -> {
-          conn2.setAutoCommit(false, onSuccess(context, res3 -> {
+          conn2.execute("start transaction", onSuccess(context, res3 -> {
             conn1.query("select * from test_txtable", res4 -> {
               ensureSuccess(context, res4);
               assertEquals(Integer.valueOf(8), res4.result().getRows().get(0).getInteger("val"));
@@ -873,6 +900,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
   }
 
   @Test
+  @Ignore
   public void testIsolationRepeatableRead(TestContext context) {
     Async async = context.async();
 
@@ -888,9 +916,9 @@ public abstract class SQLTestBase extends AbstractTestBase {
 //      TX B: select * from test;                   -- val = 8, repeatable read!
 //      TX B: commit;
 //      TX B: select * from test;                   -- val = 9 (from tx A)
-      conn1.setAutoCommit(false, onSuccess(context, res1 -> {
+      conn1.execute("start transaction", onSuccess(context, res1 -> {
         conn2.setTransactionIsolation(TransactionIsolation.REPEATABLE_READ, onSuccess(context, res2 -> {
-          conn2.setAutoCommit(false, onSuccess(context, res3 -> {
+          conn2.execute("start transaction", onSuccess(context, res3 -> {
             conn1.query("select * from test_txtable", res4 -> {
               ensureSuccess(context, res4);
               assertEquals(Integer.valueOf(8), res4.result().getRows().get(0).getInteger("val"));
@@ -931,6 +959,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
   }
 
   @Test
+  @Ignore
   public void testIsolationSerializable(TestContext context) {
     Async async = context.async();
 
@@ -945,9 +974,9 @@ public abstract class SQLTestBase extends AbstractTestBase {
 //      TX B: select * from test;               -- val = 8 (repeatable read!)
 //      TX B: commit;
 //      TX B: select * from test;               -- val = 9 (now we see TX A)
-      conn1.setAutoCommit(false, onSuccess(context, res1 -> {
+      conn1.execute("start transaction", onSuccess(context, res1 -> {
         conn2.setTransactionIsolation(TransactionIsolation.SERIALIZABLE, onSuccess(context, res2 -> {
-          conn2.setAutoCommit(false, onSuccess(context, res3 -> {
+          conn2.execute("start transaction", onSuccess(context, res3 -> {
             conn1.query("select * from test_txtable", res4 -> {
               ensureSuccess(context, res4);
               assertEquals(Integer.valueOf(8), res4.result().getRows().get(0).getInteger("val"));
@@ -1013,6 +1042,66 @@ public abstract class SQLTestBase extends AbstractTestBase {
           }
         }
       });
+    });
+  }
+
+  @Test
+  public void testSimpleBatch(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      // Create table
+      conn = ar.result();
+
+      // prepare data
+      List<String> data = new ArrayList<>();
+      int i = 0;
+      for (String n : Data.NAMES) {
+        data.add("INSERT INTO test_table (id, name) VALUES (" + (i++) + ", \'" + n + "\')");
+      }
+
+      conn.execute("BEGIN",
+        ar1 -> conn.execute("DROP TABLE IF EXISTS test_table",
+          ar2 -> conn.execute(CREATE_TABLE_STATEMENT,
+            ar3 -> conn.batch(data,
+              ar4 -> {
+                ensureSuccess(context, ar4);
+                async.complete();
+              }))));
+    });
+  }
+
+  @Test
+  public void testSimpleBatchWithParams(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      // Create table
+      conn = ar.result();
+
+      // prepare data
+      List<JsonArray> data = new ArrayList<>();
+      int i = 0;
+      for (String n : Data.NAMES) {
+        data.add(new JsonArray().add(i++).add(n));
+      }
+
+      conn.execute("BEGIN",
+        ar1 -> conn.execute("DROP TABLE IF EXISTS test_table",
+          ar2 -> conn.execute(CREATE_TABLE_STATEMENT,
+            ar3 -> conn.batchWithParams("INSERT INTO test_table (id, name) VALUES (?, ?)", data,
+              ar4 -> {
+                ensureSuccess(context, ar4);
+                async.complete();
+              }))));
     });
   }
 }

@@ -56,6 +56,6 @@ public class MYSQLClientImpl extends BaseSQLClient {
 
   @Override
   protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec) {
-    return new MySQLConnectionImpl(conn, pool, ec);
+    return new MySQLConnectionImpl(vertx, conn, pool, ec);
   }
 }

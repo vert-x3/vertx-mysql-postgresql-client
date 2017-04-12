@@ -58,6 +58,6 @@ public class PostgreSQLClientImpl extends BaseSQLClient {
 
   @Override
   protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec) {
-    return new PostgreSQLConnectionImpl(conn, pool, ec);
+    return new PostgreSQLConnectionImpl(vertx, conn, pool, ec);
   }
 }
