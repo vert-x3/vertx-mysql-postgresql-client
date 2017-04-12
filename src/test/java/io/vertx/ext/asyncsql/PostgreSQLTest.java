@@ -21,6 +21,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -128,4 +131,29 @@ public class PostgreSQLTest extends AbstractTestBase {
     });
   }
 
+  @Test
+  public void queryArrayTypeTest(TestContext context) throws Exception {
+    Async async = context.async();
+    client.getConnection(connAr -> {
+      ensureSuccess(context, connAr);
+      conn = connAr.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", onSuccess(context, dropped -> {
+        conn.execute("CREATE TABLE IF NOT EXISTS test_table (arr_int integer[], arr_str text[][])", onSuccess(context, created -> {
+          conn.execute("INSERT INTO test_table (arr_int,arr_str) VALUES ('{10000, 10000, 10000, 10000}', '{{\"meeting\", \"lunch\"}, {\"training\", \"presentation\"}}')", onSuccess(context, inserted -> {
+            conn.query("SELECT * FROM test_table;", onSuccess(context, arraySelect -> {
+              context.assertNotNull(arraySelect);
+              context.assertNotNull(arraySelect.getResults());
+              List<JsonArray> results = arraySelect.getResults();
+              JsonArray resultRow = results.get(0);
+              System.out.println(resultRow.toString());
+              context.assertEquals(resultRow.getJsonArray(0), new JsonArray("[10000,10000,10000,10000]"));
+              context.assertEquals(resultRow.getJsonArray(1), new JsonArray("[[\"meeting\",\"lunch\"],[\"training\",\"presentation\"]]"));
+              async.complete();
+            }));
+          }));
+        }));
+      }));
+    });
+  }
+  
 }

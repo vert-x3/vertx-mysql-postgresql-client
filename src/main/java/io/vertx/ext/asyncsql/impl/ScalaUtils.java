@@ -102,24 +102,41 @@ public final class ScalaUtils {
     data.foreach(new AbstractFunction1<Object, Void>() {
       @Override
       public Void apply(Object value) {
-        if (value == null) {
-          array.addNull();
-        } else if (value instanceof scala.math.BigDecimal) {
-          array.add(value.toString());
-        } else if (value instanceof LocalDateTime) {
-          array.add(value.toString());
-        } else if (value instanceof LocalDate) {
-          array.add(value.toString());
-        } else if (value instanceof DateTime) {
-          array.add(Instant.ofEpochMilli(((DateTime) value).getMillis()));
-        } else if (value instanceof UUID) {
-          array.add(value.toString());
-        } else {
-          array.add(value);
-        }
+        convertValue(array, value);
         return null;
       }
     });
     return array;
   }
+  private static void convertValue(JsonArray array, Object value) {
+    if (value == null) {
+      array.addNull();
+    } else if (value instanceof scala.math.BigDecimal) {
+      array.add(value.toString());
+    } else if (value instanceof LocalDateTime) {
+      array.add(value.toString());
+    } else if (value instanceof LocalDate) {
+      array.add(value.toString());
+    } else if (value instanceof DateTime) {
+      array.add(Instant.ofEpochMilli(((DateTime) value).getMillis()));
+    } else if (value instanceof UUID) {
+      array.add(value.toString());
+    } else if (value instanceof scala.collection.mutable.ArrayBuffer) {
+      scala.collection.mutable.ArrayBuffer<Object> arrayBuffer = (scala.collection.mutable.ArrayBuffer<Object>) value;
+      JsonArray subArray = new JsonArray();
+      arrayBuffer.foreach(new AbstractFunction1<Object, Void>() {
+
+        @Override
+        public Void apply(Object subValue) {
+          convertValue(subArray, subValue);
+          return null;
+        }
+
+      });
+      array.add(subArray);
+    } else {
+      array.add(value);
+    }
+  }
+  
 }
