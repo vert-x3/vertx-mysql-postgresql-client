@@ -68,6 +68,10 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection setAutoCommit(boolean autoCommit, Handler<AsyncResult<Void>> handler) {
+    // if !inAutoCommit && autoCommit => commit
+    // inAutoCommit = autoCommit
+    // inTransaction = !inAutoCommit
+    //
     Future<Void> fut;
 
     synchronized (this) {
@@ -87,6 +91,12 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection execute(String sql, Handler<AsyncResult<Void>> handler) {
+    // if autoCommit || !inTransaction => BEGIN
+    // try
+    //   execute
+    //   if autoCommit => COMMIT
+    // catch
+    //   if autoCommit => COMMIT
     beginTransactionIfNeeded(v -> {
       final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
       future.onComplete(ScalaUtils.toFunction1(ar -> {
@@ -228,6 +238,8 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection getTransactionIsolation(Handler<AsyncResult<TransactionIsolation>> handler) {
+    // Postgres: select current_setting('transaction_isolation');
+    // Mysql: select @@tx_isolation;
     throw new UnsupportedOperationException("Not implemented");
   }
 

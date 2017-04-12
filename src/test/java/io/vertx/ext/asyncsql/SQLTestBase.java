@@ -22,10 +22,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.sql.ResultSet;
-import io.vertx.ext.sql.SQLConnection;
-import io.vertx.ext.sql.SQLRowStream;
-import io.vertx.ext.sql.UpdateResult;
+import io.vertx.ext.sql.*;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import org.junit.Test;
@@ -710,7 +707,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
 
             res
               .handler(row -> {
-                context.assertEquals(Data.NAMES.get(count.getAndIncrement()) ,row.getString(0));
+                context.assertEquals(Data.NAMES.get(count.getAndIncrement()), row.getString(0));
               })
               .endHandler(v -> {
                 context.assertEquals(Data.NAMES.size(), count.get());
@@ -726,13 +723,15 @@ public abstract class SQLTestBase extends AbstractTestBase {
     conn.execute("BEGIN",
       ar -> conn.execute("DROP TABLE IF EXISTS test_txtable",
         ar2 -> conn.execute("CREATE TABLE test_txtable (id BIGINT, val BIGINT)",
-          ar3 -> conn.update("INSERT INTO test_txtable (id, name) VALUES (1, 8), (2, 8)",
+          ar3 -> conn.update("INSERT INTO test_txtable (id, val) VALUES (1, 8), (2, 8)",
             ar4 -> conn.execute("COMMIT", handler)))));
   }
 
-  @Test
-  public void testIsolation(TestContext context) {
-    Async async = context.async();
+  interface IsolationHandler {
+    void handle(SQLConnection conn1, SQLConnection conn2);
+  }
+
+  private void runIsolationLevelTest(TestContext context, IsolationHandler handler) {
     client.getConnection(ar -> {
       if (ar.failed()) {
         context.fail(ar.cause());
@@ -742,9 +741,254 @@ public abstract class SQLTestBase extends AbstractTestBase {
       // Create table
       conn = ar.result();
       setupTxTestTable(conn, ar2 -> {
-        // TODO: test me!
-        async.complete();
+        if (ar2.failed()) {
+          context.fail(ar2.cause());
+          return;
+        }
+
+        // close the conn
+        conn.close();
+
+        // acquire 2 new connections
+        client.getConnection(ar3 -> {
+          if (ar3.failed()) {
+            context.fail(ar3.cause());
+            return;
+          }
+
+          client.getConnection(ar4 -> {
+            if (ar4.failed()) {
+              context.fail(ar4.cause());
+              return;
+            }
+
+            // run test
+            handler.handle(ar3.result(), ar4.result());
+          });
+        });
       });
+    });
+  }
+
+  @Test
+  public void testIsolationReadUncommited(TestContext context) {
+    Async async = context.async();
+
+    runIsolationLevelTest(context, (conn1, conn2) -> {
+//      TX A: start transaction;
+//      TX B: set session transaction isolation level read uncommitted;
+//      TX B: start transaction;
+//      TX A: select * from test_txtable;                   -- val = 8
+//      TX B: select * from test_txtable;                   -- val = 8
+//      TX A: update test_txtable set val = val + 1;        -- val = 9
+//      TX B: select * from test_txtable;                   -- val = 9, dirty read
+//      TX A: rollback;
+//      TX B: select * from test_txtable;                   -- val = 8
+//      TX B: commit;
+      conn1.setAutoCommit(false, onSuccess(context, res1 -> {
+        conn2.setTransactionIsolation(TransactionIsolation.READ_UNCOMMITTED, onSuccess(context, res2 -> {
+          conn2.setAutoCommit(false, onSuccess(context, res3 -> {
+            conn1.query("select * from test_txtable", res4 -> {
+              ensureSuccess(context, res4);
+              assertEquals(Integer.valueOf(8), res4.result().getRows().get(0).getInteger("val"));
+              conn2.query("select * from test_txtable", res5 -> {
+                ensureSuccess(context, res5);
+                assertEquals(Integer.valueOf(8), res5.result().getRows().get(0).getInteger("val"));
+                conn1.update("update test_txtable set val = val + 1", onSuccess(context, res6 -> {
+                  conn2.query("select * from test_txtable", res7 -> {
+                    ensureSuccess(context, res7);
+                    // dirty read
+                    assertEquals(Integer.valueOf(9), res7.result().getRows().get(0).getInteger("val"));
+                    conn1.rollback(res8 -> {
+                      ensureSuccess(context, res8);
+                      conn2.query("select * from test_txtable", res9 -> {
+                        ensureSuccess(context, res9);
+                        assertEquals(Integer.valueOf(8), res9.result().getRows().get(0).getInteger("val"));
+                        conn2.commit(res10 -> {
+                          ensureSuccess(context, res10);
+                          conn1.close();
+                          conn2.close();
+                          async.complete();
+                        });
+                      });
+                    });
+                  });
+                }));
+              });
+            });
+          }));
+        }));
+      }));
+    });
+  }
+
+  @Test
+  public void testIsolationReadCommited(TestContext context) {
+    Async async = context.async();
+
+    runIsolationLevelTest(context, (conn1, conn2) -> {
+//      TX A: start transaction;
+//      TX B: set session transaction isolation level read committed;
+//      TX B: start transaction;
+//      TX A: select * from test;                   -- val = 8
+//      TX B: select * from test;                   -- val = 8
+//      TX A: update test set val = val + 1;        -- val = 9
+//      TX B: select * from test;                   -- val = 8, No dirty read!
+//      TX A: commit
+//      TX B: select * from test;                   -- val = 9, commited read
+//
+      conn1.setAutoCommit(false, onSuccess(context, res1 -> {
+        conn2.setTransactionIsolation(TransactionIsolation.READ_COMMITTED, onSuccess(context, res2 -> {
+          conn2.setAutoCommit(false, onSuccess(context, res3 -> {
+            conn1.query("select * from test_txtable", res4 -> {
+              ensureSuccess(context, res4);
+              assertEquals(Integer.valueOf(8), res4.result().getRows().get(0).getInteger("val"));
+              conn2.query("select * from test_txtable", res5 -> {
+                ensureSuccess(context, res5);
+                assertEquals(Integer.valueOf(8), res5.result().getRows().get(0).getInteger("val"));
+                conn1.update("update test_txtable set val = val + 1", onSuccess(context, res6 -> {
+                  conn2.query("select * from test_txtable", res7 -> {
+                    ensureSuccess(context, res7);
+                    // no dirty read
+                    assertEquals(Integer.valueOf(8), res7.result().getRows().get(0).getInteger("val"));
+                    conn1.commit(res8 -> {
+                      ensureSuccess(context, res8);
+                      conn2.query("select * from test_txtable", res9 -> {
+                        ensureSuccess(context, res9);
+                        // commited read
+                        assertEquals(Integer.valueOf(9), res9.result().getRows().get(0).getInteger("val"));
+                        conn1.close();
+                        conn2.close();
+                        async.complete();
+                      });
+                    });
+                  });
+                }));
+              });
+            });
+          }));
+        }));
+      }));
+    });
+  }
+
+  @Test
+  public void testIsolationRepeatableRead(TestContext context) {
+    Async async = context.async();
+
+    runIsolationLevelTest(context, (conn1, conn2) -> {
+//      TX A: start transaction;
+//      TX B: set session transaction isolation level repeatable read;
+//      TX B: start transaction;
+//      TX A: select * from test;                   -- val = 8
+//      TX B: select * from test;                   -- val = 8
+//      TX A: update test set val = val + 1;        -- val = 9
+//      TX B: select * from test;                   -- val = 8
+//      TX A: commit
+//      TX B: select * from test;                   -- val = 8, repeatable read!
+//      TX B: commit;
+//      TX B: select * from test;                   -- val = 9 (from tx A)
+      conn1.setAutoCommit(false, onSuccess(context, res1 -> {
+        conn2.setTransactionIsolation(TransactionIsolation.REPEATABLE_READ, onSuccess(context, res2 -> {
+          conn2.setAutoCommit(false, onSuccess(context, res3 -> {
+            conn1.query("select * from test_txtable", res4 -> {
+              ensureSuccess(context, res4);
+              assertEquals(Integer.valueOf(8), res4.result().getRows().get(0).getInteger("val"));
+              conn2.query("select * from test_txtable", res5 -> {
+                ensureSuccess(context, res5);
+                assertEquals(Integer.valueOf(8), res5.result().getRows().get(0).getInteger("val"));
+                conn1.update("update test_txtable set val = val + 1", onSuccess(context, res6 -> {
+                  conn2.query("select * from test_txtable", res7 -> {
+                    ensureSuccess(context, res7);
+                    assertEquals(Integer.valueOf(8), res7.result().getRows().get(0).getInteger("val"));
+                    conn1.commit(res8 -> {
+                      ensureSuccess(context, res8);
+                      conn2.query("select * from test_txtable", res9 -> {
+                        ensureSuccess(context, res9);
+                        // repeatable read
+                        assertEquals(Integer.valueOf(8), res9.result().getRows().get(0).getInteger("val"));
+                        conn2.commit(res10 -> {
+                          ensureSuccess(context, res10);
+                          conn2.query("select * from test_txtable", res11 -> {
+                            ensureSuccess(context, res11);
+                            // from tx A
+                            assertEquals(Integer.valueOf(9), res9.result().getRows().get(0).getInteger("val"));
+                            conn1.close();
+                            conn2.close();
+                            async.complete();
+                          });
+                        });
+                      });
+                    });
+                  });
+                }));
+              });
+            });
+          }));
+        }));
+      }));
+    });
+  }
+
+  @Test
+  public void testIsolationSerializable(TestContext context) {
+    Async async = context.async();
+
+    runIsolationLevelTest(context, (conn1, conn2) -> {
+//      TX A: start transaction;
+//      TX B: set session transaction isolation level serializable;
+//      TX B: start transaction;
+//      TX A: select * from test;               -- val = 8
+//      TX A: update test set val = val + 1;    -- val = 9
+//      TX B: select * from test;               -- LOCKED, NO OUTPUT
+//      TX A: commit;                           -- Unlocked TX B
+//      TX B: select * from test;               -- val = 8 (repeatable read!)
+//      TX B: commit;
+//      TX B: select * from test;               -- val = 9 (now we see TX A)
+      conn1.setAutoCommit(false, onSuccess(context, res1 -> {
+        conn2.setTransactionIsolation(TransactionIsolation.SERIALIZABLE, onSuccess(context, res2 -> {
+          conn2.setAutoCommit(false, onSuccess(context, res3 -> {
+            conn1.query("select * from test_txtable", res4 -> {
+              ensureSuccess(context, res4);
+              assertEquals(Integer.valueOf(8), res4.result().getRows().get(0).getInteger("val"));
+              conn1.update("update test_txtable set val = val + 1", onSuccess(context, res5 -> {
+
+                final AtomicInteger lock = new AtomicInteger(1);
+
+                // this will lock
+                conn2.query("select * from test_txtable", onSuccess(context, res6 -> {
+                  // introduce a delay so the commit handler will update the lock
+                  vertx.setTimer(100, v -> {
+                    assertEquals(0, lock.get());
+
+                    conn2.query("select * from test_txtable", res8 -> {
+                      ensureSuccess(context, res8);
+                      // repeatable read
+                      assertEquals(Integer.valueOf(8), res8.result().getRows().get(0).getInteger("val"));
+                      conn2.commit(res9 -> {
+                        ensureSuccess(context, res9);
+                        conn2.query("select * from test_txtable", res10 -> {
+                          ensureSuccess(context, res10);
+                          // see TX A
+                          assertEquals(Integer.valueOf(9), res10.result().getRows().get(0).getInteger("val"));
+                          conn1.close();
+                          conn2.close();
+                          async.complete();
+                        });
+                      });
+                    });
+                  });
+                }));
+
+                conn1.commit(res7 -> {
+                  // this unlocks the lock
+                  lock.decrementAndGet();
+                });
+              }));
+            });
+          }));
+        }));
+      }));
     });
   }
 
