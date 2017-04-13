@@ -33,6 +33,8 @@ import scala.util.Try;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
@@ -84,7 +86,6 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
    */
   private void beginTransactionIfNeeded(Handler<AsyncResult<Void>> handler) {
     if (!inAutoCommit.get() && inTransaction.compareAndSet(false, true)) {
-      System.out.println(connection + " " + getStartTransactionStatement());
       connection
         .sendQuery(getStartTransactionStatement())
         .onComplete(new AbstractFunction1<Try<QueryResult>, Void>() {
@@ -141,7 +142,6 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
     String statement = this.transactionIsolation != null ? getSetIsolationLevelStatement() : null;
 
     if (statement != null) {
-      System.out.println(connection + " " + statement);
       connection
         .sendQuery(statement)
         .onComplete(new AbstractFunction1<Try<QueryResult>, Void>() {
@@ -165,7 +165,6 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection getTransactionIsolation(Handler<AsyncResult<TransactionIsolation>> handler) {
     beginTransactionIfNeeded(v -> {
-      System.out.println(connection + " " + getGetIsolationLevelStatement());
       connection
         .sendQuery(getGetIsolationLevelStatement())
         .onComplete(new AbstractFunction1<Try<QueryResult>, Void>() {
@@ -199,9 +198,36 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
     return this;
   }
 
+  private static final Pattern CALL = Pattern.compile("=?\\s*call\\s+", Pattern.CASE_INSENSITIVE + Pattern.MULTILINE);
+
+  private String jdbcToSqlCall(String sql) {
+    // transform the jdbc like statement into a sql statement
+
+    // remove the enclosing brackets
+    int start = sql.indexOf('{');
+    if (start != -1) {
+      sql = sql.substring(start + 1);
+    }
+    int end = sql.lastIndexOf('}');
+    if (end != -1) {
+      sql = sql.substring(0, end);
+    }
+
+    // locate "call"
+    Matcher matcher = CALL.matcher(sql);
+    if (matcher.find()) {
+      // replace will SELECT
+      sql = matcher.replaceFirst("SELECT ");
+    }
+
+    // as of this point we should have some sql statement
+    return sql;
+  }
+
   @Override
-  public SQLConnection call(String sql, Handler<AsyncResult<ResultSet>> resultHandler) {
-    throw new UnsupportedOperationException("Not implemented");
+  public SQLConnection call(String sql, Handler<AsyncResult<ResultSet>> handler) {
+    beginTransactionIfNeeded(v -> runStatement(jdbcToSqlCall(sql), null, handleAsyncQueryResultToResultSet(handler)));
+    return this;
   }
 
   @Override
@@ -222,8 +248,6 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
         handler.handle(Future.failedFuture("Query timeout"));
       });
 
-      System.out.println(connection + " " + sql);
-
       (params != null ? connection.sendPreparedStatement(sql, ScalaUtils.toScalaList(params)) : connection.sendQuery(sql))
         .onComplete(ScalaUtils.toFunction1(result -> {
           // cancel the running timer
@@ -232,8 +256,6 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
           handler.handle(result);
         }), executionContext);
     } else {
-
-      System.out.println(connection + " " + sql);
 
       (params != null ? connection.sendPreparedStatement(sql, ScalaUtils.toScalaList(params)) : connection.sendQuery(sql))
         .onComplete(ScalaUtils.toFunction1(handler), executionContext);
@@ -322,8 +344,6 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection commit(Handler<AsyncResult<Void>> handler) {
     if (inTransaction.compareAndSet(true, false)) {
-      System.out.println(connection + " " + "COMMIT");
-
       connection
         .sendQuery("COMMIT")
         .onComplete(new AbstractFunction1<Try<QueryResult>, Void>() {
@@ -346,8 +366,6 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection rollback(Handler<AsyncResult<Void>> handler) {
     if (inTransaction.compareAndSet(true, false)) {
-      System.out.println(connection + " " + "ROLLBACK");
-
       connection
         .sendQuery("ROLLBACK")
         .onComplete(new AbstractFunction1<Try<QueryResult>, Void>() {
