@@ -29,8 +29,10 @@ import io.vertx.ext.sql.*;
 import scala.Option;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
+import scala.util.Try;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
@@ -45,16 +47,156 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
   private final AsyncConnectionPool pool;
   private final ExecutionContext executionContext;
 
-  private volatile boolean inTransaction = false;
-  private boolean inAutoCommit = true;
+  // inTransaction can only be true when in !inAutoCommit, on switch the value should be false
+  // which means that the first statement to be executed should start a transaction
+  private final AtomicBoolean inTransaction = new AtomicBoolean();
+  // inAutoCommit true is the default, when set to false it means that the
+  // user is controlling the transitionally of the connection
+  private final AtomicBoolean inAutoCommit = new AtomicBoolean(true);
 
-  private SQLOptions options;
+  protected TransactionIsolation transactionIsolation;
+  protected SQLOptions options;
 
   AsyncSQLConnectionImpl(Vertx vertx, Connection connection, AsyncConnectionPool pool, ExecutionContext executionContext) {
     this.vertx = vertx;
     this.connection = connection;
     this.pool = pool;
     this.executionContext = executionContext;
+  }
+
+  /**
+   * Returns a vendor specific start transaction statement
+   */
+  protected abstract String getStartTransactionStatement();
+
+  /**
+   * Returns a vendor specific start transaction statement
+   */
+  protected abstract String getSetIsolationLevelStatement();
+
+  /**
+   * Returns a vendor specific start transaction statement
+   */
+  protected abstract String getGetIsolationLevelStatement();
+
+  /**
+   * In the connection is in autoCommit mode and there is no transaction running then we start one
+   */
+  private void beginTransactionIfNeeded(Handler<AsyncResult<Void>> handler) {
+    if (!inAutoCommit.get() && inTransaction.compareAndSet(false, true)) {
+      System.out.println(connection + " " + getStartTransactionStatement());
+      connection
+        .sendQuery(getStartTransactionStatement())
+        .onComplete(new AbstractFunction1<Try<QueryResult>, Void>() {
+          @Override
+          public Void apply(Try<QueryResult> v1) {
+            if (v1.isSuccess()) {
+              handler.handle(Future.succeededFuture());
+            } else {
+              handler.handle(Future.failedFuture(v1.failed().get()));
+            }
+            return null;
+          }
+        }, executionContext);
+    } else {
+      handler.handle(Future.succeededFuture());
+    }
+  }
+
+  @Override
+  public SQLConnection setAutoCommit(boolean autoCommit, Handler<AsyncResult<Void>> handler) {
+    if (inAutoCommit.get() == autoCommit) {
+      // same state, NOOP
+      handler.handle(Future.succeededFuture());
+      return this;
+    }
+
+    // switch to automatic mode
+    if (inAutoCommit.compareAndSet(false, autoCommit)) {
+      // issue COMMIT if inTransaction
+      if (inTransaction.get()) {
+        commit(handler);
+        return this;
+      }
+      handler.handle(Future.succeededFuture());
+      return this;
+    }
+
+    // switch to manual mode
+    if (inAutoCommit.compareAndSet(true, autoCommit)) {
+      // reset the in transaction flag
+      inTransaction.set(false);
+      handler.handle(Future.succeededFuture());
+      return this;
+    }
+
+    handler.handle(Future.succeededFuture());
+    return this;
+  }
+
+  @Override
+  public SQLConnection setTransactionIsolation(TransactionIsolation transactionIsolation, Handler<AsyncResult<Void>> handler) {
+    this.transactionIsolation = transactionIsolation;
+
+    String statement = this.transactionIsolation != null ? getSetIsolationLevelStatement() : null;
+
+    if (statement != null) {
+      System.out.println(connection + " " + statement);
+      connection
+        .sendQuery(statement)
+        .onComplete(new AbstractFunction1<Try<QueryResult>, Void>() {
+          @Override
+          public Void apply(Try<QueryResult> v1) {
+            if (v1.isSuccess()) {
+              handler.handle(Future.succeededFuture());
+            } else {
+              handler.handle(Future.failedFuture(v1.failed().get()));
+            }
+            return null;
+          }
+        }, executionContext);
+    } else {
+      handler.handle(Future.succeededFuture());
+    }
+
+    return this;
+  }
+
+  @Override
+  public SQLConnection getTransactionIsolation(Handler<AsyncResult<TransactionIsolation>> handler) {
+    beginTransactionIfNeeded(v -> {
+      System.out.println(connection + " " + getGetIsolationLevelStatement());
+      connection
+        .sendQuery(getGetIsolationLevelStatement())
+        .onComplete(new AbstractFunction1<Try<QueryResult>, Void>() {
+          @Override
+          public Void apply(Try<QueryResult> v1) {
+            if (v1.isSuccess()) {
+              final Option<com.github.mauricio.async.db.ResultSet> rows = v1.get().rows();
+              if (!rows.isDefined()) {
+                handler.handle(Future.failedFuture("no results"));
+              } else {
+                final Option<RowData> row = rows.get().headOption();
+                if (!row.isDefined()) {
+                  handler.handle(Future.failedFuture("no results"));
+                } else {
+                  try {
+                    TransactionIsolation isolation = TransactionIsolation.from((String) row.get().apply(0));
+                    handler.handle(Future.succeededFuture(isolation));
+                  } catch (RuntimeException e) {
+                    handler.handle(Future.failedFuture(e));
+                  }
+                }
+              }
+            } else {
+              handler.handle(Future.failedFuture(v1.failed().get()));
+            }
+            return null;
+          }
+        }, executionContext);
+    });
+
+    return this;
   }
 
   @Override
@@ -80,6 +222,8 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
         handler.handle(Future.failedFuture("Query timeout"));
       });
 
+      System.out.println(connection + " " + sql);
+
       (params != null ? connection.sendPreparedStatement(sql, ScalaUtils.toScalaList(params)) : connection.sendQuery(sql))
         .onComplete(ScalaUtils.toFunction1(result -> {
           // cancel the running timer
@@ -88,29 +232,14 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
           handler.handle(result);
         }), executionContext);
     } else {
+
+      System.out.println(connection + " " + sql);
+
       (params != null ? connection.sendPreparedStatement(sql, ScalaUtils.toScalaList(params)) : connection.sendQuery(sql))
         .onComplete(ScalaUtils.toFunction1(handler), executionContext);
     }
   }
 
-  @Override
-  public SQLConnection setAutoCommit(boolean autoCommit, Handler<AsyncResult<Void>> handler) {
-    Future<Void> fut;
-
-    synchronized (this) {
-      if (inTransaction && autoCommit) {
-        inTransaction = false;
-        fut = ScalaUtils.scalaToVertxVoid(connection.sendQuery("COMMIT"), executionContext);
-      } else {
-        fut = Future.succeededFuture();
-      }
-      inAutoCommit = autoCommit;
-    }
-
-    fut.setHandler(handler);
-    return this;
-
-  }
 
   @Override
   public SQLConnection execute(String sql, Handler<AsyncResult<Void>> handler) {
@@ -163,16 +292,22 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public synchronized void close(Handler<AsyncResult<Void>> handler) {
-    inAutoCommit = true;
-    if (inTransaction) {
-      inTransaction = false;
-      Future<QueryResult> future = ScalaUtils.scalaToVertx(connection.sendQuery("COMMIT"), executionContext);
-      future.setHandler(v -> {
+    // recreate the commit on close behavior common to most JDBC drivers
+    if (inTransaction.get()) {
+      commit(commit -> {
+        // reset the state to auto commit
+        inAutoCommit.set(true);
+        // give it back to the pool
         pool.giveBack(connection);
-        handler.handle(Future.succeededFuture());
+        // notify
+        handler.handle(commit);
       });
     } else {
+      // reset the state to auto commit
+      inAutoCommit.set(true);
+      // give it back to the pool
       pool.giveBack(connection);
+      // notify
       handler.handle(Future.succeededFuture());
     }
   }
@@ -186,50 +321,50 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection commit(Handler<AsyncResult<Void>> handler) {
-    return endAndStartTransaction("COMMIT", handler);
+    if (inTransaction.compareAndSet(true, false)) {
+      System.out.println(connection + " " + "COMMIT");
+
+      connection
+        .sendQuery("COMMIT")
+        .onComplete(new AbstractFunction1<Try<QueryResult>, Void>() {
+          @Override
+          public Void apply(Try<QueryResult> v1) {
+            if (v1.isSuccess()) {
+              handler.handle(Future.succeededFuture());
+            } else {
+              handler.handle(Future.failedFuture(v1.failed().get()));
+            }
+            return null;
+          }
+        }, executionContext);
+    } else {
+      handler.handle(Future.failedFuture(new IllegalStateException("Not in transaction currently")));
+    }
+    return this;
   }
 
   @Override
   public SQLConnection rollback(Handler<AsyncResult<Void>> handler) {
-    return endAndStartTransaction("ROLLBACK", handler);
-  }
+    if (inTransaction.compareAndSet(true, false)) {
+      System.out.println(connection + " " + "ROLLBACK");
 
-  @Override
-  public SQLConnection setTransactionIsolation(TransactionIsolation transactionIsolation, Handler<AsyncResult<Void>> handler) {
-//    String sql;
-//    switch (transactionIsolation) {
-//      case READ_UNCOMMITTED:
-//        sql = "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED";
-//        break;
-//      case REPEATABLE_READ:
-//        sql = "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ";
-//        break;
-//      case READ_COMMITTED:
-//        sql = "SET TRANSACTION ISOLATION LEVEL READ COMMITTED";
-//        break;
-//      case SERIALIZABLE:
-//        sql = "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE";
-//        break;
-//      case NONE:
-//      default:
-//        sql = null;
-//        break;
-//    }
-//
-//    if (sql == null) {
-//      handler.handle(Future.succeededFuture());
-//      return this;
-//    }
-//
-//    return execute(sql, handler);
-    throw new UnsupportedOperationException("Not implemented");
-  }
-
-  @Override
-  public SQLConnection getTransactionIsolation(Handler<AsyncResult<TransactionIsolation>> handler) {
-    // Postgres: select current_setting('transaction_isolation');
-    // Mysql: select @@tx_isolation;
-    throw new UnsupportedOperationException("Not implemented");
+      connection
+        .sendQuery("ROLLBACK")
+        .onComplete(new AbstractFunction1<Try<QueryResult>, Void>() {
+          @Override
+          public Void apply(Try<QueryResult> v1) {
+            if (v1.isSuccess()) {
+              handler.handle(Future.succeededFuture());
+            } else {
+              handler.handle(Future.failedFuture(v1.failed().get()));
+            }
+            return null;
+          }
+        }, executionContext);
+    } else {
+      handler.handle(Future.failedFuture(new IllegalStateException("Not in transaction currently")));
+    }
+    return this;
   }
 
   @Override
@@ -335,39 +470,6 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @SuppressWarnings("unchecked")
   public <C> C unwrap() {
     return (C) connection;
-  }
-
-  private SQLConnection endAndStartTransaction(String command, Handler<AsyncResult<Void>> handler) {
-    if (inTransaction) {
-      inTransaction = false;
-      ScalaUtils.scalaToVertx(connection.sendQuery(command), executionContext).setHandler(ar -> {
-        if (ar.failed()) {
-          handler.handle(Future.failedFuture(ar.cause()));
-        } else {
-          ScalaUtils.scalaToVertx(connection.sendQuery("BEGIN"), executionContext).setHandler(ar2 -> {
-              if (ar2.failed()) {
-                handler.handle(Future.failedFuture(ar.cause()));
-              } else {
-                inTransaction = true;
-                handler.handle(Future.succeededFuture());
-              }
-            }
-          );
-        }
-      });
-    } else {
-      handler.handle(Future.failedFuture(new IllegalStateException("Not in transaction currently")));
-    }
-    return this;
-  }
-
-  private synchronized void beginTransactionIfNeeded(Handler<AsyncResult<Void>> action) {
-    if (!inAutoCommit && !inTransaction) {
-      inTransaction = true;
-      ScalaUtils.scalaToVertxVoid(connection.sendQuery("BEGIN"), executionContext).setHandler(action);
-    } else {
-      action.handle(Future.succeededFuture());
-    }
   }
 
   private Handler<AsyncResult<QueryResult>> handleAsyncQueryResultToResultSet(Handler<AsyncResult<ResultSet>> handler) {
