@@ -807,7 +807,9 @@ public abstract class SQLTestBase extends AbstractTestBase {
   @Test
   public void testPipeline(TestContext context) {
     Async async = context.async();
-    final AtomicInteger counter = new AtomicInteger(2);
+
+    final int size = 14;
+    final AtomicInteger counter = new AtomicInteger(size);
 
     client.getConnection(ar -> {
       if (ar.failed()) {
@@ -816,43 +818,27 @@ public abstract class SQLTestBase extends AbstractTestBase {
       }
 
       try (SQLConnection conn = ar.result()) {
-        conn.query("SELECT 1 as something", ar2 -> {
-          if (ar2.failed()) {
-            context.fail(ar2.cause());
-          } else {
-            ResultSet result = ar2.result();
-            context.assertNotNull(result);
-            JsonObject expected = new JsonObject()
-              .put("columnNames", new JsonArray().add("something"))
-              .put("numColumns", 1)
-              .put("numRows", 1)
-              .put("rows", new JsonArray().add(new JsonObject().put("something", 1)))
-              .put("results", new JsonArray().add(new JsonArray().add(1)));
-            context.assertEquals(expected, result.toJson());
-            if (counter.decrementAndGet() == 0) {
-              async.complete();
+        for (int i = 0; i < size; i++) {
+          final int index = i;
+          conn.query("SELECT " + index + " as something", ar2 -> {
+            if (ar2.failed()) {
+              context.fail(ar2.cause());
+            } else {
+              ResultSet result = ar2.result();
+              context.assertNotNull(result);
+              JsonObject expected = new JsonObject()
+                .put("columnNames", new JsonArray().add("something"))
+                .put("numColumns", 1)
+                .put("numRows", 1)
+                .put("rows", new JsonArray().add(new JsonObject().put("something", index)))
+                .put("results", new JsonArray().add(new JsonArray().add(index)));
+              context.assertEquals(expected, result.toJson());
+              if (counter.decrementAndGet() == 0) {
+                async.complete();
+              }
             }
-          }
-        });
-
-        conn.query("SELECT 2 as something", ar2 -> {
-          if (ar2.failed()) {
-            context.fail(ar2.cause());
-          } else {
-            ResultSet result = ar2.result();
-            context.assertNotNull(result);
-            JsonObject expected = new JsonObject()
-              .put("columnNames", new JsonArray().add("something"))
-              .put("numColumns", 1)
-              .put("numRows", 1)
-              .put("rows", new JsonArray().add(new JsonObject().put("something", 2)))
-              .put("results", new JsonArray().add(new JsonArray().add(2)));
-            context.assertEquals(expected, result.toJson());
-            if (counter.decrementAndGet() == 0) {
-              async.complete();
-            }
-          }
-        });
+          });
+        }
       }
     });
   }
