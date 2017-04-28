@@ -14,8 +14,8 @@ import scala.concurrent.ExecutionContext;
  */
 public class MySQLConnectionImpl extends AsyncSQLConnectionImpl<MySQLConnection> {
 
-  public MySQLConnectionImpl(Vertx vertx, MySQLConnection conn, ConnectionPool<MySQLConnection> pool, ExecutionContext ec) {
-    super(vertx, conn, pool, ec);
+  public MySQLConnectionImpl(Vertx vertx, ConnectionPool<MySQLConnection> pool, ExecutionContext ec) {
+    super(vertx, pool, ec);
   }
 
   @Override

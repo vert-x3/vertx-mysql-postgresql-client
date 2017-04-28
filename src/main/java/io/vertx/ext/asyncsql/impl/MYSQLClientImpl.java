@@ -24,7 +24,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.MySQLClient;
 import io.vertx.ext.sql.SQLConnection;
-import scala.concurrent.ExecutionContext;
 
 /**
  * Implementation of the {@link BaseSQLClient} for MYSQL.
@@ -52,7 +51,7 @@ public class MYSQLClientImpl extends BaseSQLClient<MySQLConnection> {
   }
 
   @Override
-  protected SQLConnection wrap(MySQLConnection conn, ConnectionPool<MySQLConnection> pool) {
-    return new MySQLConnectionImpl(vertx, conn, pool, ec);
+  protected SQLConnection wrap(ConnectionPool<MySQLConnection> pool) {
+    return new MySQLConnectionImpl(vertx, pool, ec);
   }
 }

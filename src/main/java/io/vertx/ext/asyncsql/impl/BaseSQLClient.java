@@ -66,23 +66,10 @@ public abstract class BaseSQLClient<C extends Connection> {
 
   protected abstract ObjectFactory<C> connectionFactory(JsonObject config);
 
-  protected abstract SQLConnection wrap(C conn, ConnectionPool<C> pool);
+  protected abstract SQLConnection wrap(ConnectionPool<C> pool);
 
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
-    final ExecutionContext ec = VertxEventLoopExecutionContext.create(vertx);
-
-    pool.take()
-      .onComplete(new AbstractFunction1<Try<C>, Void>() {
-        @Override
-        public Void apply(Try<C> v1) {
-          if (v1.isSuccess()) {
-            handler.handle(Future.succeededFuture(wrap(v1.get(), pool)));
-          } else {
-            handler.handle(Future.failedFuture(v1.failed().get()));
-          }
-          return null;
-        }
-      }, ec);
+    handler.handle(Future.succeededFuture(wrap(pool)));
   }
 
   public void close(Handler<AsyncResult<Void>> handler) {

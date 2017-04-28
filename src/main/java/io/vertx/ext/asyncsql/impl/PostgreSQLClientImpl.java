@@ -58,7 +58,7 @@ public class PostgreSQLClientImpl extends BaseSQLClient<PostgreSQLConnection> {
   }
 
   @Override
-  protected SQLConnection wrap(PostgreSQLConnection conn, ConnectionPool<PostgreSQLConnection> pool) {
-    return new PostgreSQLConnectionImpl(vertx, conn, pool, ec);
+  protected SQLConnection wrap(ConnectionPool<PostgreSQLConnection> pool) {
+    return new PostgreSQLConnectionImpl(vertx, pool, ec);
   }
 }

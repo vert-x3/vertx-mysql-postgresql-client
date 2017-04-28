@@ -13,8 +13,8 @@ import scala.concurrent.ExecutionContext;
  */
 public class PostgreSQLConnectionImpl extends AsyncSQLConnectionImpl<PostgreSQLConnection> {
 
-  public PostgreSQLConnectionImpl(Vertx vertx, PostgreSQLConnection conn, ConnectionPool<PostgreSQLConnection> pool, ExecutionContext ec) {
-    super(vertx, conn, pool, ec);
+  public PostgreSQLConnectionImpl(Vertx vertx, ConnectionPool<PostgreSQLConnection> pool, ExecutionContext ec) {
+    super(vertx, pool, ec);
   }
 
   @Override

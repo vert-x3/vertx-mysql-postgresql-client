@@ -803,4 +803,57 @@ public abstract class SQLTestBase extends AbstractTestBase {
               }))));
     });
   }
+
+  @Test
+  public void testPipeline(TestContext context) {
+    Async async = context.async();
+    final AtomicInteger counter = new AtomicInteger(2);
+
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      try (SQLConnection conn = ar.result()) {
+        conn.query("SELECT 1 as something", ar2 -> {
+          if (ar2.failed()) {
+            context.fail(ar2.cause());
+          } else {
+            ResultSet result = ar2.result();
+            context.assertNotNull(result);
+            JsonObject expected = new JsonObject()
+              .put("columnNames", new JsonArray().add("something"))
+              .put("numColumns", 1)
+              .put("numRows", 1)
+              .put("rows", new JsonArray().add(new JsonObject().put("something", 1)))
+              .put("results", new JsonArray().add(new JsonArray().add(1)));
+            context.assertEquals(expected, result.toJson());
+            if (counter.decrementAndGet() == 0) {
+              async.complete();
+            }
+          }
+        });
+
+        conn.query("SELECT 2 as something", ar2 -> {
+          if (ar2.failed()) {
+            context.fail(ar2.cause());
+          } else {
+            ResultSet result = ar2.result();
+            context.assertNotNull(result);
+            JsonObject expected = new JsonObject()
+              .put("columnNames", new JsonArray().add("something"))
+              .put("numColumns", 1)
+              .put("numRows", 1)
+              .put("rows", new JsonArray().add(new JsonObject().put("something", 2)))
+              .put("results", new JsonArray().add(new JsonArray().add(2)));
+            context.assertEquals(expected, result.toJson());
+            if (counter.decrementAndGet() == 0) {
+              async.complete();
+            }
+          }
+        });
+      }
+    });
+  }
 }
