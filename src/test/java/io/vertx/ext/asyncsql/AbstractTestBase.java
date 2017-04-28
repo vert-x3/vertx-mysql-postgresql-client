@@ -31,10 +31,16 @@ public abstract class AbstractTestBase {
   @After
   public void cleanup(TestContext context) {
     if (conn != null) {
-      conn.close(context.asyncAssertSuccess());
-    }
-    if (client != null) {
-      client.close(context.asyncAssertSuccess());
+      conn.close(ar -> {
+        ensureSuccess(context, ar);
+        if (client != null) {
+          client.close(context.asyncAssertSuccess());
+        }
+      });
+    } else {
+      if (client != null) {
+        client.close(context.asyncAssertSuccess());
+      }
     }
   }
 

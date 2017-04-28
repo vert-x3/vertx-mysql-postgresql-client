@@ -19,20 +19,23 @@ package io.vertx.ext.asyncsql.impl;
 import com.github.mauricio.async.db.Configuration;
 import com.github.mauricio.async.db.Connection;
 import com.github.mauricio.async.db.SSLConfiguration;
+import com.github.mauricio.async.db.pool.AsyncObjectPool;
+import com.github.mauricio.async.db.pool.ConnectionPool;
+import com.github.mauricio.async.db.pool.ObjectFactory;
+import com.github.mauricio.async.db.pool.PoolConfiguration;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
 import scala.Option;
 import scala.collection.Map$;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
+import scala.runtime.AbstractFunction1;
+import scala.util.Try;
 
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
@@ -42,59 +45,70 @@ import java.util.concurrent.TimeUnit;
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public abstract class BaseSQLClient {
+public abstract class BaseSQLClient<C extends Connection> {
 
-  protected final Logger log = LoggerFactory.getLogger(this.getClass());
   protected final Vertx vertx;
+  protected final ExecutionContext ec;
 
-  protected int maxPoolSize;
-  protected int transactionTimeout;
-  protected String registerAddress;
+  private final ConnectionPool<C> pool;
 
   public BaseSQLClient(Vertx vertx, JsonObject config) {
     this.vertx = vertx;
-    this.maxPoolSize = config.getInteger("maxPoolSize", 10);
-    this.transactionTimeout = config.getInteger("transactionTimeout", 500);
-    this.registerAddress = config.getString("address");
+    this.ec = VertxEventLoopExecutionContext.create(vertx);
+
+    pool = new ConnectionPool<>(connectionFactory(config), new PoolConfiguration(
+      config.getInteger("maxPoolSize", 10),
+      config.getLong("maxIdle", 4L),
+      config.getInteger("maxQueueSize", 10),
+      config.getLong("validationInterval", 5000L)
+      ), ec);
   }
 
-  protected abstract AsyncConnectionPool pool();
+  protected abstract ObjectFactory<C> connectionFactory(JsonObject config);
 
-  protected abstract SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec);
+  protected abstract SQLConnection wrap(C conn, ConnectionPool<C> pool);
 
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
-    pool().take(ar -> {
-      if (ar.succeeded()) {
-        final AsyncConnectionPool pool = pool();
-        ExecutionContext ec = VertxEventLoopExecutionContext.create(vertx);
-        handler.handle(Future.succeededFuture(createFromPool(ar.result(), pool, ec)));
-      } else {
-        handler.handle(Future.failedFuture(ar.cause()));
-      }
-    });
+    final ExecutionContext ec = VertxEventLoopExecutionContext.create(vertx);
+
+    pool.take()
+      .onComplete(new AbstractFunction1<Try<C>, Void>() {
+        @Override
+        public Void apply(Try<C> v1) {
+          if (v1.isSuccess()) {
+            handler.handle(Future.succeededFuture(wrap(v1.get(), pool)));
+          } else {
+            handler.handle(Future.failedFuture(v1.failed().get()));
+          }
+          return null;
+        }
+      }, ec);
   }
 
   public void close(Handler<AsyncResult<Void>> handler) {
-    log.info("Stopping async SQL client " + this);
-    pool().close(ar -> {
-        if (ar.succeeded()) {
-          if (handler != null) {
-            handler.handle(Future.succeededFuture());
+    pool.close()
+      .onComplete(new AbstractFunction1<Try<AsyncObjectPool<C>>, Void>() {
+        @Override
+        public Void apply(Try<AsyncObjectPool<C>> v1) {
+          if (v1.isSuccess()) {
+            if (handler != null) {
+              handler.handle(Future.succeededFuture());
+            }
+          } else {
+            if (handler != null) {
+              handler.handle(Future.failedFuture(v1.failed().get()));
+            }
           }
-        } else {
-          if (handler != null) {
-            handler.handle(Future.failedFuture(ar.cause()));
-          }
+          return null;
         }
-      }
-    );
+      }, ec);
   }
 
   public void close() {
     close(null);
   }
 
-  protected Configuration getConfiguration(
+  static Configuration getConfiguration(
     String defaultHost,
     int defaultPort,
     String defaultDatabase,
@@ -117,7 +131,6 @@ public abstract class BaseSQLClient {
     Option<Duration> queryTimeoutOption = (queryTimeout == null) ?
       Option.empty() : Option.apply(Duration.apply(queryTimeout, TimeUnit.MILLISECONDS));
 
-    log.info("Creating configuration for " + host + ":" + port);
     return new Configuration(
       username,
       host,
@@ -132,6 +145,4 @@ public abstract class BaseSQLClient {
       Duration.apply(testTimeout, TimeUnit.MILLISECONDS),
       queryTimeoutOption);
   }
-
-
 }

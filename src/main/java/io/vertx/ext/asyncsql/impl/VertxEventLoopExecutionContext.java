@@ -69,6 +69,8 @@ public class VertxEventLoopExecutionContext implements ExecutionContext {
     Handler<Throwable> exceptionHandler = context.exceptionHandler();
     if (exceptionHandler != null) {
       exceptionHandler.handle(cause);
+//    } else {
+//      cause.printStackTrace();
     }
   }
 

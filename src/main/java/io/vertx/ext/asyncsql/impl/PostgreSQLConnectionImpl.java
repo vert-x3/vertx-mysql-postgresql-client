@@ -1,19 +1,19 @@
 package io.vertx.ext.asyncsql.impl;
 
-import com.github.mauricio.async.db.Connection;
 import com.github.mauricio.async.db.QueryResult;
+import com.github.mauricio.async.db.pool.ConnectionPool;
+import com.github.mauricio.async.db.postgresql.PostgreSQLConnection;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.UpdateResult;
 import scala.concurrent.ExecutionContext;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>.
  */
-public class PostgreSQLConnectionImpl extends AsyncSQLConnectionImpl {
+public class PostgreSQLConnectionImpl extends AsyncSQLConnectionImpl<PostgreSQLConnection> {
 
-  public PostgreSQLConnectionImpl(Vertx vertx, Connection conn, AsyncConnectionPool pool, ExecutionContext ec) {
+  public PostgreSQLConnectionImpl(Vertx vertx, PostgreSQLConnection conn, ConnectionPool<PostgreSQLConnection> pool, ExecutionContext ec) {
     super(vertx, conn, pool, ec);
   }
 

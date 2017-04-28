@@ -19,12 +19,13 @@ package io.vertx.ext.asyncsql.impl;
 import com.github.mauricio.async.db.Connection;
 import com.github.mauricio.async.db.QueryResult;
 import com.github.mauricio.async.db.RowData;
+import com.github.mauricio.async.db.pool.AsyncObjectPool;
+import com.github.mauricio.async.db.pool.ConnectionPool;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.*;
 import scala.Option;
 import scala.concurrent.ExecutionContext;
@@ -37,16 +38,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
+ * Implementation of {@link SQLConnection} using the {@link ConnectionPool}.
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-abstract class AsyncSQLConnectionImpl implements SQLConnection {
+abstract class AsyncSQLConnectionImpl<C extends Connection> implements SQLConnection {
 
   private final Vertx vertx;
-  private final Connection connection;
-  private final AsyncConnectionPool pool;
+  private final C connection;
+  private final ConnectionPool<C> pool;
   private final ExecutionContext executionContext;
 
   // inTransaction can only be true when in !inAutoCommit, on switch the value should be false
@@ -62,7 +63,7 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
   protected TransactionIsolation transactionIsolation;
   protected SQLOptions options;
 
-  AsyncSQLConnectionImpl(Vertx vertx, Connection connection, AsyncConnectionPool pool, ExecutionContext executionContext) {
+  AsyncSQLConnectionImpl(Vertx vertx, C connection, ConnectionPool<C> pool, ExecutionContext executionContext) {
     this.vertx = vertx;
     this.connection = connection;
     this.pool = pool;
@@ -321,17 +322,37 @@ abstract class AsyncSQLConnectionImpl implements SQLConnection {
         // reset the state to auto commit
         inAutoCommit.set(true);
         // give it back to the pool
-        pool.giveBack(connection);
-        // notify
-        handler.handle(commit);
+        pool.giveBack(connection)
+          .onComplete(new AbstractFunction1<Try<AsyncObjectPool<C>>, Void>() {
+            @Override
+            public Void apply(Try<AsyncObjectPool<C>> v1) {
+              if (v1.isSuccess()) {
+                // notify
+                handler.handle(commit);
+              } else {
+                handler.handle(Future.failedFuture(v1.failed().get()));
+              }
+              return null;
+            }
+          }, executionContext);
       });
     } else {
       // reset the state to auto commit
       inAutoCommit.set(true);
       // give it back to the pool
-      pool.giveBack(connection);
-      // notify
-      handler.handle(Future.succeededFuture());
+      pool.giveBack(connection)
+        .onComplete(new AbstractFunction1<Try<AsyncObjectPool<C>>, Void>() {
+          @Override
+          public Void apply(Try<AsyncObjectPool<C>> v1) {
+            if (v1.isSuccess()) {
+              // notify
+              handler.handle(Future.succeededFuture());
+            } else {
+              handler.handle(Future.failedFuture(v1.failed().get()));
+            }
+            return null;
+          }
+        }, executionContext);
     }
   }
 
