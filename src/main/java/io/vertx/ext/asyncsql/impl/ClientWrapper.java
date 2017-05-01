@@ -19,6 +19,7 @@ package io.vertx.ext.asyncsql.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.ext.asyncsql.AsyncSQLClient;
+import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
 
 /**
@@ -47,7 +48,7 @@ public class ClientWrapper implements AsyncSQLClient {
   }
 
   @Override
-  public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
-    client.getConnection(handler);
+  public SQLClient getConnection(Handler<AsyncResult<SQLConnection>> handler) {
+    return client.getConnection(handler);
   }
 }
