@@ -3,6 +3,7 @@ package io.vertx.ext.asyncsql;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.sql.SQLClient;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 public class PostgreSQLConfigurationTest extends ConfigurationTest {
 
   @Override
-  protected AsyncSQLClient createClient(Vertx vertx, JsonObject config) {
+  protected SQLClient createClient(Vertx vertx, JsonObject config) {
     return PostgreSQLClient.createNonShared(vertx, config);
   }
 

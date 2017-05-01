@@ -18,6 +18,7 @@ package io.vertx.ext.asyncsql;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
+import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.test.core.VertxTestBase;
@@ -42,11 +43,11 @@ public class RefCountTest extends VertxTestBase {
   public void testNonShared() {
     LocalMap<String, Object> map = getLocalMap();
     JsonObject config = new JsonObject();
-    AsyncSQLClient client1 = MySQLClient.createNonShared(vertx, config);
+    SQLClient client1 = MySQLClient.createNonShared(vertx, config);
     assertEquals(1, map.size());
-    AsyncSQLClient client2 = MySQLClient.createNonShared(vertx, config);
+    SQLClient client2 = MySQLClient.createNonShared(vertx, config);
     assertEquals(2, map.size());
-    AsyncSQLClient client3 = MySQLClient.createNonShared(vertx, config);
+    SQLClient client3 = MySQLClient.createNonShared(vertx, config);
     assertEquals(3, map.size());
     client1.close();
     assertEquals(2, map.size());
@@ -62,11 +63,11 @@ public class RefCountTest extends VertxTestBase {
   public void testSharedDefault() throws Exception {
     LocalMap<String, Object> map = getLocalMap();
     JsonObject config = new JsonObject();
-    AsyncSQLClient client1 = MySQLClient.createShared(vertx, config);
+    SQLClient client1 = MySQLClient.createShared(vertx, config);
     assertEquals(1, map.size());
-    AsyncSQLClient client2 = MySQLClient.createShared(vertx, config);
+    SQLClient client2 = MySQLClient.createShared(vertx, config);
     assertEquals(1, map.size());
-    AsyncSQLClient client3 = MySQLClient.createShared(vertx, config);
+    SQLClient client3 = MySQLClient.createShared(vertx, config);
     assertEquals(1, map.size());
     client1.close();
     assertEquals(1, map.size());
@@ -81,18 +82,18 @@ public class RefCountTest extends VertxTestBase {
   public void testSharedNamed() throws Exception {
     LocalMap<String, Object> map = getLocalMap();
     JsonObject config = new JsonObject();
-    AsyncSQLClient client1 = MySQLClient.createShared(vertx, config, "ds1");
+    SQLClient client1 = MySQLClient.createShared(vertx, config, "ds1");
     assertEquals(1, map.size());
-    AsyncSQLClient client2 = MySQLClient.createShared(vertx, config, "ds1");
+    SQLClient client2 = MySQLClient.createShared(vertx, config, "ds1");
     assertEquals(1, map.size());
-    AsyncSQLClient client3 = MySQLClient.createShared(vertx, config, "ds1");
+    SQLClient client3 = MySQLClient.createShared(vertx, config, "ds1");
     assertEquals(1, map.size());
 
-    AsyncSQLClient client4 = MySQLClient.createShared(vertx, config, "ds2");
+    SQLClient client4 = MySQLClient.createShared(vertx, config, "ds2");
     assertEquals(2, map.size());
-    AsyncSQLClient client5 = MySQLClient.createShared(vertx, config, "ds2");
+    SQLClient client5 = MySQLClient.createShared(vertx, config, "ds2");
     assertEquals(2, map.size());
-    AsyncSQLClient client6 = MySQLClient.createShared(vertx, config, "ds2");
+    SQLClient client6 = MySQLClient.createShared(vertx, config, "ds2");
     assertEquals(2, map.size());
 
     client1.close();

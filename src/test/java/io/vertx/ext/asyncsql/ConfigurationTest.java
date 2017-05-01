@@ -5,6 +5,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import org.junit.Ignore;
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeoutException;
 
 public abstract class ConfigurationTest extends AbstractTestBase {
 
-  protected abstract AsyncSQLClient createClient(Vertx vertx, JsonObject config);
+  protected abstract SQLClient createClient(Vertx vertx, JsonObject config);
 
   protected abstract String sleepCommand(int seconds);
 
