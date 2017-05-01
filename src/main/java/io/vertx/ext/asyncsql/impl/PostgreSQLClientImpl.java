@@ -16,49 +16,40 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import com.github.mauricio.async.db.pool.ConnectionPool;
-import com.github.mauricio.async.db.pool.ObjectFactory;
-import com.github.mauricio.async.db.postgresql.PostgreSQLConnection;
-import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory;
+import com.github.mauricio.async.db.Connection;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.PostgreSQLClient;
+import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
+import io.vertx.ext.asyncsql.impl.pool.PostgresqlAsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
-import scala.concurrent.ExecutionContext;
 
 /**
  * Implementation of the {@link BaseSQLClient} for PostGreSQL.
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class PostgreSQLClientImpl extends BaseSQLClient<PostgreSQLConnection> {
+public class PostgreSQLClientImpl extends BaseSQLClient {
 
   public PostgreSQLClientImpl(Vertx vertx, JsonObject config) {
-    super(vertx, config);
+    super(vertx,
+      new PostgresqlAsyncConnectionPool(
+        vertx,
+        config.getInteger("maxPoolSize", 10),
+        getConfiguration(
+          PostgreSQLClient.DEFAULT_HOST,
+          PostgreSQLClient.DEFAULT_PORT,
+          PostgreSQLClient.DEFAULT_DATABASE,
+          PostgreSQLClient.DEFAULT_USER,
+          PostgreSQLClient.DEFAULT_PASSWORD,
+          PostgreSQLClient.DEFAULT_CHARSET,
+          PostgreSQLClient.DEFAULT_CONNECT_TIMEOUT,
+          PostgreSQLClient.DEFAULT_TEST_TIMEOUT,
+          config)));
   }
 
   @Override
-  protected ObjectFactory<PostgreSQLConnection> connectionFactory(JsonObject config) {
-    final ExecutionContext ec = VertxEventLoopExecutionContext.create(vertx);
-
-    return new PostgreSQLConnectionFactory(
-      getConfiguration(
-        PostgreSQLClient.DEFAULT_HOST,
-        PostgreSQLClient.DEFAULT_PORT,
-        PostgreSQLClient.DEFAULT_DATABASE,
-        PostgreSQLClient.DEFAULT_USER,
-        PostgreSQLClient.DEFAULT_PASSWORD,
-        PostgreSQLClient.DEFAULT_CHARSET,
-        PostgreSQLClient.DEFAULT_CONNECT_TIMEOUT,
-        PostgreSQLClient.DEFAULT_TEST_TIMEOUT,
-        config),
-      vertx.nettyEventLoopGroup().next(),
-      ec
-    );
-  }
-
-  @Override
-  protected SQLConnection wrap(ConnectionPool<PostgreSQLConnection> pool) {
-    return new PostgreSQLConnectionImpl(vertx, pool, ec);
+  protected SQLConnection wrap(AsyncConnectionPool pool, Connection connection) {
+    return new PostgreSQLConnectionImpl(vertx, pool, connection, ec);
   }
 }

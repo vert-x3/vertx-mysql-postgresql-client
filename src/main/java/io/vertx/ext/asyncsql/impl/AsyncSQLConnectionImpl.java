@@ -25,12 +25,14 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.*;
 import scala.Option;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,36 +42,19 @@ import java.util.regex.Pattern;
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPooledConnection<C> implements SQLConnection {
+abstract class AsyncSQLConnectionImpl extends AsyncSQLPooledConnection implements SQLConnection {
 
   private final Vertx vertx;
+  private final AtomicBoolean inAutoCommit = new AtomicBoolean(true);
 
-  protected TransactionIsolation transactionIsolation;
-  protected SQLOptions options;
+  private SQLOptions options;
 
-  // By default this will be null, this means that we're in autoCommit mode.
-  // The reason behind this is that the underlying driver will automatically pool each statement for us.
-  //
-  // When this variable is not null we're not in autoCommit and will probably want to run a batch of
-  // statements or a transaction.
-  private volatile C connection;
+  TransactionIsolation transactionIsolation;
 
-  AsyncSQLConnectionImpl(Vertx vertx, ConnectionPool<C> pool, ExecutionContext executionContext) {
-    super(pool, executionContext);
+  AsyncSQLConnectionImpl(Vertx vertx, AsyncConnectionPool pool, Connection connection, ExecutionContext executionContext) {
+    super(pool, connection, executionContext);
 
     this.vertx = vertx;
-  }
-
-  private boolean isAutoCommit() {
-    return connection == null;
-  }
-
-  private Connection getConnection() {
-    if (isAutoCommit()) {
-      return pool;
-    }
-
-    return connection;
   }
 
   /**
@@ -90,50 +75,52 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
   @Override
   public SQLConnection setAutoCommit(boolean autoCommit, Handler<AsyncResult<Void>> handler) {
     // skip for same state
-    if (isAutoCommit() != autoCommit) {
-      // auto commit is false
-      if (connection != null) {
+    if (inAutoCommit.get() != autoCommit) {
+      // switch to autocommit
+      if (!inAutoCommit.get()) {
         // issue COMMIT as per JDBC API
-        sendStatementAndFulfill(connection, "COMMIT", null, commit -> {
+        sendStatementAndFulfill("COMMIT", null, commit -> {
           if (commit.succeeded()) {
-            // give back the connection to the pool
-            giveBack(connection, giveBack -> {
-              // switch to auto commit
-              if (giveBack.succeeded()) {
-                connection = null;
-              }
-              handler.handle(giveBack);
-            });
+            inAutoCommit.compareAndSet(false, true);
+            handler.handle(Future.succeededFuture());
           } else {
             handler.handle(commit);
           }
         });
 
         return this;
+
       } else {
         // switch to manual mode
-        take(take -> {
-          if (take.succeeded()) {
-            connection = take.result();
-            String isolationLevelStatement = this.transactionIsolation != null ? getSetIsolationLevelStatement() : null;
-            // check if we need to switch the default isolation level
-            if (isolationLevelStatement != null) {
-              sendStatementAndFulfill(connection, isolationLevelStatement, null, isolationLevel -> {
-                if (isolationLevel.succeeded()) {
-                  // we can now start the transaction
-                  sendStatementAndFulfill(connection, getStartTransactionStatement(), null, handler);
+        String isolationLevelStatement = this.transactionIsolation != null ? getSetIsolationLevelStatement() : null;
+        // check if we need to switch the default isolation level
+        if (isolationLevelStatement != null) {
+          sendStatementAndFulfill(isolationLevelStatement, null, isolationLevel -> {
+            if (isolationLevel.succeeded()) {
+              // we can now start the transaction
+              sendStatementAndFulfill(getStartTransactionStatement(), null, startTransaction -> {
+                if (startTransaction.succeeded()) {
+                  inAutoCommit.compareAndSet(true, false);
+                  handler.handle(Future.succeededFuture());
                 } else {
-                  handler.handle(Future.failedFuture(isolationLevel.cause()));
+                  handler.handle(startTransaction);
                 }
               });
             } else {
-              // start transaction
-              sendStatementAndFulfill(connection, getStartTransactionStatement(), null, handler);
+              handler.handle(Future.failedFuture(isolationLevel.cause()));
             }
-          } else {
-            handler.handle(Future.failedFuture(take.cause()));
-          }
-        });
+          });
+        } else {
+          // start transaction
+          sendStatementAndFulfill(getStartTransactionStatement(), null, startTransaction -> {
+            if (startTransaction.succeeded()) {
+              inAutoCommit.compareAndSet(true, false);
+              handler.handle(Future.succeededFuture());
+            } else {
+              handler.handle(startTransaction);
+            }
+          });
+        }
 
         return this;
       }
@@ -145,7 +132,7 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
 
   @Override
   public SQLConnection setTransactionIsolation(TransactionIsolation transactionIsolation, Handler<AsyncResult<Void>> handler) {
-    if (isAutoCommit()) {
+    if (inAutoCommit.get()) {
       this.transactionIsolation = transactionIsolation;
       handler.handle(Future.succeededFuture());
     } else {
@@ -157,7 +144,7 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
 
   @Override
   public SQLConnection getTransactionIsolation(Handler<AsyncResult<TransactionIsolation>> handler) {
-    sendStatement(getConnection(), getGetIsolationLevelStatement(), null, res -> {
+    sendStatement(getGetIsolationLevelStatement(), null, res -> {
       if (res.succeeded()) {
         final Option<com.github.mauricio.async.db.ResultSet> rows = res.result().rows();
         if (!rows.isDefined()) {
@@ -229,7 +216,7 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
     if (options != null && options.getQueryTimeout() > 0) {
       final long timerId = vertx.setTimer(options.getQueryTimeout(), t -> handler.handle(Future.failedFuture("Query timeout")));
 
-      sendStatement(getConnection(), sql, params, statement -> {
+      sendStatement(sql, params, statement -> {
         // cancel the running timer
         vertx.cancelTimer(timerId);
         // proceed
@@ -237,7 +224,7 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
       });
 
     } else {
-      sendStatement(getConnection(), sql, params, handler);
+      sendStatement(sql, params, handler);
     }
   }
 
@@ -294,7 +281,15 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
   @Override
   public void close(Handler<AsyncResult<Void>> handler) {
     // recreate the commit on close behavior common to most JDBC drivers
-    setAutoCommit(true, handler);
+    setAutoCommit(true, close -> {
+      if (close.failed()) {
+        // connection is on a invalid state, disconnect so it can be
+        // discarded from the pool
+        disconnect(disconnect -> super.close(handler));
+      } else {
+        super.close(handler);
+      }
+    });
   }
 
   @Override
@@ -306,8 +301,8 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
 
   @Override
   public SQLConnection commit(Handler<AsyncResult<Void>> handler) {
-    if (!isAutoCommit()) {
-      sendStatementAndFulfill(connection, "COMMIT", null, handler);
+    if (!inAutoCommit.get()) {
+      sendStatementAndFulfill("COMMIT", null, handler);
     } else {
       handler.handle(Future.failedFuture(new IllegalStateException("Not in transaction currently")));
     }
@@ -316,8 +311,8 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
 
   @Override
   public SQLConnection rollback(Handler<AsyncResult<Void>> handler) {
-    if (!isAutoCommit()) {
-      sendStatementAndFulfill(connection, "ROLLBACK", null, handler);
+    if (!inAutoCommit.get()) {
+      sendStatementAndFulfill("ROLLBACK", null, handler);
     } else {
       handler.handle(Future.failedFuture(new IllegalStateException("Not in transaction currently")));
     }
@@ -351,7 +346,7 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
     }
 
     // run the next statement
-    sendStatement(getConnection(), sqlStatements.get(idx), null, res -> {
+    sendStatement(sqlStatements.get(idx), null, res -> {
       if (res.succeeded()) {
         results.add(idx, (int) res.result().rowsAffected());
         // next
@@ -394,7 +389,7 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
 
     List<Object> params = args.get(idx).getList();
     // run the next statement
-    sendStatement(getConnection(), statement, params, res -> {
+    sendStatement(statement, params, res -> {
       if (res.succeeded()) {
         results.add(idx, (int) res.result().rowsAffected());
         // next
@@ -413,12 +408,6 @@ abstract class AsyncSQLConnectionImpl<C extends Connection> extends AsyncSQLPool
   public SQLConnection batchCallableWithParams(String sqlStatement, List<JsonArray> inArgs, List<JsonArray> outArgs, Handler<AsyncResult<List<Integer>>> handler) {
     // No idea how to implement this
     throw new UnsupportedOperationException("Not implemented");
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public <C> C unwrap() {
-    return (C) getConnection();
   }
 
   private Handler<AsyncResult<QueryResult>> handleAsyncQueryResultToResultSet(Handler<AsyncResult<ResultSet>> handler) {

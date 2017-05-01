@@ -1,21 +1,21 @@
 package io.vertx.ext.asyncsql.impl;
 
+import com.github.mauricio.async.db.Connection;
 import com.github.mauricio.async.db.QueryResult;
-import com.github.mauricio.async.db.mysql.MySQLConnection;
 import com.github.mauricio.async.db.mysql.MySQLQueryResult;
-import com.github.mauricio.async.db.pool.ConnectionPool;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.UpdateResult;
 import scala.concurrent.ExecutionContext;
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
-public class MySQLConnectionImpl extends AsyncSQLConnectionImpl<MySQLConnection> {
+public class MySQLConnectionImpl extends AsyncSQLConnectionImpl {
 
-  public MySQLConnectionImpl(Vertx vertx, ConnectionPool<MySQLConnection> pool, ExecutionContext ec) {
-    super(vertx, pool, ec);
+  public MySQLConnectionImpl(Vertx vertx, AsyncConnectionPool pool, Connection connection, ExecutionContext ec) {
+    super(vertx, pool, connection, ec);
   }
 
   @Override

@@ -19,23 +19,18 @@ package io.vertx.ext.asyncsql.impl;
 import com.github.mauricio.async.db.Configuration;
 import com.github.mauricio.async.db.Connection;
 import com.github.mauricio.async.db.SSLConfiguration;
-import com.github.mauricio.async.db.pool.AsyncObjectPool;
-import com.github.mauricio.async.db.pool.ConnectionPool;
-import com.github.mauricio.async.db.pool.ObjectFactory;
-import com.github.mauricio.async.db.pool.PoolConfiguration;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
 import scala.Option;
 import scala.collection.Map$;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
-import scala.runtime.AbstractFunction1;
-import scala.util.Try;
 
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
@@ -45,50 +40,33 @@ import java.util.concurrent.TimeUnit;
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public abstract class BaseSQLClient<C extends Connection> {
+public abstract class BaseSQLClient {
 
   protected final Vertx vertx;
   protected final ExecutionContext ec;
 
-  private final ConnectionPool<C> pool;
+  private final AsyncConnectionPool pool;
 
-  public BaseSQLClient(Vertx vertx, JsonObject config) {
+  public BaseSQLClient(Vertx vertx, AsyncConnectionPool pool) {
     this.vertx = vertx;
+    this.pool = pool;
     this.ec = VertxEventLoopExecutionContext.create(vertx);
-
-    pool = new ConnectionPool<>(connectionFactory(config), new PoolConfiguration(
-      config.getInteger("maxPoolSize", 10),
-      config.getLong("maxIdle", 4L),
-      config.getInteger("maxQueueSize", 10),
-      config.getLong("validationInterval", 5000L)
-      ), ec);
   }
 
-  protected abstract ObjectFactory<C> connectionFactory(JsonObject config);
-
-  protected abstract SQLConnection wrap(ConnectionPool<C> pool);
+  protected abstract SQLConnection wrap(AsyncConnectionPool pool, Connection connection);
 
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
-    handler.handle(Future.succeededFuture(wrap(pool)));
+    pool.take(take -> {
+      if (take.failed()) {
+        handler.handle(Future.failedFuture(take.cause()));
+      } else {
+        handler.handle(Future.succeededFuture(wrap(pool, take.result())));
+      }
+    });
   }
 
   public void close(Handler<AsyncResult<Void>> handler) {
-    pool.close()
-      .onComplete(new AbstractFunction1<Try<AsyncObjectPool<C>>, Void>() {
-        @Override
-        public Void apply(Try<AsyncObjectPool<C>> v1) {
-          if (v1.isSuccess()) {
-            if (handler != null) {
-              handler.handle(Future.succeededFuture());
-            }
-          } else {
-            if (handler != null) {
-              handler.handle(Future.failedFuture(v1.failed().get()));
-            }
-          }
-          return null;
-        }
-      }, ec);
+    pool.close(handler);
   }
 
   public void close() {

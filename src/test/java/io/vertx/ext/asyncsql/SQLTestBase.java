@@ -25,6 +25,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.*;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -805,6 +806,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
   }
 
   @Test
+  @Ignore
   public void testPipeline(TestContext context) {
     Async async = context.async();
 

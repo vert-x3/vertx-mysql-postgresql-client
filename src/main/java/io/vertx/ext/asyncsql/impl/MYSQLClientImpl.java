@@ -16,13 +16,12 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import com.github.mauricio.async.db.mysql.MySQLConnection;
-import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory;
-import com.github.mauricio.async.db.pool.ConnectionPool;
-import com.github.mauricio.async.db.pool.ObjectFactory;
+import com.github.mauricio.async.db.Connection;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.MySQLClient;
+import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
+import io.vertx.ext.asyncsql.impl.pool.MysqlAsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
 
 /**
@@ -30,28 +29,28 @@ import io.vertx.ext.sql.SQLConnection;
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class MYSQLClientImpl extends BaseSQLClient<MySQLConnection> {
+public class MYSQLClientImpl extends BaseSQLClient {
 
   public MYSQLClientImpl(Vertx vertx, JsonObject config) {
-    super(vertx, config);
+    super(
+      vertx,
+      new MysqlAsyncConnectionPool(
+        vertx,
+        config.getInteger("maxPoolSize", 10),
+        getConfiguration(
+          MySQLClient.DEFAULT_HOST,
+          MySQLClient.DEFAULT_PORT,
+          MySQLClient.DEFAULT_DATABASE,
+          MySQLClient.DEFAULT_USER,
+          MySQLClient.DEFAULT_PASSWORD,
+          MySQLClient.DEFAULT_CHARSET,
+          MySQLClient.DEFAULT_CONNECT_TIMEOUT,
+          MySQLClient.DEFAULT_TEST_TIMEOUT,
+          config)));
   }
 
   @Override
-  protected ObjectFactory<MySQLConnection> connectionFactory(JsonObject config) {
-    return new MySQLConnectionFactory(getConfiguration(
-      MySQLClient.DEFAULT_HOST,
-      MySQLClient.DEFAULT_PORT,
-      MySQLClient.DEFAULT_DATABASE,
-      MySQLClient.DEFAULT_USER,
-      MySQLClient.DEFAULT_PASSWORD,
-      MySQLClient.DEFAULT_CHARSET,
-      MySQLClient.DEFAULT_CONNECT_TIMEOUT,
-      MySQLClient.DEFAULT_TEST_TIMEOUT,
-      config));
-  }
-
-  @Override
-  protected SQLConnection wrap(ConnectionPool<MySQLConnection> pool) {
-    return new MySQLConnectionImpl(vertx, pool, ec);
+  protected SQLConnection wrap(AsyncConnectionPool pool, Connection connection) {
+    return new MySQLConnectionImpl(vertx, pool, connection, ec);
   }
 }
