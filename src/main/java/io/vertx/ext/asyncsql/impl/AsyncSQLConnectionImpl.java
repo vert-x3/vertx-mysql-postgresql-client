@@ -98,28 +98,14 @@ abstract class AsyncSQLConnectionImpl extends AsyncSQLPooledConnection implement
           sendStatementAndFulfill(isolationLevelStatement, null, isolationLevel -> {
             if (isolationLevel.succeeded()) {
               // we can now start the transaction
-              sendStatementAndFulfill(getStartTransactionStatement(), null, startTransaction -> {
-                if (startTransaction.succeeded()) {
-                  inAutoCommit.compareAndSet(true, false);
-                  handler.handle(Future.succeededFuture());
-                } else {
-                  handler.handle(startTransaction);
-                }
-              });
+              beginTransaction(handler);
             } else {
               handler.handle(Future.failedFuture(isolationLevel.cause()));
             }
           });
         } else {
           // start transaction
-          sendStatementAndFulfill(getStartTransactionStatement(), null, startTransaction -> {
-            if (startTransaction.succeeded()) {
-              inAutoCommit.compareAndSet(true, false);
-              handler.handle(Future.succeededFuture());
-            } else {
-              handler.handle(startTransaction);
-            }
-          });
+          beginTransaction(handler);
         }
 
         return this;
@@ -128,6 +114,17 @@ abstract class AsyncSQLConnectionImpl extends AsyncSQLPooledConnection implement
 
     handler.handle(Future.succeededFuture());
     return this;
+  }
+
+  private void beginTransaction (Handler<AsyncResult<Void>> handler) {
+    sendStatementAndFulfill(getStartTransactionStatement(), null, startTransaction -> {
+      if (startTransaction.succeeded()) {
+        inAutoCommit.compareAndSet(true, false);
+        handler.handle(Future.succeededFuture());
+      } else {
+        handler.handle(startTransaction);
+      }
+    });
   }
 
   @Override
@@ -218,9 +215,10 @@ abstract class AsyncSQLConnectionImpl extends AsyncSQLPooledConnection implement
 
       sendStatement(sql, params, statement -> {
         // cancel the running timer
-        vertx.cancelTimer(timerId);
-        // proceed
-        handler.handle(statement);
+        if (vertx.cancelTimer(timerId)) {
+          // proceed
+          handler.handle(statement);
+        }
       });
 
     } else {
@@ -337,11 +335,10 @@ abstract class AsyncSQLConnectionImpl extends AsyncSQLPooledConnection implement
   private void batch(final int idx, final long timerId, final List<Integer> results, List<String> sqlStatements, Handler<AsyncResult<List<Integer>>> handler) {
     if (idx == sqlStatements.size()) {
       // stop condition
-      if (timerId != -1) {
-        // cancel the running timer
-        vertx.cancelTimer(timerId);
+      if (timerId == -1 || vertx.cancelTimer(timerId)) {
+        // cancel the running timer if it is valid or still active
+        handler.handle(Future.succeededFuture(results));
       }
-      handler.handle(Future.succeededFuture(results));
       return;
     }
 
@@ -352,11 +349,10 @@ abstract class AsyncSQLConnectionImpl extends AsyncSQLPooledConnection implement
         // next
         batch(idx + 1, timerId, results, sqlStatements, handler);
       } else {
-        if (timerId != -1) {
-          // cancel the running timer
-          vertx.cancelTimer(timerId);
+        if (timerId == -1 || vertx.cancelTimer(timerId)) {
+          // cancel the running timer if it is valid or still active
+          handler.handle(Future.failedFuture(res.cause()));
         }
-        handler.handle(Future.failedFuture(res.cause()));
       }
     });
   }
@@ -379,11 +375,9 @@ abstract class AsyncSQLConnectionImpl extends AsyncSQLPooledConnection implement
   private void batch(final int idx, final long timerId, final List<Integer> results, String statement, List<JsonArray> args, Handler<AsyncResult<List<Integer>>> handler) {
     if (idx == args.size()) {
       // stop condition
-      if (timerId != -1) {
-        // cancel the running timer
-        vertx.cancelTimer(timerId);
+      if (timerId == -1 || vertx.cancelTimer(timerId)) {
+        handler.handle(Future.succeededFuture(results));
       }
-      handler.handle(Future.succeededFuture(results));
       return;
     }
 
@@ -395,11 +389,9 @@ abstract class AsyncSQLConnectionImpl extends AsyncSQLPooledConnection implement
         // next
         batch(idx + 1, timerId, results, statement, args, handler);
       } else {
-        if (timerId != -1) {
-          // cancel the running timer
-          vertx.cancelTimer(timerId);
+        if (timerId == -1 || vertx.cancelTimer(timerId)) {
+          handler.handle(Future.failedFuture(res.cause()));
         }
-        handler.handle(Future.failedFuture(res.cause()));
       }
     });
   }
