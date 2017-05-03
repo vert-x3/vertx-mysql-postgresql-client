@@ -180,10 +180,9 @@ abstract class AsyncSQLConnectionImpl extends AsyncSQLPooledConnection implement
       sql = sql.substring(0, end);
     }
 
-    // locate "call"
+    // replace "CALL" with "SELECT"
     Matcher matcher = CALL.matcher(sql);
     if (matcher.find()) {
-      // replace will SELECT
       sql = matcher.replaceFirst("SELECT ");
     }
 
