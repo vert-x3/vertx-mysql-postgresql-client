@@ -139,11 +139,11 @@ public abstract class BaseSQLClient {
 
   private Map<String, String> buildSslConfig(JsonObject config) {
     Map<String, String> sslConfig = Map$.MODULE$.empty();
-    if (config.getString("sslmode")!= null) {
-      sslConfig = sslConfig.$plus(Tuple2.apply("sslmode", config.getString("sslmode")));
+    if (config.getString("sslMode")!= null) {
+      sslConfig = sslConfig.$plus(Tuple2.apply("sslmode", config.getString("sslMode")));
     }
-    if (config.getString("sslrootcert") != null) {
-      sslConfig = sslConfig.$plus(Tuple2.apply("sslrootcert", config.getString("sslrootcert")));
+    if (config.getString("sslRootCert") != null) {
+      sslConfig = sslConfig.$plus(Tuple2.apply("sslrootcert", config.getString("sslRootCert")));
     }
     return sslConfig;
   }
