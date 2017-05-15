@@ -3,6 +3,7 @@ package io.vertx.ext.asyncsql;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -14,7 +15,7 @@ import org.junit.runner.RunWith;
 @RunWith(VertxUnitRunner.class)
 public abstract class AbstractTestBase {
 
-  protected AsyncSQLClient client;
+  protected SQLClient client;
   protected static Vertx vertx;
   protected SQLConnection conn;
 

@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.impl.ClientHelper;
+import io.vertx.ext.sql.SQLClient;
 
 import java.util.UUID;
 
@@ -85,7 +86,7 @@ public interface PostgreSQLClient extends AsyncSQLClient {
    * @param config the configuration
    * @return the client
    */
-  static AsyncSQLClient createNonShared(Vertx vertx, JsonObject config) {
+  static SQLClient createNonShared(Vertx vertx, JsonObject config) {
     return ClientHelper.getOrCreate(vertx, config, UUID.randomUUID().toString(), false);
   }
 
@@ -97,7 +98,7 @@ public interface PostgreSQLClient extends AsyncSQLClient {
    * @param poolName the pool name
    * @return the client
    */
-  static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String poolName) {
+  static SQLClient createShared(Vertx vertx, JsonObject config, String poolName) {
     return ClientHelper.getOrCreate(vertx, config, poolName, false);
   }
 
@@ -109,7 +110,7 @@ public interface PostgreSQLClient extends AsyncSQLClient {
    * @param config the configuration
    * @return the client
    */
-  static AsyncSQLClient createShared(Vertx vertx, JsonObject config) {
+  static SQLClient createShared(Vertx vertx, JsonObject config) {
     return ClientHelper.getOrCreate(vertx, config, DEFAULT_DS_NAME, false);
   }
 

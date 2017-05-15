@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.AsyncSQLClient;
+import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
 
 /**
@@ -44,13 +45,14 @@ public class AsyncSQLClientImpl implements AsyncSQLClient {
   }
 
   @Override
-  public void close(Handler<AsyncResult<Void>> whenDone) {
-    baseClient.close(whenDone);
+  public void close(Handler<AsyncResult<Void>> completionHandler) {
+    baseClient.close(completionHandler);
   }
 
   @Override
-  public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
+  public SQLClient getConnection(Handler<AsyncResult<SQLConnection>> handler) {
     baseClient.getConnection(handler);
+    return this;
   }
 
 }
