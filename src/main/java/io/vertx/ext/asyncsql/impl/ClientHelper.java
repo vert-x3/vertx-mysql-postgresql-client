@@ -19,6 +19,7 @@ package io.vertx.ext.asyncsql.impl;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
+import io.vertx.ext.asyncsql.AsyncSQLClient;
 import io.vertx.ext.sql.SQLClient;
 
 
@@ -31,7 +32,7 @@ public class ClientHelper {
 
   private static final String DS_LOCAL_MAP_NAME_BASE = "__vertx.MySQLPostgreSQL.pools.";
 
-  public static SQLClient getOrCreate(Vertx vertx, JsonObject config, String poolName, boolean
+  public static AsyncSQLClient getOrCreate(Vertx vertx, JsonObject config, String poolName, boolean
       mySQL) {
     synchronized (vertx) {
       LocalMap<String, ClientHolder> map = vertx.sharedData().getLocalMap(

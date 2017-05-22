@@ -86,7 +86,7 @@ public interface MySQLClient extends AsyncSQLClient {
    * @param config  the configuration
    * @return the client
    */
-  static SQLClient createNonShared(Vertx vertx, JsonObject config) {
+  static AsyncSQLClient createNonShared(Vertx vertx, JsonObject config) {
     return ClientHelper.getOrCreate(vertx, config, UUID.randomUUID().toString(), true);
   }
 
@@ -100,7 +100,7 @@ public interface MySQLClient extends AsyncSQLClient {
    * @param poolName the pool name
    * @return the client
    */
-  static SQLClient createShared(Vertx vertx, JsonObject config, String poolName) {
+  static AsyncSQLClient createShared(Vertx vertx, JsonObject config, String poolName) {
     return ClientHelper.getOrCreate(vertx, config, poolName, true);
   }
 
@@ -112,7 +112,7 @@ public interface MySQLClient extends AsyncSQLClient {
    * @param config  the configuration
    * @return the client
    */
-  static SQLClient createShared(Vertx vertx, JsonObject config) {
+  static AsyncSQLClient createShared(Vertx vertx, JsonObject config) {
     return ClientHelper.getOrCreate(vertx, config, DEFAULT_POOL_NAME, true);
   }
 
