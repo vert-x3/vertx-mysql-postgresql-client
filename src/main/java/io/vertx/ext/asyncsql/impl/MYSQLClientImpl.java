@@ -23,7 +23,6 @@ import io.vertx.ext.asyncsql.MySQLClient;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.asyncsql.impl.pool.MysqlAsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
-import scala.concurrent.ExecutionContext;
 
 /**
  * Implementation of the {@link BaseSQLClient} for MYSQL.
@@ -32,30 +31,26 @@ import scala.concurrent.ExecutionContext;
  */
 public class MYSQLClientImpl extends BaseSQLClient {
 
-  private final MysqlAsyncConnectionPool pool;
-
-  public MYSQLClientImpl(Vertx vertx,
-                         JsonObject config) {
-    super(vertx, config);
-    pool = new MysqlAsyncConnectionPool(vertx, maxPoolSize, getConfiguration(
-        MySQLClient.DEFAULT_HOST,
-        MySQLClient.DEFAULT_PORT,
-        MySQLClient.DEFAULT_DATABASE,
-        MySQLClient.DEFAULT_USER,
-        MySQLClient.DEFAULT_PASSWORD,
-        MySQLClient.DEFAULT_CHARSET,
-        MySQLClient.DEFAULT_CONNECT_TIMEOUT,
-        MySQLClient.DEFAULT_TEST_TIMEOUT,
-        config));
+  public MYSQLClientImpl(Vertx vertx, JsonObject config) {
+    super(
+      vertx,
+      new MysqlAsyncConnectionPool(
+        vertx,
+        config.getInteger("maxPoolSize", 10),
+        getConfiguration(
+          MySQLClient.DEFAULT_HOST,
+          MySQLClient.DEFAULT_PORT,
+          MySQLClient.DEFAULT_DATABASE,
+          MySQLClient.DEFAULT_USER,
+          MySQLClient.DEFAULT_PASSWORD,
+          MySQLClient.DEFAULT_CHARSET,
+          MySQLClient.DEFAULT_CONNECT_TIMEOUT,
+          MySQLClient.DEFAULT_TEST_TIMEOUT,
+          config)));
   }
 
   @Override
-  protected AsyncConnectionPool pool() {
-    return pool;
-  }
-
-  @Override
-  protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec) {
-    return new MySQLConnectionImpl(conn, pool, ec);
+  protected SQLConnection wrap(AsyncConnectionPool pool, Connection connection) {
+    return new MySQLConnectionImpl(vertx, pool, connection, ec);
   }
 }

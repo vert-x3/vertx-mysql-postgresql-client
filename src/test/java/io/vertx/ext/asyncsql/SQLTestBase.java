@@ -22,16 +22,15 @@ import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.sql.ResultSet;
-import io.vertx.ext.sql.SQLConnection;
-import io.vertx.ext.sql.SQLRowStream;
-import io.vertx.ext.sql.UpdateResult;
+import io.vertx.ext.sql.*;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -710,7 +709,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
 
             res
               .handler(row -> {
-                context.assertEquals(Data.NAMES.get(count.getAndIncrement()) ,row.getString(0));
+                context.assertEquals(Data.NAMES.get(count.getAndIncrement()), row.getString(0));
               })
               .endHandler(v -> {
                 context.assertEquals(Data.NAMES.size(), count.get());
@@ -743,6 +742,106 @@ public abstract class SQLTestBase extends AbstractTestBase {
           }
         }
       });
+    });
+  }
+
+  @Test
+  public void testSimpleBatch(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      // Create table
+      conn = ar.result();
+
+      // prepare data
+      List<String> data = new ArrayList<>();
+      int i = 0;
+      for (String n : Data.NAMES) {
+        data.add("INSERT INTO test_table (id, name) VALUES (" + (i++) + ", \'" + n + "\')");
+      }
+
+      conn.execute("BEGIN",
+        ar1 -> conn.execute("DROP TABLE IF EXISTS test_table",
+          ar2 -> conn.execute(CREATE_TABLE_STATEMENT,
+            ar3 -> conn.batch(data,
+              ar4 -> {
+                ensureSuccess(context, ar4);
+                async.complete();
+              }))));
+    });
+  }
+
+  @Test
+  public void testSimpleBatchWithParams(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      // Create table
+      conn = ar.result();
+
+      // prepare data
+      List<JsonArray> data = new ArrayList<>();
+      int i = 0;
+      for (String n : Data.NAMES) {
+        data.add(new JsonArray().add(i++).add(n));
+      }
+
+      conn.execute("BEGIN",
+        ar1 -> conn.execute("DROP TABLE IF EXISTS test_table",
+          ar2 -> conn.execute(CREATE_TABLE_STATEMENT,
+            ar3 -> conn.batchWithParams("INSERT INTO test_table (id, name) VALUES (?, ?)", data,
+              ar4 -> {
+                ensureSuccess(context, ar4);
+                async.complete();
+              }))));
+    });
+  }
+
+  @Test
+  @Ignore
+  public void testPipeline(TestContext context) {
+    Async async = context.async();
+
+    final int size = 14;
+    final AtomicInteger counter = new AtomicInteger(size);
+
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      try (SQLConnection conn = ar.result()) {
+        for (int i = 0; i < size; i++) {
+          final int index = i;
+          conn.query("SELECT " + index + " as something", ar2 -> {
+            if (ar2.failed()) {
+              context.fail(ar2.cause());
+            } else {
+              ResultSet result = ar2.result();
+              context.assertNotNull(result);
+              JsonObject expected = new JsonObject()
+                .put("columnNames", new JsonArray().add("something"))
+                .put("numColumns", 1)
+                .put("numRows", 1)
+                .put("rows", new JsonArray().add(new JsonObject().put("something", index)))
+                .put("results", new JsonArray().add(new JsonArray().add(index)));
+              context.assertEquals(expected, result.toJson());
+              if (counter.decrementAndGet() == 0) {
+                async.complete();
+              }
+            }
+          });
+        }
+      }
     });
   }
 }

@@ -23,7 +23,6 @@ import io.vertx.ext.asyncsql.PostgreSQLClient;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.asyncsql.impl.pool.PostgresqlAsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
-import scala.concurrent.ExecutionContext;
 
 /**
  * Implementation of the {@link BaseSQLClient} for PostGreSQL.
@@ -32,29 +31,25 @@ import scala.concurrent.ExecutionContext;
  */
 public class PostgreSQLClientImpl extends BaseSQLClient {
 
-  private final PostgresqlAsyncConnectionPool pool;
-
   public PostgreSQLClientImpl(Vertx vertx, JsonObject config) {
-    super(vertx, config);
-    pool = new PostgresqlAsyncConnectionPool(vertx, maxPoolSize, getConfiguration(
-        PostgreSQLClient.DEFAULT_HOST,
-        PostgreSQLClient.DEFAULT_PORT,
-        PostgreSQLClient.DEFAULT_DATABASE,
-        PostgreSQLClient.DEFAULT_USER,
-        PostgreSQLClient.DEFAULT_PASSWORD,
-        PostgreSQLClient.DEFAULT_CHARSET,
-        PostgreSQLClient.DEFAULT_CONNECT_TIMEOUT,
-        PostgreSQLClient.DEFAULT_TEST_TIMEOUT,
-        config));
+    super(vertx,
+      new PostgresqlAsyncConnectionPool(
+        vertx,
+        config.getInteger("maxPoolSize", 10),
+        getConfiguration(
+          PostgreSQLClient.DEFAULT_HOST,
+          PostgreSQLClient.DEFAULT_PORT,
+          PostgreSQLClient.DEFAULT_DATABASE,
+          PostgreSQLClient.DEFAULT_USER,
+          PostgreSQLClient.DEFAULT_PASSWORD,
+          PostgreSQLClient.DEFAULT_CHARSET,
+          PostgreSQLClient.DEFAULT_CONNECT_TIMEOUT,
+          PostgreSQLClient.DEFAULT_TEST_TIMEOUT,
+          config)));
   }
 
   @Override
-  protected AsyncConnectionPool pool() {
-    return pool;
-  }
-
-  @Override
-  protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec) {
-    return new AsyncSQLConnectionImpl(conn, pool, ec);
+  protected SQLConnection wrap(AsyncConnectionPool pool, Connection connection) {
+    return new PostgreSQLConnectionImpl(vertx, pool, connection, ec);
   }
 }

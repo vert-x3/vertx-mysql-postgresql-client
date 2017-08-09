@@ -25,8 +25,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
 import scala.Option;
@@ -44,66 +42,47 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class BaseSQLClient {
 
-  protected final Logger log = LoggerFactory.getLogger(this.getClass());
   protected final Vertx vertx;
+  protected final ExecutionContext ec;
 
-  protected int maxPoolSize;
-  protected int transactionTimeout;
-  protected String registerAddress;
+  private final AsyncConnectionPool pool;
 
-  public BaseSQLClient(Vertx vertx, JsonObject config) {
+  public BaseSQLClient(Vertx vertx, AsyncConnectionPool pool) {
     this.vertx = vertx;
-    this.maxPoolSize = config.getInteger("maxPoolSize", 10);
-    this.transactionTimeout = config.getInteger("transactionTimeout", 500);
-    this.registerAddress = config.getString("address");
+    this.pool = pool;
+    this.ec = VertxEventLoopExecutionContext.create(vertx);
   }
 
-  protected abstract AsyncConnectionPool pool();
-
-  protected abstract SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec);
+  protected abstract SQLConnection wrap(AsyncConnectionPool pool, Connection connection);
 
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
-    pool().take(ar -> {
-      if (ar.succeeded()) {
-        final AsyncConnectionPool pool = pool();
-        ExecutionContext ec = VertxEventLoopExecutionContext.create(vertx);
-        handler.handle(Future.succeededFuture(createFromPool(ar.result(), pool, ec)));
+    pool.take(take -> {
+      if (take.failed()) {
+        handler.handle(Future.failedFuture(take.cause()));
       } else {
-        handler.handle(Future.failedFuture(ar.cause()));
+        handler.handle(Future.succeededFuture(wrap(pool, take.result())));
       }
     });
   }
 
   public void close(Handler<AsyncResult<Void>> handler) {
-    log.info("Stopping async SQL client " + this);
-    pool().close(ar -> {
-          if (ar.succeeded()) {
-            if (handler != null) {
-              handler.handle(Future.succeededFuture());
-            }
-          } else {
-            if (handler != null) {
-              handler.handle(Future.failedFuture(ar.cause()));
-            }
-          }
-        }
-    );
+    pool.close(handler);
   }
 
   public void close() {
     close(null);
   }
 
-  protected Configuration getConfiguration(
-      String defaultHost,
-      int defaultPort,
-      String defaultDatabase,
-      String defaultUser,
-      String defaultPassword,
-      String defaultCharset,
-      long defaultConnectTimeout,
-      long defaultTestTimeout,
-      JsonObject config) {
+  static Configuration getConfiguration(
+    String defaultHost,
+    int defaultPort,
+    String defaultDatabase,
+    String defaultUser,
+    String defaultPassword,
+    String defaultCharset,
+    long defaultConnectTimeout,
+    long defaultTestTimeout,
+    JsonObject config) {
 
     String host = config.getString("host", defaultHost);
     int port = config.getInteger("port", defaultPort);
@@ -115,23 +94,20 @@ public abstract class BaseSQLClient {
     long testTimeout = config.getLong("testTimeout", defaultTestTimeout);
     Long queryTimeout = config.getLong("queryTimeout");
     Option<Duration> queryTimeoutOption = (queryTimeout == null) ?
-        Option.empty() : Option.apply(Duration.apply(queryTimeout, TimeUnit.MILLISECONDS));
+      Option.empty() : Option.apply(Duration.apply(queryTimeout, TimeUnit.MILLISECONDS));
 
-    log.info("Creating configuration for " + host + ":" + port);
     return new Configuration(
-        username,
-        host,
-        port,
-        Option.apply(password),
-        Option.apply(database),
-        SSLConfiguration.apply(Map$.MODULE$.empty()),
-        charset,
-        16777216,
-        PooledByteBufAllocator.DEFAULT,
-        Duration.apply(connectTimeout, TimeUnit.MILLISECONDS),
-        Duration.apply(testTimeout, TimeUnit.MILLISECONDS),
-        queryTimeoutOption);
+      username,
+      host,
+      port,
+      Option.apply(password),
+      Option.apply(database),
+      SSLConfiguration.apply(Map$.MODULE$.empty()),
+      charset,
+      16777216,
+      PooledByteBufAllocator.DEFAULT,
+      Duration.apply(connectTimeout, TimeUnit.MILLISECONDS),
+      Duration.apply(testTimeout, TimeUnit.MILLISECONDS),
+      queryTimeoutOption);
   }
-
-
 }
