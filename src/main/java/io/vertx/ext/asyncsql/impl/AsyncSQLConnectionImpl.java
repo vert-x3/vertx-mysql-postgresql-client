@@ -36,7 +36,7 @@ import java.util.*;
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class AsyncSQLConnectionImpl implements SQLConnection {
+public abstract class AsyncSQLConnectionImpl implements SQLConnection {
 
   private final ExecutionContext executionContext;
   private volatile boolean inTransaction = false;
@@ -51,6 +51,11 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     this.executionContext = executionContext;
   }
 
+  /**
+   * Returns a vendor specific start transaction statement
+   */
+  protected abstract String getStartTransactionStatement();
+
   @Override
   public SQLConnection call(String sql, Handler<AsyncResult<ResultSet>> resultHandler) {
     throw new UnsupportedOperationException("Not implemented");
@@ -63,7 +68,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection setOptions(SQLOptions options) {
-    return null;
+    throw new UnsupportedOperationException("Not implemented");
   }
 
   @Override
@@ -287,7 +292,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   private synchronized void beginTransactionIfNeeded(Handler<AsyncResult<Void>> action) {
     if (!inAutoCommit && !inTransaction) {
       inTransaction = true;
-      ScalaUtils.scalaToVertxVoid(connection.sendQuery("BEGIN"), executionContext)
+      ScalaUtils.scalaToVertxVoid(connection.sendQuery(getStartTransactionStatement()), executionContext)
           .setHandler(action);
     } else {
       action.handle(Future.succeededFuture());

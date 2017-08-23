@@ -17,6 +17,11 @@ public class MySQLConnectionImpl extends AsyncSQLConnectionImpl {
   }
 
   @Override
+  protected String getStartTransactionStatement() {
+    return "BEGIN";
+  }
+
+  @Override
   protected UpdateResult queryResultToUpdateResult(QueryResult qr) {
     int affected = (int)qr.rowsAffected();
     MySQLQueryResult mySQLQueryResult = (MySQLQueryResult) qr;

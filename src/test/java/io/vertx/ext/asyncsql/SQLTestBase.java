@@ -722,32 +722,6 @@ public abstract class SQLTestBase extends AbstractTestBase {
     });
   }
 
-  private void setupTxTestTable(SQLConnection conn, Handler<AsyncResult<Void>> handler) {
-    conn.execute("BEGIN",
-      ar -> conn.execute("DROP TABLE IF EXISTS test_txtable",
-        ar2 -> conn.execute("CREATE TABLE test_txtable (id BIGINT, val BIGINT)",
-          ar3 -> conn.update("INSERT INTO test_txtable (id, name) VALUES (1, 8), (2, 8)",
-            ar4 -> conn.execute("COMMIT", handler)))));
-  }
-
-  @Test
-  public void testIsolation(TestContext context) {
-    Async async = context.async();
-    client.getConnection(ar -> {
-      if (ar.failed()) {
-        context.fail(ar.cause());
-        return;
-      }
-
-      // Create table
-      conn = ar.result();
-      setupTxTestTable(conn, ar2 -> {
-        // TODO: test me!
-        async.complete();
-      });
-    });
-  }
-
   private static class UserDefinedException extends RuntimeException {
   }
 
