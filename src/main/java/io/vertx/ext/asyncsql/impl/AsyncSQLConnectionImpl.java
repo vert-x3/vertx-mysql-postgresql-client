@@ -36,7 +36,7 @@ import java.util.*;
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class AsyncSQLConnectionImpl implements SQLConnection {
+public abstract class AsyncSQLConnectionImpl implements SQLConnection {
 
   private final ExecutionContext executionContext;
   private volatile boolean inTransaction = false;
@@ -51,6 +51,11 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
     this.executionContext = executionContext;
   }
 
+  /**
+   * Returns a vendor specific start transaction statement
+   */
+  protected abstract String getStartTransactionStatement();
+
   @Override
   public SQLConnection call(String sql, Handler<AsyncResult<ResultSet>> resultHandler) {
     throw new UnsupportedOperationException("Not implemented");
@@ -58,6 +63,11 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
 
   @Override
   public SQLConnection callWithParams(String sql, JsonArray params, JsonArray outputs, Handler<AsyncResult<ResultSet>> resultHandler) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public SQLConnection setOptions(SQLOptions options) {
     throw new UnsupportedOperationException("Not implemented");
   }
 
@@ -192,13 +202,33 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   }
 
   @Override
-  public SQLConnection setQueryTimeout(int i) {
-    throw new UnsupportedOperationException("Not implemented");
-  }
-
-  @Override
   public SQLConnection setTransactionIsolation(TransactionIsolation transactionIsolation, Handler<AsyncResult<Void>> handler) {
-    throw new UnsupportedOperationException("Not implemented");
+    String sql;
+    switch (transactionIsolation) {
+      case READ_UNCOMMITTED:
+        sql = "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED";
+        break;
+      case REPEATABLE_READ:
+        sql = "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ";
+        break;
+      case READ_COMMITTED:
+        sql = "SET TRANSACTION ISOLATION LEVEL READ COMMITTED";
+        break;
+      case SERIALIZABLE:
+        sql = "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE";
+        break;
+      case NONE:
+      default:
+        sql = null;
+        break;
+    }
+
+    if (sql == null) {
+      handler.handle(Future.succeededFuture());
+      return this;
+    }
+
+    return execute(sql, handler);
   }
 
   @Override
@@ -262,7 +292,7 @@ public class AsyncSQLConnectionImpl implements SQLConnection {
   private synchronized void beginTransactionIfNeeded(Handler<AsyncResult<Void>> action) {
     if (!inAutoCommit && !inTransaction) {
       inTransaction = true;
-      ScalaUtils.scalaToVertxVoid(connection.sendQuery("BEGIN"), executionContext)
+      ScalaUtils.scalaToVertxVoid(connection.sendQuery(getStartTransactionStatement()), executionContext)
           .setHandler(action);
     } else {
       action.handle(Future.succeededFuture());
