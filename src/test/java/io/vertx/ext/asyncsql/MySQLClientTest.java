@@ -144,4 +144,27 @@ public class MySQLClientTest extends SQLTestBase {
             ar2 -> conn.execute("CREATE TABLE test_table (id BIGINT AUTO_INCREMENT, name VARCHAR(255), PRIMARY KEY(id))",
                 ar3 -> conn.execute("COMMIT", handler::handle))));
   }
+
+  @Test
+  public void testUnavailableDatabase(TestContext testContext) {
+    AsyncSQLClient myClient = MySQLClient.createNonShared(vertx,
+      new JsonObject()
+        .put("host", "localhost")
+        .put("port", 65000)
+        .put("maxPoolSize", 2)
+    );
+    Async async = testContext.async(3);
+
+    Handler<AsyncResult<SQLConnection>> handler  = new Handler<AsyncResult<SQLConnection>>() {
+      @Override
+      public void handle(AsyncResult<SQLConnection> sqlConnectionAsyncResult) {
+        testContext.assertFalse(sqlConnectionAsyncResult.succeeded());
+        async.countDown();
+      }
+    };
+    myClient.getConnection(handler);
+    myClient.getConnection(handler);
+    myClient.getConnection(handler);
+  }
+
 }

@@ -60,7 +60,14 @@ public abstract class AsyncConnectionPool {
     try {
       Connection connection = create();
       connection
-          .connect().onComplete(ScalaUtils.toFunction1(handler), VertxEventLoopExecutionContext.create(vertx));
+          .connect()
+          .onComplete(ScalaUtils.toFunction1(asyncResult -> {
+            if (asyncResult.failed()) {
+              poolSize -= 1;
+              notifyWaitersAboutAvailableConnection();
+            }
+            handler.handle(asyncResult);
+          }), VertxEventLoopExecutionContext.create(vertx));
     } catch (Throwable e) {
       logger.info("creating a connection went wrong", e);
       poolSize -= 1;
