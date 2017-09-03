@@ -45,6 +45,7 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
     System.out.println("Path = " + path);
 
     JsonObject sslConfig = new JsonObject()
+      .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
       .put("sslMode", "require")
       .put("sslRootCert", path);
 
@@ -52,8 +53,6 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
 
     System.out.println("testCorrectSslConfiguration");
     client.getConnection(sqlConnectionAsyncResult -> {
-      System.out.println("testCorrectSslConfiguration callback");
-      sqlConnectionAsyncResult.cause().printStackTrace();
       context.assertTrue(sqlConnectionAsyncResult.succeeded());
       conn = sqlConnectionAsyncResult.result();
       System.out.println("testCorrectSslConfiguration step2");
@@ -75,6 +74,7 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
     client = createClient(vertx,
       new JsonObject()
         .put("host", System.getProperty("db.host", "localhost"))
+        .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
         .put("sslMode", "verify-ca")
         .put("sslRootCert", "something-wrong.crt")
     );
@@ -84,6 +84,24 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
       System.out.println("testWrongSslConfiguration callback");
       context.assertTrue(sqlConnectionAsyncResult.failed());
       System.out.println("testWrongSslConfiguration success!");
+      async.complete();
+    });
+  }
+
+  @Test
+  public void testNoSslConfiguration(TestContext context) {
+    Async async = context.async();
+    client = createClient(vertx,
+      new JsonObject()
+        .put("host", System.getProperty("db.host", "localhost"))
+        .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
+    );
+
+    System.out.println("testNoSslConfiguration");
+    client.getConnection(sqlConnectionAsyncResult -> {
+      System.out.println("testNoSslConfiguration callback");
+      context.assertTrue(sqlConnectionAsyncResult.failed());
+      System.out.println("testNoSslConfiguration success!");
       async.complete();
     });
   }

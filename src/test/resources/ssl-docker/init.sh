@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-echo "HELLO FROM INIT SCRIPT! $PGDATA test!!!"
+echo "HELLO FROM INIT SCRIPT!"
+echo "$PGDATA test!!!"
 sed -i 's/^host/hostssl/g' "$PGDATA"/pg_hba.conf
 
 cp /docker-entrypoint-initdb.d/server.{crt,key} "$PGDATA"
