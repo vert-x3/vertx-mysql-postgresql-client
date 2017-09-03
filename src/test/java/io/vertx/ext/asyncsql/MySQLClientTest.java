@@ -37,6 +37,12 @@ public class MySQLClientTest extends SQLTestBase {
         new JsonObject()
             .put("host", System.getProperty("db.host", "localhost"))
     );
+    clientNoDatabase = MySQLClient.createNonShared(vertx,
+      new JsonObject()
+        .put("host", System.getProperty("db.host", "localhost"))
+        .put("port", 65000)
+        .put("maxPoolSize", 2)
+    );
   }
 
   // Configure the expected time used in the date test

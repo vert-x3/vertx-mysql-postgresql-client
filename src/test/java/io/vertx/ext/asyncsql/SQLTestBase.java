@@ -710,7 +710,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
 
             res
               .handler(row -> {
-                context.assertEquals(Data.NAMES.get(count.getAndIncrement()) ,row.getString(0));
+                context.assertEquals(Data.NAMES.get(count.getAndIncrement()), row.getString(0));
               })
               .endHandler(v -> {
                 context.assertEquals(Data.NAMES.size(), count.get());
@@ -745,4 +745,21 @@ public abstract class SQLTestBase extends AbstractTestBase {
       });
     });
   }
+
+  @Test
+  public void testUnavailableDatabase(TestContext testContext) {
+    Async async = testContext.async(3);
+
+    Handler<AsyncResult<SQLConnection>> handler = new Handler<AsyncResult<SQLConnection>>() {
+      @Override
+      public void handle(AsyncResult<SQLConnection> sqlConnectionAsyncResult) {
+        testContext.assertFalse(sqlConnectionAsyncResult.succeeded());
+        async.countDown();
+      }
+    };
+    clientNoDatabase.getConnection(handler);
+    clientNoDatabase.getConnection(handler);
+    clientNoDatabase.getConnection(handler);
+  }
+
 }
