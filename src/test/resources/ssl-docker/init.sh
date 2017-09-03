@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-echo "HELLO FROM INIT SCRIPT!"
-echo "$PGDATA test!!!"
+echo "SSL INIT SCRIPT RUNNING..."
 sed -i 's/^host/hostssl/g' "$PGDATA"/pg_hba.conf
 
 cp /docker-entrypoint-initdb.d/server.{crt,key} "$PGDATA"
@@ -16,4 +15,4 @@ sed -ri "s/^#?(ssl\s*=\s*)\S+/\1'on'/" "$PGDATA/postgresql.conf"
 
 cat "$PGDATA"/postgresql.conf
 
-echo "INIT SCRIPT DONE!"
+echo "SSL INIT SCRIPT DONE."
