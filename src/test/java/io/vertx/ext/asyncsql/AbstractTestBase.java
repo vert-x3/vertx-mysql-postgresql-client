@@ -16,6 +16,7 @@ import org.junit.runner.RunWith;
 public abstract class AbstractTestBase {
 
   protected SQLClient client;
+  protected SQLClient clientNoDatabase;
   protected static Vertx vertx;
   protected SQLConnection conn;
 

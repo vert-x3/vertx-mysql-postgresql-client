@@ -38,6 +38,12 @@ public class PostgreSQLClientTest extends SQLTestBase {
         new JsonObject()
             .put("host", System.getProperty("db.host", "localhost"))
     );
+    clientNoDatabase = PostgreSQLClient.createNonShared(vertx,
+      new JsonObject()
+        .put("host", System.getProperty("db.host", "localhost"))
+        .put("port", 65000)
+        .put("maxPoolSize", 2)
+    );
   }
 
   // Configure the expected time used in the date test
