@@ -16,9 +16,10 @@ env:
   - secure: jGsaoOfcLzrHgsfIJBLTnhxO6C+4+qRYRMsLG1oJY4DfPZOqa78ShrL50kns15WDt9PkVq4ddPfINJrA5PmN3e0evupPRRDh1mcbvDjK9d4Mldyl5IJxRKL2lvPenC+EujOegVr9jp7Jv6QwI9mc4SJjzwA65uB96K5zvbEmUF0=
 before_install:
 - cp .travis.maven.settings.xml $HOME/.m2/settings.xml
-- sudo /etc/init.d/mysql stop 
+- sudo /etc/init.d/mysql stop
 - sudo /etc/init.d/postgresql stop
 - docker run -e POSTGRES_USER=vertx -e POSTGRES_PASSWORD=password -e POSTGRES_DB=testdb -p 5432:5432 -d postgres
+- docker run -e POSTGRES_USER=vertx -e POSTGRES_PASSWORD=password -e POSTGRES_DB=testdb -p 54321:5432 -d -v $(pwd)/src/test/resources/ssl-docker/server.crt:/docker-entrypoint-initdb.d/server.crt -v $(pwd)/src/test/resources/ssl-docker/server.key:/docker-entrypoint-initdb.d/server.key -v $(pwd)/src/test/resources/ssl-docker/init.sh:/docker-entrypoint-initdb.d/init.sh postgres
 - docker run -e MYSQL_ROOT_PASSWORD=password -e MYSQL_USER=vertx -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=testdb -p 3306:3306 -d mysql/mysql-server:5.6
 install: true
 script:
