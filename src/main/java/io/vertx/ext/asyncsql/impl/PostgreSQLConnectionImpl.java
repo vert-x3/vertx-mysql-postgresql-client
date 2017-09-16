@@ -20,10 +20,4 @@ public class PostgreSQLConnectionImpl extends AsyncSQLConnectionImpl {
     // TODO: consider the tx isolation level
     return "BEGIN";
   }
-
-    @Override
-  protected UpdateResult queryResultToUpdateResult(QueryResult qr) {
-    int affected = (int) qr.rowsAffected();
-    return new UpdateResult(affected, new JsonArray());
-  }
 }

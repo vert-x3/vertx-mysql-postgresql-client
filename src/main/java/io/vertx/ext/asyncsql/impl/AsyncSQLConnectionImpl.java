@@ -354,7 +354,9 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
 
   protected UpdateResult queryResultToUpdateResult(QueryResult qr) {
     int affected = (int) qr.rowsAffected();
-    return new UpdateResult(affected, new JsonArray());
+    JsonArray keys = queryResultToResultSet(qr).getResults().stream()
+      .reduce(new JsonArray(), JsonArray::add);
+    return new UpdateResult(affected, keys);
   }
 
   private List<JsonArray> rowDataSeqToJsonArray(com.github.mauricio.async.db.ResultSet set) {
