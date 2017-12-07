@@ -112,7 +112,6 @@ public class PostgreSQLTest extends AbstractTestBase {
           ensureSuccess(context, ar2);
           conn.query("INSERT INTO test_table DEFAULT VALUES RETURNING id", ar3 -> {
             ensureSuccess(context, ar3);
-            System.out.println("result: " + ar3.result().toJson().encode());
             final long id = ar3.result().getResults().get(0).getLong(0);
             conn.updateWithParams("UPDATE test_table SET numcol = ? WHERE id = ?", new JsonArray().add(1234).add(id), ar4 -> {
               ensureSuccess(context, ar4);
@@ -145,7 +144,6 @@ public class PostgreSQLTest extends AbstractTestBase {
               context.assertNotNull(arraySelect.getResults());
               List<JsonArray> results = arraySelect.getResults();
               JsonArray resultRow = results.get(0);
-              System.out.println(resultRow.toString());
               context.assertEquals(resultRow.getJsonArray(0), new JsonArray("[10000,10000,10000,10000]"));
               context.assertEquals(resultRow.getJsonArray(1), new JsonArray("[[\"meeting\",\"lunch\"],[\"training\",\"presentation\"]]"));
               async.complete();
@@ -155,5 +153,5 @@ public class PostgreSQLTest extends AbstractTestBase {
       }));
     });
   }
-  
+
 }
