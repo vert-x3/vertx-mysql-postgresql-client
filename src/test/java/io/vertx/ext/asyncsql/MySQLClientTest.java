@@ -115,6 +115,18 @@ public class MySQLClientTest extends SQLTestBase {
   }
 
   @Override
+  protected void compareTimeStrings(TestContext context, Object result, String expected) {
+    String[] values = expected.split("[:.]");
+    int hours = Integer.parseInt(values[0]);
+    int minutes = Integer.parseInt(values[1]);
+    int seconds = Integer.parseInt(values[2]);
+    int millis = Integer.parseInt(values[3]);
+
+    String resultStr = String.format("%d:%01d:%01d.%03d", hours, minutes, seconds, millis);
+    context.assertEquals(resultStr, expected);
+  }
+
+  @Override
   protected String createByteArray1TableColumn() {
     return "BIT(1)";
   }
