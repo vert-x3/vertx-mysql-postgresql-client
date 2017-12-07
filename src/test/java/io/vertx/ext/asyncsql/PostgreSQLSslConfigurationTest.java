@@ -106,4 +106,53 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
     });
   }
 
+
+  @Test
+  public void testPreferSslConfiguration(TestContext context) {
+    Async async = context.async();
+    SQLClient clientSsl = createClient(vertx,
+      new JsonObject()
+        .put("host", System.getProperty("db.host", "localhost"))
+        .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
+        .put("sslMode", "prefer")
+    );
+    SQLClient clientNoSsl = createClient(vertx,
+      new JsonObject()
+        .put("host", System.getProperty("db.host", "localhost"))
+        .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
+        .put("sslMode", "prefer")
+    );
+
+    System.out.println("testPreferSslConfiguration");
+
+    clientSsl.getConnection(sqlConnectionAsyncResult -> {
+      context.assertTrue(sqlConnectionAsyncResult.succeeded());
+      conn = sqlConnectionAsyncResult.result();
+      System.out.println("testPreferSslConfiguration step2");
+      conn.query("SELECT 1", ar -> {
+        System.out.println("testPreferSslConfiguration callback2");
+        if (ar.failed()) {
+          context.fail("Should not fail on ssl connection");
+        } else {
+          System.out.println("testPreferSslConfiguration SSL OK");
+
+          clientNoSsl.getConnection(sqlConnectionAsyncResult2 -> {
+            context.assertTrue(sqlConnectionAsyncResult2.succeeded());
+            conn = sqlConnectionAsyncResult2.result();
+            System.out.println("testPreferSslConfiguration step3");
+            conn.query("SELECT 1", ar2 -> {
+              System.out.println("testPreferSslConfiguration callback4");
+              if (ar2.failed()) {
+                context.fail("Should not fail on non-ssl connection");
+              } else {
+                System.out.println("testPreferSslConfiguration non-SSL OK");
+                System.out.println("testPreferSslConfiguration all good!");
+                async.complete();
+              }
+            });
+          });
+        }
+      });
+    });
+  }
 }
