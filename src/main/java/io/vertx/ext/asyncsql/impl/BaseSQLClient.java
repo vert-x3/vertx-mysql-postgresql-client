@@ -30,7 +30,9 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
 import scala.Option;
+import scala.Tuple2;
 import scala.collection.Map$;
+import scala.collection.immutable.Map;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
 
@@ -117,6 +119,8 @@ public abstract class BaseSQLClient {
     Option<Duration> queryTimeoutOption = (queryTimeout == null) ?
       Option.empty() : Option.apply(Duration.apply(queryTimeout, TimeUnit.MILLISECONDS));
 
+    Map<String, String> sslConfig = buildSslConfig(config);
+
     log.info("Creating configuration for " + host + ":" + port);
     return new Configuration(
       username,
@@ -124,7 +128,7 @@ public abstract class BaseSQLClient {
       port,
       Option.apply(password),
       Option.apply(database),
-      SSLConfiguration.apply(Map$.MODULE$.empty()),
+      SSLConfiguration.apply(sslConfig),
       charset,
       16777216,
       PooledByteBufAllocator.DEFAULT,
@@ -133,5 +137,15 @@ public abstract class BaseSQLClient {
       queryTimeoutOption);
   }
 
+  private Map<String, String> buildSslConfig(JsonObject config) {
+    Map<String, String> sslConfig = Map$.MODULE$.empty();
+    if (config.getString("sslMode")!= null) {
+      sslConfig = sslConfig.$plus(Tuple2.apply("sslmode", config.getString("sslMode")));
+    }
+    if (config.getString("sslRootCert") != null) {
+      sslConfig = sslConfig.$plus(Tuple2.apply("sslrootcert", config.getString("sslRootCert")));
+    }
+    return sslConfig;
+  }
 
 }
