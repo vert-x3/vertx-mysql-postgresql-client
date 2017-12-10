@@ -122,7 +122,8 @@ public final class ScalaUtils {
     } else if (value instanceof LocalTime) {
       array.add(value.toString());
     } else if (value instanceof FiniteDuration) {
-      array.add(((FiniteDuration) value).toMillis());
+      String time = durationToString(((FiniteDuration) value).toMillis());
+      array.add(time);
     } else if (value instanceof DateTime) {
       array.add(Instant.ofEpochMilli(((DateTime) value).getMillis()));
     } else if (value instanceof UUID) {
@@ -145,4 +146,11 @@ public final class ScalaUtils {
     }
   }
 
+  private static String durationToString(long allInMillis) {
+    long hours = allInMillis / 1000 / 60 / 60;
+    long minutes = allInMillis / 1000 / 60 % 60;
+    long seconds = allInMillis / 1000 % 60;
+    long millis = allInMillis % 1000;
+    return String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millis);
+  }
 }
