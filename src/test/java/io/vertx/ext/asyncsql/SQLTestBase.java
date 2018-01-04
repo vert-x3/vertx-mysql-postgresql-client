@@ -33,8 +33,11 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -671,7 +674,6 @@ public abstract class SQLTestBase extends AbstractTestBase {
             ar4 -> conn.execute("COMMIT", handler)))));
   }
 
-
   private static final String CREATE_TABLE_STATEMENT = "CREATE TABLE test_table " +
     "(id BIGINT, name VARCHAR(255))";
 
@@ -695,17 +697,6 @@ public abstract class SQLTestBase extends AbstractTestBase {
             final SQLRowStream res = ar3.result();
             context.assertNotNull(res);
 
-            // assert that we have columns and they are valid
-            assertNotNull(res.columns());
-            assertEquals(Arrays.asList("name", "id"), res.columns());
-            // assert the collection is immutable
-            try {
-              res.columns().add("durp!");
-              fail();
-            } catch (RuntimeException e) {
-              // expected!
-            }
-
             final AtomicInteger count = new AtomicInteger();
 
             res
@@ -714,6 +705,110 @@ public abstract class SQLTestBase extends AbstractTestBase {
               })
               .endHandler(v -> {
                 context.assertEquals(Data.NAMES.size(), count.get());
+                async.complete();
+              });
+          }
+        });
+      });
+    });
+  }
+
+  private void setupTestTable(SQLConnection conn, Supplier<String> idNameValuesSupplier, Handler<AsyncResult<Void>> handler) {
+    conn.execute("BEGIN",
+      ar -> conn.execute("DROP TABLE IF EXISTS test_table",
+        ar2 -> conn.execute(CREATE_TABLE_STATEMENT,
+          ar3 -> conn.update("INSERT INTO test_table (id, name) VALUES " + idNameValuesSupplier.get(),
+            ar4 -> conn.execute("COMMIT", handler)))));
+  }
+
+  @Test
+  public void testColumnsFromStream(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      // Create table
+      conn = ar.result();
+      setupTestTable(conn, () -> "(1,'NOTHING')", ar2 -> {
+        conn.queryStream("SELECT name, id FROM test_table ORDER BY name ASC", ar3 -> {
+          if (ar3.failed()) {
+            context.fail(ar3.cause());
+          } else {
+            final SQLRowStream res = ar3.result();
+            context.assertNotNull(res);
+
+            // assert that we have columns and they are valid
+            assertNotNull(res.columns());
+            assertEquals(Arrays.asList("name", "id"), res.columns());
+
+            // assert the collection is immutable
+            try {
+              res.columns().add("durp!");
+              fail();
+            } catch (RuntimeException e) {
+              // expected!
+            }
+          }
+          async.complete();
+        });
+      });
+    });
+  }
+
+  @Test
+  public void testLongStream(TestContext context) {
+    final int NUM_ROWS = 10000;
+    Async async = context.async();
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      // Create and populate table
+      conn = ar.result();
+
+      Map<Integer, String> data = new HashMap<>();
+      for (int i=0; i<NUM_ROWS; i++) {
+        data.put(i, Integer.toString(i));
+      }
+
+      setupTestTable(conn, () -> {
+          StringBuilder builder = new StringBuilder();
+          for (int i=0; i<NUM_ROWS; i++) {
+            if (i > 0) {
+              builder.append(",");
+            }
+            builder.append("(")
+              .append(i)
+              .append(",'")
+              .append(data.get(i))
+              .append("')");
+          }
+          return builder.toString();
+        }, ar2 -> {
+
+        conn.queryStream("SELECT id, name FROM test_table ORDER BY id ASC", ar3 -> {
+          if (ar3.failed()) {
+            context.fail(ar3.cause());
+          } else {
+            final SQLRowStream res = ar3.result();
+            context.assertNotNull(res);
+
+            final AtomicInteger count = new AtomicInteger();
+
+            res
+              .handler(row -> {
+                int rowNum = count.getAndIncrement();
+                context.assertEquals(rowNum, row.getInteger(0));
+                context.assertEquals(data.get(rowNum), row.getString(1));
+
+              })
+              .endHandler(v -> {
+                context.assertEquals(NUM_ROWS, count.get());
                 async.complete();
               });
           }

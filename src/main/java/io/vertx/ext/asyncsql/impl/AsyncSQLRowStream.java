@@ -93,10 +93,9 @@ class AsyncSQLRowStream implements SQLRowStream {
   }
 
   private void nextRow() {
-    if (!paused.get()) {
+    while (!paused.get()) {
       if (cursor.hasNext()) {
         handler.handle(ScalaUtils.rowToJsonArray(cursor.next()));
-        nextRow();
       } else {
         // mark as ended if the handler was registered too late
         ended.set(true);
@@ -112,6 +111,7 @@ class AsyncSQLRowStream implements SQLRowStream {
             }
           });
         }
+        break;
       }
     }
   }
