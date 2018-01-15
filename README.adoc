@@ -36,6 +36,10 @@ docker run --rm --name vertx-postgres-ssl -p 54321:5432 \
   postgres
 ----
 
+NOTE: If you're working with Fedora, CentOS or RHEL and have selinux enabled, you need to add `:z` to the volume options.
+Otherwise Postgres won't be able to read the SSL setup files.
+For more details, read http://www.projectatomic.io/blog/2015/06/using-volumes-with-docker-can-cause-problems-with-selinux/[Using Volumes with Docker can Cause Problems with SELinux].
+
 ----
 docker run --rm --name vertx-mysql -e MYSQL_ROOT_PASSWORD=password -e MYSQL_USER=vertx -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=testdb -p 3306:3306 mysql/mysql-server:5.6
 ----
