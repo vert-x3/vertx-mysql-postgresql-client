@@ -6,6 +6,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
@@ -14,6 +16,11 @@ import java.util.List;
  * Tests the configuration options of the PostgreSQL client.
  */
 public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
+
+  @Before
+  public void areSslTestsIgnored() {
+    Assume.assumeFalse(Boolean.getBoolean("skipPostgresSslConfigTest"));
+  }
 
   @Override
   protected SQLClient createClient(Vertx vertx, JsonObject config) {

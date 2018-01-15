@@ -19,6 +19,7 @@
     <asyncdriver.version>0.2.21</asyncdriver.version>
     <codegen.rxjava.deprecated>true</codegen.rxjava.deprecated>
     <host>localhost</host>
+    <skipPostgresSslConfigTest>false</skipPostgresSslConfigTest>
   </properties>
 
   <dependencyManagement>
@@ -168,6 +169,7 @@
             <vertx.test.timeout>60</vertx.test.timeout>
             <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
             <db.host>${host}</db.host>
+            <skipPostgresSslConfigTest>${skipPostgresSslConfigTest}</skipPostgresSslConfigTest>
           </systemPropertyVariables>
           <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
         </configuration>
