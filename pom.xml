@@ -15,7 +15,7 @@
 
   <properties>
     <stack.version>3.5.1-SNAPSHOT</stack.version>
-    <scala.version>2.12.3</scala.version>
+    <scala.version>2.12.4</scala.version>
     <asyncdriver.version>0.2.21</asyncdriver.version>
     <codegen.rxjava.deprecated>true</codegen.rxjava.deprecated>
     <host>localhost</host>
