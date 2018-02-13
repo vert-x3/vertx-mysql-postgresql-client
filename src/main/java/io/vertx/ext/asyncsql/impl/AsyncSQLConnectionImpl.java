@@ -24,12 +24,19 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
-import io.vertx.ext.sql.*;
+import io.vertx.ext.sql.ResultSet;
+import io.vertx.ext.sql.SQLConnection;
+import io.vertx.ext.sql.SQLOptions;
+import io.vertx.ext.sql.SQLRowStream;
+import io.vertx.ext.sql.TransactionIsolation;
+import io.vertx.ext.sql.UpdateResult;
 import scala.Option;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
@@ -302,11 +309,14 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   private Handler<AsyncResult<QueryResult>> handleAsyncQueryResultToResultSet(Handler<AsyncResult<ResultSet>> handler) {
     return ar -> {
       if (ar.succeeded()) {
+        ResultSet result;
         try {
-          handler.handle(Future.succeededFuture(queryResultToResultSet(ar.result())));
+          result = queryResultToResultSet(ar.result());
         } catch (Throwable e) {
           handler.handle(Future.failedFuture(e));
+          return;
         }
+        handler.handle(Future.succeededFuture(result));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }
@@ -316,11 +326,14 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   private Handler<AsyncResult<QueryResult>> handleAsyncQueryResultToRowStream(Handler<AsyncResult<SQLRowStream>> handler) {
     return ar -> {
       if (ar.succeeded()) {
+        AsyncSQLRowStream rowStream;
         try {
-          handler.handle(Future.succeededFuture(new AsyncSQLRowStream(ar.result())));
+          rowStream = new AsyncSQLRowStream(ar.result());
         } catch (Throwable e) {
           handler.handle(Future.failedFuture(e));
+          return;
         }
+        handler.handle(Future.succeededFuture(rowStream));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }
@@ -341,11 +354,14 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   private Handler<AsyncResult<QueryResult>> handleAsyncUpdateResultToResultSet(Handler<AsyncResult<UpdateResult>> handler) {
     return ar -> {
       if (ar.succeeded()) {
+        UpdateResult result;
         try {
-          handler.handle(Future.succeededFuture(queryResultToUpdateResult(ar.result())));
+          result = queryResultToUpdateResult(ar.result());
         } catch (Throwable e) {
           handler.handle(Future.failedFuture(e));
+          return;
         }
+        handler.handle(Future.succeededFuture(result));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }

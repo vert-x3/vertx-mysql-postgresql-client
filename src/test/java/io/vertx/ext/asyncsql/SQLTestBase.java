@@ -37,8 +37,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import static java.util.concurrent.TimeUnit.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
@@ -857,4 +859,44 @@ public abstract class SQLTestBase extends AbstractTestBase {
     clientNoDatabase.getConnection(handler);
   }
 
+  @Test
+  public void testUnhandledExceptionInHandlerResultSet(TestContext testContext) {
+    this.<ResultSet>testUnhandledExceptionInHandler(testContext, (sqlConnection, handler) -> {
+      sqlConnection.query("SELECT name FROM test_table", handler);
+    });
+  }
+
+  @Test
+  public void testUnhandledExceptionInHandlerRowStream(TestContext testContext) {
+    this.<SQLRowStream>testUnhandledExceptionInHandler(testContext, (sqlConnection, handler) -> {
+      sqlConnection.queryStream("SELECT name FROM test_table", handler);
+    });
+  }
+
+  @Test
+  public void testUnhandledExceptionInHandlerUpdateResult(TestContext testContext) {
+    this.<UpdateResult>testUnhandledExceptionInHandler(testContext, (sqlConnection, handler) -> {
+      sqlConnection.update("INSERT INTO test_table (name) VALUES ('pimpo')", handler);
+    });
+  }
+
+  private <T> void testUnhandledExceptionInHandler(TestContext testContext, BiConsumer<SQLConnection, Handler<AsyncResult<T>>> testMethod) {
+    AtomicInteger count = new AtomicInteger();
+    Async async = testContext.async();
+    Context context = vertx.getOrCreateContext();
+    context.exceptionHandler(t -> {
+      async.complete();
+    }).runOnContext(v -> {
+      client.getConnection(testContext.asyncAssertSuccess(connection -> {
+        setupSimpleTable(connection, testContext.asyncAssertSuccess(st -> {
+          testMethod.accept(connection, ar -> {
+            count.incrementAndGet();
+            throw new IndexOutOfBoundsException();
+          });
+        }));
+      }));
+    });
+    async.await(MILLISECONDS.convert(5, SECONDS));
+    assertEquals(1, count.get());
+  }
 }
