@@ -205,11 +205,13 @@ Both the PostgreSql and MySql clients take the same configuration:
 `host`:: The host of the database. Defaults to `localhost`.
 `port`:: The port of the database. Defaults to `5432` for PostgreSQL and `3306` for MySQL.
 `maxPoolSize`:: The number of connections that may be kept open. Defaults to `10`.
-`username`:: The username to connect to the database. Defaults to `postgres` for PostgreSQL and `root` for MySQL.
-`password`:: The password to connect to the database. Default is not set, i.e. it uses no password.
+`username`:: The username to connect to the database. Defaults to `vertx`.
+`password`:: The password to connect to the database. Defaults to `password`.
 `database`:: The name of the database you want to connect to. Defaults to `testdb`.
 `charset`:: The name of the character set you want to use for the connection. Defaults to `UTF-8`.
-`queryTimeout`:: The timeout to wait for a query in milliseconds. Defaults to `10000` (= 10 seconds).
+`connectTimeout`:: The timeout to wait for connecting to the database. Defaults to `10000` (= 10 seconds).
+`testTimeout`:: The timeout for connection tests performed by pools. Defaults to `10000` (= 10 seconds).
+`queryTimeout`:: The timeout to wait for a query in milliseconds. Default is not set.
 `sslMode` :: If you want to enable SSL support you should enable this parameter.
              For example to connect Heroku you will need to use *prefer*.
 
