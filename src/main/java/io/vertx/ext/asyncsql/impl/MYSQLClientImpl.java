@@ -34,10 +34,9 @@ public class MYSQLClientImpl extends BaseSQLClient {
 
   private final MysqlAsyncConnectionPool pool;
 
-  public MYSQLClientImpl(Vertx vertx,
-                         JsonObject config) {
-    super(vertx, config);
-    pool = new MysqlAsyncConnectionPool(vertx, maxPoolSize, getConfiguration(
+  public MYSQLClientImpl(Vertx vertx, JsonObject globalConfig) {
+    super(vertx, globalConfig);
+    pool = new MysqlAsyncConnectionPool(vertx, globalConfig, getConnectionConfiguration(
         MySQLClient.DEFAULT_HOST,
         MySQLClient.DEFAULT_PORT,
         MySQLClient.DEFAULT_DATABASE,
@@ -46,7 +45,7 @@ public class MYSQLClientImpl extends BaseSQLClient {
         MySQLClient.DEFAULT_CHARSET,
         MySQLClient.DEFAULT_CONNECT_TIMEOUT,
         MySQLClient.DEFAULT_TEST_TIMEOUT,
-        config));
+        globalConfig));
   }
 
   @Override

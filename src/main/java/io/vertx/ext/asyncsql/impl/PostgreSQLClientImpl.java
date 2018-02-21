@@ -17,9 +17,6 @@
 package io.vertx.ext.asyncsql.impl;
 
 import com.github.mauricio.async.db.Connection;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.PostgreSQLClient;
@@ -37,9 +34,9 @@ public class PostgreSQLClientImpl extends BaseSQLClient {
 
   private final PostgresqlAsyncConnectionPool pool;
 
-  public PostgreSQLClientImpl(Vertx vertx, JsonObject config) {
-    super(vertx, config);
-    pool = new PostgresqlAsyncConnectionPool(vertx, maxPoolSize, getConfiguration(
+  public PostgreSQLClientImpl(Vertx vertx, JsonObject globalConfig) {
+    super(vertx, globalConfig);
+    pool = new PostgresqlAsyncConnectionPool(vertx, globalConfig, getConnectionConfiguration(
         PostgreSQLClient.DEFAULT_HOST,
         PostgreSQLClient.DEFAULT_PORT,
         PostgreSQLClient.DEFAULT_DATABASE,
@@ -48,7 +45,7 @@ public class PostgreSQLClientImpl extends BaseSQLClient {
         PostgreSQLClient.DEFAULT_CHARSET,
         PostgreSQLClient.DEFAULT_CONNECT_TIMEOUT,
         PostgreSQLClient.DEFAULT_TEST_TIMEOUT,
-        config));
+        globalConfig));
   }
 
   @Override

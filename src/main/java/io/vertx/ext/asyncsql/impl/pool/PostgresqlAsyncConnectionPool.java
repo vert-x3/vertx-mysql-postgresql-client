@@ -22,6 +22,7 @@ import com.github.mauricio.async.db.postgresql.PostgreSQLConnection;
 import com.github.mauricio.async.db.postgresql.column.PostgreSQLColumnDecoderRegistry;
 import com.github.mauricio.async.db.postgresql.column.PostgreSQLColumnEncoderRegistry;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.impl.VertxEventLoopExecutionContext;
 
 /**
@@ -31,14 +32,14 @@ import io.vertx.ext.asyncsql.impl.VertxEventLoopExecutionContext;
  */
 public class PostgresqlAsyncConnectionPool extends AsyncConnectionPool {
 
-  public PostgresqlAsyncConnectionPool(Vertx vertx, int maxPoolSize, Configuration configuration) {
-    super(vertx, maxPoolSize, configuration);
+  public PostgresqlAsyncConnectionPool(Vertx vertx, JsonObject globalConfig, Configuration connectionConfig) {
+    super(vertx, globalConfig, connectionConfig);
   }
 
   @Override
   protected Connection create() {
     return new PostgreSQLConnection(
-        configuration,
+        connectionConfig,
         PostgreSQLColumnEncoderRegistry.Instance(),
         PostgreSQLColumnDecoderRegistry.Instance(),
         vertx.nettyEventLoopGroup().next(),
