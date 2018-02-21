@@ -204,6 +204,32 @@ other SQL clients.
 
 You can learn how to use it in the http://vertx.io/docs/vertx-sql-common/js/[common sql interface] documentation.
 
+=== Configuring reconnections
+
+This service is able to recover from temporary database outages, such as those which occur during a database restart or
+brief loss of network connectivity. You can configure the expected behaviour when acquiring connections via the
+following properties:
+
+* `maxConnectionRetries`
+* `connectionRetryDelay`
+
+When the internal connection pool attempts to acquire an open connection and fails, it will retry up to
+`maxConnectionRetries` times, with a delay of `connectionRetryDelay` milliseconds between each attempt.
+If all attempts fail, any clients waiting for connections from the pool will be notified with an Error, indicating that
+a Connection could not be acquired. Note that clients will not be notified with an Error until a full round of attempts
+fail, which may be some time after the initial connection attempt.
+
+If `maxConnectionRetries` is set to `0`, the internal connection pool will not perform any reconnection (default). If
+`maxConnectionRetries` is set to `-1`, the internal connection pool will attempt to acquire new connections indefinitely,
+so any call to `link:../../apidocs/io/vertx/ext/sql/SQLClient.html#getConnection-io.vertx.core.Handler-[getConnection]`
+may be indefinitely waiting for a successful acquisition.
+
+Once a full round of acquisition attempts fails, the internal connection pool will remain active, and will try
+again to acquire connections in response to future requests for connections.
+
+Note that if a database restart occurs, a pool may contain previously acquired but now stale Connections that will only be
+detected and purged lazily, when the pool attempts to reuse them.
+
 === Note about date and timestamps
 
 Whenever you get dates back from the database, this service will implicitly convert them into ISO 8601
@@ -234,7 +260,11 @@ Both the PostgreSql and MySql clients take the same configuration:
   "password" : <your-password>,
   "database" : <name-of-your-database>,
   "charset" : <name-of-the-character-set>,
+  "connectTimeout" : <timeout-in-milliseconds>,
+  "testTimeout" : <timeout-in-milliseconds>,
   "queryTimeout" : <timeout-in-milliseconds>,
+  "maxConnectionRetries" : <maximum-number-of-connection-retries>,
+  "connectionRetryDelay" : <delay-in-milliseconds>,
   "sslMode" : <"disable"|"prefer"|"require"|"verify-ca"|"verify-full">,
   "sslRootCert" : <path to file with certificate>
 }
@@ -250,6 +280,11 @@ Both the PostgreSql and MySql clients take the same configuration:
 `connectTimeout`:: The timeout to wait for connecting to the database. Defaults to `10000` (= 10 seconds).
 `testTimeout`:: The timeout for connection tests performed by pools. Defaults to `10000` (= 10 seconds).
 `queryTimeout`:: The timeout to wait for a query in milliseconds. Default is not set.
+`maxConnectionRetries`:: Maximum number of connection retries. Defaults to `0` (no retries). +
+   Special values:
+   -1 ::: Unlimited number of connection retries
+   0  ::: No connection retries will be done
+`connectionRetryDelay`:: Delay in milliseconds between each retry attempt. Defaults to `5000` (= 5 seconds).
 `sslMode` :: If you want to enable SSL support you should enable this parameter.
              For example to connect Heroku you will need to use *prefer*.
 
