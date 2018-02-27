@@ -67,7 +67,7 @@ You do this as follows:
 
 [source,java]
 ----
-{@link examples.Examples#exampleCreateDefault}
+{@link examples.MySQLPostgreSQLExamples#exampleCreateDefault}
 ----
 
 The first call to {@link io.vertx.ext.asyncsql.MySQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject)}
@@ -82,7 +82,7 @@ You can create a client specifying a pool name as follows
 
 [source,java]
 ----
-{@link examples.Examples#exampleCreatePoolName}
+{@link examples.MySQLPostgreSQLExamples#exampleCreatePoolName}
 ----
 
 If different clients are created using the same Vert.x instance and specifying the same pool name, they will
@@ -107,7 +107,7 @@ or {@link io.vertx.ext.asyncsql.PostgreSQLClient#createNonShared(io.vertx.core.V
 
 [source,java]
 ----
-{@link examples.Examples#exampleCreateNonShared}
+{@link examples.MySQLPostgreSQLExamples#exampleCreateNonShared}
 ----
 
 This is equivalent to calling {@link io.vertx.ext.asyncsql.MySQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject, String)}
@@ -128,7 +128,7 @@ This will return the connection in the handler when one is ready from the pool.
 
 [source,java]
 ----
-{@link examples.Examples#example4}
+{@link examples.MySQLPostgreSQLExamples#example4}
 ----
 
 Once you've finished with the connection make sure you close it afterwards.
