@@ -3,7 +3,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-ext-parent</artifactId>
-    <version>28</version>
+    <version>30</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -89,11 +89,6 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-lang-groovy</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-lang-kotlin</artifactId>
       <optional>true</optional>
     </dependency>
     <dependency>

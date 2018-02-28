@@ -27,7 +27,7 @@ import io.vertx.ext.sql.SQLConnection;
   *
   * @author <a href="http://tfox.org">Tim Fox</a>
   */
-public class Examples {
+public class MySQLPostgreSQLExamples {
 
   public void exampleCreateDefault(Vertx vertx) {
 

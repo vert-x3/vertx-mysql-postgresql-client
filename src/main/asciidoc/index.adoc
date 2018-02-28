@@ -15,7 +15,7 @@ application.
 
 To use this client, you need to add the following jar to your `CLASSPATH`:
 
-* vertx-mysql-postgresql-client 3.5.1 (the client)
+* ${maven.artifactId} ${maven.version} (the client)
 * scala-library 2.11.4
 * the postgress-async-2.11 and mysdql-async-2.11 from https://github.com/mauricio/postgresql-async
 * joda time
@@ -31,9 +31,9 @@ If you are building a _Fat-jar_ using Maven or Gradle, just add the following de
 [source,xml,subs="+attributes"]
 ----
 <dependency>
-  <groupId>io.vertx</groupId>
-  <artifactId>vertx-mysql-postgresql-client</artifactId>
-  <version>3.5.1</version>
+  <groupId>${maven.groupId}</groupId>
+  <artifactId>${maven.artifactId}</artifactId>
+  <version>${maven.version}</version>
 </dependency>
 ----
 
@@ -41,7 +41,7 @@ If you are building a _Fat-jar_ using Maven or Gradle, just add the following de
 
 [source,groovy,subs="+attributes"]
 ----
-compile 'io.vertx:vertx-mysql-postgresql-client:3.5.1'
+compile '${maven.groupId}:${maven.artifactId}:${maven.version}'
 ----
 
 === In an application using a vert.x distributions
@@ -67,17 +67,11 @@ You do this as follows:
 
 [source,java]
 ----
-JsonObject mySQLClientConfig = new JsonObject().put("host", "mymysqldb.mycompany");
-SQLClient mySQLClient = MySQLClient.createShared(vertx, mySQLClientConfig);
-
-// To create a PostgreSQL client:
-
-JsonObject postgreSQLClientConfig = new JsonObject().put("host", "mypostgresqldb.mycompany");
-SQLClient postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConfig);
+{@link examples.MySQLPostgreSQLExamples#exampleCreateDefault}
 ----
 
-The first call to `link:../../apidocs/io/vertx/ext/asyncsql/MySQLClient.html#createShared-io.vertx.core.Vertx-io.vertx.core.json.JsonObject-[MySQLClient.createShared]`
-or `link:../../apidocs/io/vertx/ext/asyncsql/PostgreSQLClient.html#createShared-io.vertx.core.Vertx-io.vertx.core.json.JsonObject-[PostgreSQLClient.createShared]`
+The first call to {@link io.vertx.ext.asyncsql.MySQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject)}
+or {@link io.vertx.ext.asyncsql.PostgreSQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject)}
 will actually create the data source, and the specified config will be used.
 
 Subsequent calls will return a new client instance that uses the same data source, so the configuration won't be used.
@@ -88,20 +82,14 @@ You can create a client specifying a pool name as follows
 
 [source,java]
 ----
-JsonObject mySQLClientConfig = new JsonObject().put("host", "mymysqldb.mycompany");
-SQLClient mySQLClient = MySQLClient.createShared(vertx, mySQLClientConfig, "MySQLPool1");
-
-// To create a PostgreSQL client:
-
-JsonObject postgreSQLClientConfig = new JsonObject().put("host", "mypostgresqldb.mycompany");
-SQLClient postgreSQLClient = PostgreSQLClient.createShared(vertx, postgreSQLClientConfig, "PostgreSQLPool1");
+{@link examples.MySQLPostgreSQLExamples#exampleCreatePoolName}
 ----
 
 If different clients are created using the same Vert.x instance and specifying the same pool name, they will
 share the same data source.
 
-The first call to `link:../../apidocs/io/vertx/ext/asyncsql/MySQLClient.html#createShared-io.vertx.core.Vertx-io.vertx.core.json.JsonObject-java.lang.String-[MySQLClient.createShared]`
-or `link:../../apidocs/io/vertx/ext/asyncsql/PostgreSQLClient.html#createShared-io.vertx.core.Vertx-io.vertx.core.json.JsonObject-java.lang.String-[PostgreSQLClient.createShared]`
+The first call to {@link io.vertx.ext.asyncsql.MySQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject, String)}
+or {@link io.vertx.ext.asyncsql.PostgreSQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject, String)}
 will actually create the data source, and the specified config will be used.
 
 Subsequent calls will return a new client instance that uses the same pool, so the configuration won't be used.
@@ -114,57 +102,41 @@ interacting with different databases.
 In most cases you will want to share a pool between different client instances.
 However, it's possible you want to create a client instance that doesn't share its pool with any other client.
 
-In that case you can use `link:../../apidocs/io/vertx/ext/asyncsql/MySQLClient.html#createNonShared-io.vertx.core.Vertx-io.vertx.core.json.JsonObject-[MySQLClient.createNonShared]`
-or `link:../../apidocs/io/vertx/ext/asyncsql/PostgreSQLClient.html#createNonShared-io.vertx.core.Vertx-io.vertx.core.json.JsonObject-[PostgreSQLClient.createNonShared]`
+In that case you can use {@link io.vertx.ext.asyncsql.MySQLClient#createNonShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject)}
+or {@link io.vertx.ext.asyncsql.PostgreSQLClient#createNonShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject)}
 
 [source,java]
 ----
-JsonObject mySQLClientConfig = new JsonObject().put("host", "mymysqldb.mycompany");
-SQLClient mySQLClient = MySQLClient.createNonShared(vertx, mySQLClientConfig);
-
-// To create a PostgreSQL client:
-
-JsonObject postgreSQLClientConfig = new JsonObject().put("host", "mypostgresqldb.mycompany");
-SQLClient postgreSQLClient = PostgreSQLClient.createNonShared(vertx, postgreSQLClientConfig);
+{@link examples.MySQLPostgreSQLExamples#exampleCreateNonShared}
 ----
 
-This is equivalent to calling `link:../../apidocs/io/vertx/ext/asyncsql/MySQLClient.html#createShared-io.vertx.core.Vertx-io.vertx.core.json.JsonObject-java.lang.String-[MySQLClient.createShared]`
-or `link:../../apidocs/io/vertx/ext/asyncsql/PostgreSQLClient.html#createShared-io.vertx.core.Vertx-io.vertx.core.json.JsonObject-java.lang.String-[PostgreSQLClient.createShared]`
+This is equivalent to calling {@link io.vertx.ext.asyncsql.MySQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject, String)}
+or {@link io.vertx.ext.asyncsql.PostgreSQLClient#createShared(io.vertx.core.Vertx, io.vertx.core.json.JsonObject, String)}
 with a unique pool name each time.
 
 == Closing the client
 
 You can hold on to the client for a long time (e.g. the life-time of your verticle), but once you have finished with
-it, you should close it using `link:../../apidocs/io/vertx/ext/sql/SQLClient.html#close-io.vertx.core.Handler-[close]` or
-`link:../../apidocs/io/vertx/ext/sql/SQLClient.html#close--[close]`
+it, you should close it using {@link io.vertx.ext.asyncsql.AsyncSQLClient#close(io.vertx.core.Handler)} or
+{@link io.vertx.ext.asyncsql.AsyncSQLClient#close()}
 
 == Getting a connection
 
-Use `link:../../apidocs/io/vertx/ext/sql/SQLClient.html#getConnection-io.vertx.core.Handler-[getConnection]` to get a connection.
+Use {@link io.vertx.ext.asyncsql.AsyncSQLClient#getConnection(io.vertx.core.Handler)} to get a connection.
 
 This will return the connection in the handler when one is ready from the pool.
 
 [source,java]
 ----
-client.getConnection(res -> {
-  if (res.succeeded()) {
-
-    SQLConnection connection = res.result();
-
-    // Got a connection
-
-  } else {
-    // Failed to get connection - deal with it
-  }
-});
+{@link examples.MySQLPostgreSQLExamples#example4}
 ----
 
 Once you've finished with the connection make sure you close it afterwards.
 
-The connection is an instance of `link:../../apidocs/io/vertx/ext/sql/SQLConnection.html[SQLConnection]` which is a common interface used by
+The connection is an instance of {@link io.vertx.ext.sql.SQLConnection} which is a common interface used by
 other SQL clients.
 
-You can learn how to use it in the http://vertx.io/docs/vertx-sql-common/java/[common sql interface] documentation.
+You can learn how to use it in the http://vertx.io/docs/vertx-sql-common/$lang/[common sql interface] documentation.
 
 === Configuring reconnections
 
@@ -183,7 +155,7 @@ fail, which may be some time after the initial connection attempt.
 
 If `maxConnectionRetries` is set to `0`, the internal connection pool will not perform any reconnection (default). If
 `maxConnectionRetries` is set to `-1`, the internal connection pool will attempt to acquire new connections indefinitely,
-so any call to `link:../../apidocs/io/vertx/ext/sql/SQLClient.html#getConnection-io.vertx.core.Handler-[getConnection]`
+so any call to {@link io.vertx.ext.asyncsql.AsyncSQLClient#getConnection(io.vertx.core.Handler)}
 may be indefinitely waiting for a successful acquisition.
 
 Once a full round of acquisition attempts fails, the internal connection pool will remain active, and will try
@@ -248,7 +220,7 @@ Both the PostgreSql and MySql clients take the same configuration:
    0  ::: No connection retries will be done
 `connectionRetryDelay`:: Delay in milliseconds between each retry attempt. Defaults to `5000` (= 5 seconds).
 `sslMode` :: If you want to enable SSL support you should enable this parameter.
-             For example to connect Heroku you will need to use *prefer*.
+             For example to connect Heroku you will need to useprefer*.
 
    "disable" ::: only try a non-SSL connection
    "prefer"  ::: first try an SSL connection; if that fails, try a non-SSL connection
