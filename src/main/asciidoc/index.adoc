@@ -220,7 +220,7 @@ Both the PostgreSql and MySql clients take the same configuration:
    0  ::: No connection retries will be done
 `connectionRetryDelay`:: Delay in milliseconds between each retry attempt. Defaults to `5000` (= 5 seconds).
 `sslMode` :: If you want to enable SSL support you should enable this parameter.
-             For example to connect Heroku you will need to useprefer*.
+             For example to connect Heroku you will need to use *prefer*.
 
    "disable" ::: only try a non-SSL connection
    "prefer"  ::: first try an SSL connection; if that fails, try a non-SSL connection

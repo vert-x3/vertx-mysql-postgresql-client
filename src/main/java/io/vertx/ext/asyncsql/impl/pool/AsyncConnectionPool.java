@@ -73,9 +73,9 @@ public abstract class AsyncConnectionPool {
       public void handle(AsyncResult<Connection> connectionResult) {
         if (connectionResult.succeeded()) {
           handler.handle(connectionResult);
-        } else if (maxConnectionRetries<0 || retries<maxConnectionRetries) {
+        } else if (maxConnectionRetries < 0 || retries < maxConnectionRetries) {
           retries++;
-          logger.debug("Error creating connection. Waiting " + connectionRetryDelay + " ms for the retry " +
+          logger.debug("Error creating connection. Waiting " + connectionRetryDelay + " ms for retry " +
             retries + (maxConnectionRetries >= 0 ? " of " + maxConnectionRetries : ""));
           vertx.setTimer(connectionRetryDelay, timerId ->
             createAndConnect(this) // Try to connect again using this handler

@@ -13,7 +13,6 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-
 @ModuleGen(name = "vertx-mysql-postgresql", groupPackage = "io.vertx") package io.vertx.ext.asyncsql;
 
 import io.vertx.codegen.annotations.ModuleGen;

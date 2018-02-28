@@ -72,8 +72,9 @@ public class AsyncConnectionPoolTest {
 
     final Queue<Connection> connectionSet = new LinkedList<>();
     // Ask for 50 connections
-    for (int i=0 ; i<TEST_LENGTH ; i++) {
+    for (int i = 0; i < TEST_LENGTH; i++) {
       pool.take(result -> {
+        // We will decrease our CountDownLatch with each obtained connection
         countDownLatch.countDown();
         context.assertTrue(result.succeeded());
         connectionSet.add(result.result());
@@ -89,7 +90,7 @@ public class AsyncConnectionPoolTest {
     context.assertEquals(TEST_LENGTH - MAX_POOL_SIZE, (int)countDownLatch.getCount()); // Counter should be 35
 
     // We will give back the connections one by one. No new connections should be created
-    for (int i=MAX_POOL_SIZE+1 ; i<=TEST_LENGTH ; i++) {
+    for (int i = MAX_POOL_SIZE + 1; i <= TEST_LENGTH; i++) {
       pool.giveBack(connectionSet.poll());
       context.assertEquals(MAX_POOL_SIZE, pool.connectionAttempts);
       context.assertEquals(MAX_POOL_SIZE, pool.createdConnections);
@@ -136,7 +137,7 @@ public class AsyncConnectionPoolTest {
       context.assertEquals(MAX_RETRIES + 1, pool.connectionAttempts);
       context.assertEquals(0, pool.createdConnections);
 
-      // Verify the the Vert.x timer has been used 5 times (MAX_RETRIES
+      // Verify the the Vert.x timer has been used 5 times (MAX_RETRIES)
       Mockito.verify(vertx, Mockito.times(MAX_RETRIES)).setTimer(Mockito.eq(100L), Mockito.any());
       Mockito.verifyNoMoreInteractions(vertx);
 
@@ -171,7 +172,7 @@ public class AsyncConnectionPoolTest {
       context.assertEquals(MAX_RETRIES + 1, pool.connectionAttempts);
       context.assertEquals(1, pool.createdConnections);
 
-      // Verify the the Vert.x timer has been used 5 times (MAX_RETRIES
+      // Verify the the Vert.x timer has been used 5 times (MAX_RETRIES)
       Mockito.verify(vertx, Mockito.times(MAX_RETRIES)).setTimer(Mockito.eq(100L), Mockito.any());
       async.complete();
     });
