@@ -49,15 +49,11 @@ public abstract class BaseSQLClient {
   protected final Logger log = LoggerFactory.getLogger(this.getClass());
   protected final Vertx vertx;
 
-  protected int maxPoolSize;
-  protected int transactionTimeout;
-  protected String registerAddress;
+  protected final JsonObject globalConfig;
 
-  public BaseSQLClient(Vertx vertx, JsonObject config) {
+  public BaseSQLClient(Vertx vertx, JsonObject globalConfig) {
     this.vertx = vertx;
-    this.maxPoolSize = config.getInteger("maxPoolSize", 10);
-    this.transactionTimeout = config.getInteger("transactionTimeout", 500);
-    this.registerAddress = config.getString("address");
+    this.globalConfig = globalConfig;
   }
 
   protected abstract AsyncConnectionPool pool();
@@ -96,7 +92,7 @@ public abstract class BaseSQLClient {
     close(null);
   }
 
-  protected Configuration getConfiguration(
+  protected Configuration getConnectionConfiguration(
     String defaultHost,
     int defaultPort,
     String defaultDatabase,
