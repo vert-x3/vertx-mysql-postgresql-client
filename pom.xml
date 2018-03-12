@@ -17,7 +17,6 @@
     <stack.version>3.6.0-SNAPSHOT</stack.version>
     <scala.version>2.12.4</scala.version>
     <asyncdriver.version>0.2.21</asyncdriver.version>
-    <codegen.rxjava.deprecated>true</codegen.rxjava.deprecated>
     <host>localhost</host>
     <skipPostgresSslConfigTest>false</skipPostgresSslConfigTest>
   </properties>
