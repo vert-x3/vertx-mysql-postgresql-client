@@ -8,8 +8,11 @@ a fully async client for MySQL and PostgreSQL.
 
 Please see the in source asciidoc documentation or the main documentation on the web-site for a full description:
 
-* Web-site docs
-* link:src/main/asciidoc/index.adoc[Java in-source docs]
+* http://vertx.io/docs/vertx-mysql-postgresql-client/java/[Java documentation]
+* http://vertx.io/docs/vertx-mysql-postgresql-client/js/[JavaScript documentation]
+* http://vertx.io/docs/vertx-mysql-postgresql-client/kotlin/[Kotlin documentation]
+* http://vertx.io/docs/vertx-mysql-postgresql-client/groovy/[Groovy documentation]
+* http://vertx.io/docs/vertx-mysql-postgresql-client/ruby/[Ruby documentation]
 
 == Requirements for running test suite
 
