@@ -20,12 +20,8 @@ package io.vertx.ext.asyncsql;
 import com.wix.mysql.EmbeddedMysql;
 import com.wix.mysql.config.DownloadConfig;
 import com.wix.mysql.config.MysqldConfig;
-import com.wix.mysql.distribution.Version;
-
-import java.lang.reflect.Field;
 
 import static com.wix.mysql.config.MysqldConfig.aMysqldConfig;
-import static com.wix.mysql.distribution.Version.v5_5_40;
 import static com.wix.mysql.distribution.Version.v5_6_latest;
 
 /**
@@ -34,13 +30,7 @@ import static com.wix.mysql.distribution.Version.v5_6_latest;
 public class MySQL {
 
   public synchronized static MySQL start(int port) throws Exception {
-    // Monkey patching to use 5_5_9
-    // https://bugs.mysql.com/bug.php?id=60544
-    Version version = Version.v5_5_40;
-    Field field = version.getDeclaringClass().getDeclaredField("minorVersion");
-    field.setAccessible(true);
-    field.set(version, 9);
-    MysqldConfig cfg = aMysqldConfig(version)
+    MysqldConfig cfg = aMysqldConfig(v5_6_latest)
       .withUser("vertx", "password")
       .withPort(port)
       .build();
