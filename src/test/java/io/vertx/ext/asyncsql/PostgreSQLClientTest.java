@@ -18,7 +18,9 @@ package io.vertx.ext.asyncsql;
 
 import java.util.UUID;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import io.vertx.core.AsyncResult;
@@ -30,17 +32,35 @@ import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 
+import static io.vertx.ext.asyncsql.PostgreSQL.start;
+
 public class PostgreSQLClientTest extends SQLTestBase {
+
+  private static PostgreSQL pg;
+
+  @BeforeClass
+  public static void before() throws Exception {
+    if (START_POSTGRES) {
+      pg = start(SQLTestBase.POSTGRESQL_PORT);
+    }
+  }
+
+  @AfterClass
+  public static void after() throws Exception {
+    if (pg != null) {
+      pg.stop();
+    }
+  }
 
   @Before
   public void init() {
     client = PostgreSQLClient.createNonShared(vertx,
         new JsonObject()
-            .put("host", System.getProperty("db.host", "localhost"))
+            .put("host", POSTGRESQL_HOST)
     );
     clientNoDatabase = PostgreSQLClient.createNonShared(vertx,
       new JsonObject()
-        .put("host", System.getProperty("db.host", "localhost"))
+        .put("host", POSTGRESQL_HOST)
         .put("port", 65000)
         .put("maxPoolSize", 2)
     );

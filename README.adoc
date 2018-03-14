@@ -14,11 +14,27 @@ Please see the in source asciidoc documentation or the main documentation on the
 * http://vertx.io/docs/vertx-mysql-postgresql-client/groovy/[Groovy documentation]
 * http://vertx.io/docs/vertx-mysql-postgresql-client/ruby/[Ruby documentation]
 
-== Requirements for running test suite
+== Running test suite
 
-* A working PostgreSQL or MySQL server
+The test suite embeds PostgreSQL and MySQL with
+
+* ru.yandex.qatools.embed:postgresql-embedded
+* com.wix:wix-embedded-mysql
+
+You can run provide the servers instead by specifying the `host` property
+
+----
+> mvn test -Dhost=localhost
+----
+
 * For testing PostgreSQL: A `testdb` database on a local PostgreSQL install and a user called `vertx` with password `password`
 * For testing MySQL: A `testdb` database on a local MySQL install and a user called `vertx` with password `password`
+
+If needed test ports can be overriden
+
+----
+> mvn test -DpostgresqlPort=5432 -DpostgresqlSslPort=54321 -DmysqlPort=3306
+----
 
 Setting up test databases with Docker:
 

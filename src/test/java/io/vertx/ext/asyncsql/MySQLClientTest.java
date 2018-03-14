@@ -16,7 +16,9 @@
 
 package io.vertx.ext.asyncsql;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import io.vertx.core.AsyncResult;
@@ -28,18 +30,37 @@ import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 
+import static io.vertx.ext.asyncsql.MySQL.start;
+
 public class MySQLClientTest extends SQLTestBase {
 
+  private static MySQL my;
+
+  @BeforeClass
+  public static void before() throws Exception {
+    if (START_MYSQL) {
+      System.out.println("START MYSQL");
+      my = start(SQLTestBase.MYSQL_PORT);
+    }
+  }
+
+  @AfterClass
+  public static void after() throws Exception {
+    if (my != null) {
+      my.stop();
+    }
+  }
 
   @Before
   public void init() {
     client = MySQLClient.createNonShared(vertx,
         new JsonObject()
-            .put("host", System.getProperty("db.host", "localhost"))
+            .put("port", SQLTestBase.MYSQL_PORT)
+            .put("host", SQLTestBase.MYSQL_HOST)
     );
     clientNoDatabase = MySQLClient.createNonShared(vertx,
       new JsonObject()
-        .put("host", System.getProperty("db.host", "localhost"))
+        .put("host", SQLTestBase.MYSQL_HOST)
         .put("port", 65000)
         .put("maxPoolSize", 2)
     );

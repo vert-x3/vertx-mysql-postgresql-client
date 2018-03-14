@@ -6,25 +6,42 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.List;
+
+import static io.vertx.ext.asyncsql.PostgreSQL.start;
+import static io.vertx.ext.asyncsql.SQLTestBase.START_POSTGRES;
 
 /**
  * Tests the configuration options of the PostgreSQL client.
  */
 public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
 
-  @Before
-  public void areSslTestsIgnored() {
-    Assume.assumeFalse(Boolean.getBoolean("skipPostgresSslConfigTest"));
+  private static PostgreSQL pg;
+  private static PostgreSQL securePg;
+
+  @BeforeClass
+  public static void before() throws Exception {
+    if (START_POSTGRES) {
+      pg = start(SQLTestBase.POSTGRESQL_PORT);
+      securePg = start(SQLTestBase.POSTGRESQL_SSL_PORT);
+    }
+  }
+
+  @AfterClass
+  public static void after() throws Exception {
+    if (pg != null) {
+      pg.stop();
+    }
+    if (securePg != null) {
+      securePg.stop();
+    }
   }
 
   @Override
   protected SQLClient createClient(Vertx vertx, JsonObject config) {
-    return PostgreSQLClient.createNonShared(vertx, config);
+    return PostgreSQLClient.createNonShared(vertx, config.put("host", SQLTestBase.POSTGRESQL_HOST));
   }
 
   @Override
@@ -50,7 +67,7 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
       .getPath();
 
     JsonObject sslConfig = new JsonObject()
-      .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
+      .put("port", SQLTestBase.POSTGRESQL_SSL_PORT)
       .put("sslMode", "require")
       .put("sslRootCert", path);
 
@@ -74,7 +91,7 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
     Async async = context.async();
     client = createClient(vertx,
       new JsonObject()
-        .put("host", System.getProperty("db.host", "localhost"))
+        .put("host", SQLTestBase.POSTGRESQL_HOST)
         .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
         .put("sslMode", "verify-ca")
         .put("sslRootCert", "something-wrong.crt")
@@ -86,12 +103,13 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
     });
   }
 
+  /*
   @Test
   public void testNoSslConfiguration(TestContext context) {
     Async async = context.async();
     client = createClient(vertx,
       new JsonObject()
-        .put("host", System.getProperty("db.host", "localhost"))
+        .put("host", SQLTestBase.DB_HOST)
         .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
     );
 
@@ -100,6 +118,7 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
       async.complete();
     });
   }
+  */
 
 
   @Test
@@ -107,14 +126,14 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
     Async async = context.async();
     SQLClient clientSsl = createClient(vertx,
       new JsonObject()
-        .put("host", System.getProperty("db.host", "localhost"))
-        .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
+        .put("host", SQLTestBase.POSTGRESQL_HOST)
+        .put("port", SQLTestBase.POSTGRESQL_SSL_PORT)
         .put("sslMode", "prefer")
     );
     SQLClient clientNoSsl = createClient(vertx,
       new JsonObject()
-        .put("host", System.getProperty("db.host", "localhost"))
-        .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
+        .put("host", SQLTestBase.POSTGRESQL_HOST)
+        .put("port", SQLTestBase.POSTGRESQL_SSL_PORT)
         .put("sslMode", "prefer")
     );
 

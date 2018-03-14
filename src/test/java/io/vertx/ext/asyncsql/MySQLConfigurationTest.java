@@ -4,17 +4,40 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.SQLClient;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 import java.util.List;
+
+import static io.vertx.ext.asyncsql.MySQL.start;
+import static io.vertx.ext.asyncsql.SQLTestBase.START_MYSQL;
 
 /**
  * Tests the configuration options of the MySQL client.
  */
 public class MySQLConfigurationTest extends ConfigurationTest {
 
+  private static MySQL my;
+
+  @BeforeClass
+  public static void before() throws Exception {
+    if (START_MYSQL) {
+      my = start(SQLTestBase.MYSQL_PORT);
+    }
+  }
+
+  @AfterClass
+  public static void after() throws Exception {
+    if (my != null) {
+      my.stop();
+    }
+  }
+
   @Override
   protected SQLClient createClient(Vertx vertx, JsonObject config) {
-    return MySQLClient.createNonShared(vertx, config);
+    return MySQLClient.createNonShared(vertx, config
+      .put("port", SQLTestBase.MYSQL_PORT)
+      .put("host", SQLTestBase.MYSQL_HOST));
   }
 
   @Override
