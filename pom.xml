@@ -17,11 +17,18 @@
     <stack.version>3.6.0-SNAPSHOT</stack.version>
     <scala.version>2.12.4</scala.version>
     <asyncdriver.version>0.2.21</asyncdriver.version>
-    <!-- Empty value => uses embedded DB -->
-    <host></host>
+    <!-- Empty host => uses embedded DB -->
+    <postgresqlHost></postgresqlHost>
     <postgresqlPort>5432</postgresqlPort>
     <postgresqlSslPort>54321</postgresqlSslPort>
-    <mysqlPort>4406</mysqlPort>
+    <postgresqlDatabase>testdb</postgresqlDatabase>
+    <postgresqlUsername>vertx</postgresqlUsername>
+    <postgresqlPassword>password</postgresqlPassword>
+    <mysqlHost></mysqlHost>
+    <mysqlPort>3306</mysqlPort>
+    <mysqlDatabase>testdb</mysqlDatabase>
+    <mysqlUsername>vertx</mysqlUsername>
+    <mysqlPassword>password</mysqlPassword>
   </properties>
 
   <dependencyManagement>
@@ -156,11 +163,17 @@
           <systemPropertyVariables>
             <vertx.test.timeout>60</vertx.test.timeout>
             <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
-            <postgresql.host>${host}</postgresql.host>
+            <postgresql.host>${postgresqlHost}</postgresql.host>
             <postgresql.port>${postgresqlPort}</postgresql.port>
             <postgresql.ssl.port>${postgresqlSslPort}</postgresql.ssl.port>
-            <mysql.host>${host}</mysql.host>
+            <postgresql.database>${postgresqlDatabase}</postgresql.database>
+            <postgresql.username>${postgresqlUsername}</postgresql.username>
+            <postgresql.password>${postgresqlPassword}</postgresql.password>
+            <mysql.host>${mysqlHost}</mysql.host>
             <mysql.port>${mysqlPort}</mysql.port>
+            <mysql.database>${mysqlDatabase}</mysql.database>
+            <mysql.username>${mysqlUsername}</mysql.username>
+            <mysql.password>${mysqlPassword}</mysql.password>
           </systemPropertyVariables>
           <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
         </configuration>

@@ -35,7 +35,7 @@ public class PostgreSQLConfigurationTest extends ConfigurationTest {
 
   @Override
   protected SQLClient createClient(Vertx vertx, JsonObject config) {
-    return PostgreSQLClient.createNonShared(vertx, config.put("host", SQLTestBase.POSTGRESQL_HOST));
+    return PostgreSQLClient.createNonShared(vertx, config.mergeIn(SQLTestBase.POSTGRESQL_CONFIG));
   }
 
   @Override

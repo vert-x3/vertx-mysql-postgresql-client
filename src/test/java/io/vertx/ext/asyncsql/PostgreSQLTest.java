@@ -17,7 +17,6 @@
 package io.vertx.ext.asyncsql;
 
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -53,12 +52,9 @@ public class PostgreSQLTest extends AbstractTestBase {
     }
   }
 
-  final JsonObject config = new JsonObject()
-      .put("host", SQLTestBase.POSTGRESQL_HOST);
-
   @Before
   public void init() {
-    client = PostgreSQLClient.createNonShared(vertx, config);
+    client = PostgreSQLClient.createNonShared(vertx, SQLTestBase.POSTGRESQL_CONFIG);
   }
 
   @Test

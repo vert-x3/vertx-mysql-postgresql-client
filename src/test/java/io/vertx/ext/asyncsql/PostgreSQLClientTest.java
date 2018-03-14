@@ -54,13 +54,10 @@ public class PostgreSQLClientTest extends SQLTestBase {
 
   @Before
   public void init() {
-    client = PostgreSQLClient.createNonShared(vertx,
-        new JsonObject()
-            .put("host", POSTGRESQL_HOST)
-    );
+    client = PostgreSQLClient.createNonShared(vertx, SQLTestBase.POSTGRESQL_CONFIG);
     clientNoDatabase = PostgreSQLClient.createNonShared(vertx,
       new JsonObject()
-        .put("host", POSTGRESQL_HOST)
+        .put("host", "localhost")
         .put("port", 65000)
         .put("maxPoolSize", 2)
     );

@@ -35,9 +35,7 @@ public class MySQLConfigurationTest extends ConfigurationTest {
 
   @Override
   protected SQLClient createClient(Vertx vertx, JsonObject config) {
-    return MySQLClient.createNonShared(vertx, config
-      .put("port", SQLTestBase.MYSQL_PORT)
-      .put("host", SQLTestBase.MYSQL_HOST));
+    return MySQLClient.createNonShared(vertx, config.mergeIn(SQLTestBase.MYSQL_CONFIG));
   }
 
   @Override

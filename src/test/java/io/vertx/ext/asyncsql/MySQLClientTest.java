@@ -52,14 +52,10 @@ public class MySQLClientTest extends SQLTestBase {
 
   @Before
   public void init() {
-    client = MySQLClient.createNonShared(vertx,
-        new JsonObject()
-            .put("port", SQLTestBase.MYSQL_PORT)
-            .put("host", SQLTestBase.MYSQL_HOST)
-    );
+    client = MySQLClient.createNonShared(vertx, SQLTestBase.MYSQL_CONFIG);
     clientNoDatabase = MySQLClient.createNonShared(vertx,
       new JsonObject()
-        .put("host", SQLTestBase.MYSQL_HOST)
+        .put("host", "localhost")
         .put("port", 65000)
         .put("maxPoolSize", 2)
     );
