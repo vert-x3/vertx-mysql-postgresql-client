@@ -39,7 +39,6 @@ public abstract class ConfigurationTest extends AbstractTestBase {
 
     client = createClient(vertx,
         new JsonObject()
-            .put("host", System.getProperty("db.host", "localhost"))
             .put("charset", charSetString)
     );
 
@@ -71,7 +70,6 @@ public abstract class ConfigurationTest extends AbstractTestBase {
     Async async = context.async();
     client = createClient(vertx,
         new JsonObject()
-            .put("host", System.getProperty("db.host", "localhost"))
             .put("connectTimeout", Long.parseLong(System.getProperty("db.connectTimeout", "1")))
     );
 
@@ -90,7 +88,6 @@ public abstract class ConfigurationTest extends AbstractTestBase {
     Async async = context.async();
     client = createClient(vertx,
         new JsonObject()
-            .put("host", System.getProperty("db.host", "localhost"))
             .put("queryTimeout", Long.parseLong(System.getProperty("db.queryTimeout", "1")))
     );
 

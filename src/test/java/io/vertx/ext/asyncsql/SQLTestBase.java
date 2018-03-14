@@ -46,6 +46,14 @@ import static org.junit.Assert.*;
 
 public abstract class SQLTestBase extends AbstractTestBase {
 
+  static final String POSTGRESQL_HOST = System.getProperty("postgresql.host", "localhost").trim();
+  static final int POSTGRESQL_SSL_PORT = Integer.parseInt(System.getProperty("postgresql.ssl.port", "54321").trim());
+  static final int POSTGRESQL_PORT = Integer.parseInt(System.getProperty("postgresl.port", "5432").trim());
+  static final String MYSQL_HOST = System.getProperty("mysql.host", "localhost").trim();
+  static final int MYSQL_PORT = Integer.parseInt(System.getProperty("mysql.port", "3306").trim());
+  static final boolean START_POSTGRES = System.getProperty("postgresql.host") == null || System.getProperty("postgresql.host").trim().isEmpty();
+  static final boolean START_MYSQL = System.getProperty("mysql.host") == null || System.getProperty("mysql.host").trim().isEmpty();
+
   @Test
   public void testSimpleConnection(TestContext context) {
     Async async = context.async();
@@ -614,6 +622,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
     });
   }
 
+  // Does not pass with MySQL 5.6
   @Test
   public void testInstant(TestContext context) {
     Async async = context.async();

@@ -17,8 +17,11 @@
     <stack.version>3.6.0-SNAPSHOT</stack.version>
     <scala.version>2.12.4</scala.version>
     <asyncdriver.version>0.2.21</asyncdriver.version>
-    <host>localhost</host>
-    <skipPostgresSslConfigTest>false</skipPostgresSslConfigTest>
+    <!-- Empty value => uses embedded DB -->
+    <host></host>
+    <postgresqlPort>5432</postgresqlPort>
+    <postgresqlSslPort>54321</postgresqlSslPort>
+    <mysqlPort>4406</mysqlPort>
   </properties>
 
   <dependencyManagement>
@@ -118,6 +121,19 @@
       <version>2.10.0</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>ru.yandex.qatools.embed</groupId>
+      <artifactId>postgresql-embedded</artifactId>
+      <version>2.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.wix</groupId>
+      <artifactId>wix-embedded-mysql</artifactId>
+      <version>4.1.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -140,8 +156,11 @@
           <systemPropertyVariables>
             <vertx.test.timeout>60</vertx.test.timeout>
             <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
-            <db.host>${host}</db.host>
-            <skipPostgresSslConfigTest>${skipPostgresSslConfigTest}</skipPostgresSslConfigTest>
+            <postgresql.host>${host}</postgresql.host>
+            <postgresql.port>${postgresqlPort}</postgresql.port>
+            <postgresql.ssl.port>${postgresqlSslPort}</postgresql.ssl.port>
+            <mysql.host>${host}</mysql.host>
+            <mysql.port>${mysqlPort}</mysql.port>
           </systemPropertyVariables>
           <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
         </configuration>

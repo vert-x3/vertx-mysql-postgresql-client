@@ -24,16 +24,37 @@ import io.vertx.ext.unit.TestContext;
 
 import java.util.List;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static io.vertx.ext.asyncsql.PostgreSQL.start;
+import static io.vertx.ext.asyncsql.SQLTestBase.START_POSTGRES;
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
 public class PostgreSQLTest extends AbstractTestBase {
 
+  private static PostgreSQL pg;
+
+  @BeforeClass
+  public static void before() throws Exception {
+    if (START_POSTGRES) {
+      pg = start(SQLTestBase.POSTGRESQL_PORT);
+    }
+  }
+
+  @AfterClass
+  public static void after() throws Exception {
+    if (pg != null) {
+      pg.stop();
+    }
+  }
+
   final JsonObject config = new JsonObject()
-      .put("host", System.getProperty("db.host", "localhost"));
+      .put("host", SQLTestBase.POSTGRESQL_HOST);
 
   @Before
   public void init() {
