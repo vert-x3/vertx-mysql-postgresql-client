@@ -21,20 +21,36 @@ The test suite embeds PostgreSQL and MySQL with
 * ru.yandex.qatools.embed:postgresql-embedded
 * com.wix:wix-embedded-mysql
 
-You can also run your own server instead by providing the `host` property
+You can also run your own server instead by providing hosts
 
 ----
-> mvn test -Dhost=localhost
+> mvn test -DmysqlHost=localhost -DpostgresqlHost=localhost
 ----
 
 * For testing PostgreSQL: A `testdb` database on a local PostgreSQL install and a user called `vertx` with password `password`
 * For testing MySQL: A `testdb` database on a local MySQL install and a user called `vertx` with password `password`
 
-If needed test ports can be overriden
+When needed these properties can be overriden
+
+* postgresqlHost: empty => start an embedded DB
+* postgresqlPort=5432
+* postgresqlSslPort=54321
+* postgresqlDatabase=testdb
+* postgresqlUsername=vertx
+* postgresqlPassword=password
+* mysqlHost: empty => start an embedded DB
+* mysqlPort=3306
+* mysqlDatabase=testdb
+* mysqlUsername=vertx
+* mysqlPassword=password
+
+e.g:
 
 ----
 > mvn test -DpostgresqlPort=5432 -DpostgresqlSslPort=54321 -DmysqlPort=3306
 ----
+
+
 
 Setting up test databases with Docker:
 
