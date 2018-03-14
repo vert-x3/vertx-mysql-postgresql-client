@@ -21,7 +21,7 @@ The test suite embeds PostgreSQL and MySQL with
 * ru.yandex.qatools.embed:postgresql-embedded
 * com.wix:wix-embedded-mysql
 
-You can run provide the servers instead by specifying the `host` property
+You can also run your own server instead by providing the `host` property
 
 ----
 > mvn test -Dhost=localhost
