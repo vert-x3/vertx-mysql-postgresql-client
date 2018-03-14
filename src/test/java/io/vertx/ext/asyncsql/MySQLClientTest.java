@@ -39,7 +39,6 @@ public class MySQLClientTest extends SQLTestBase {
   @BeforeClass
   public static void before() throws Exception {
     if (START_MYSQL) {
-      System.out.println("START MYSQL");
       my = start(SQLTestBase.MYSQL_PORT);
     }
   }
