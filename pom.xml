@@ -3,7 +3,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-ext-parent</artifactId>
-    <version>30</version>
+    <version>34</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -144,41 +144,32 @@
   </dependencies>
 
   <build>
-    <plugins>
-      <!-- Copy resources after compilation phase as we generate JS in src/main/resources -->
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-resources</id>
-            <phase>process-classes</phase>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <systemPropertyVariables>
-            <vertx.test.timeout>60</vertx.test.timeout>
-            <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
-            <postgresql.host>${postgresqlHost}</postgresql.host>
-            <postgresql.port>${postgresqlPort}</postgresql.port>
-            <postgresql.ssl.port>${postgresqlSslPort}</postgresql.ssl.port>
-            <postgresql.database>${postgresqlDatabase}</postgresql.database>
-            <postgresql.username>${postgresqlUsername}</postgresql.username>
-            <postgresql.password>${postgresqlPassword}</postgresql.password>
-            <mysql.host>${mysqlHost}</mysql.host>
-            <mysql.port>${mysqlPort}</mysql.port>
-            <mysql.database>${mysqlDatabase}</mysql.database>
-            <mysql.username>${mysqlUsername}</mysql.username>
-            <mysql.password>${mysqlPassword}</mysql.password>
-          </systemPropertyVariables>
-          <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
-        </configuration>
-      </plugin>
-    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <systemPropertyVariables>
+              <vertx.test.timeout>60</vertx.test.timeout>
+              <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
+              <postgresql.host>${postgresqlHost}</postgresql.host>
+              <postgresql.port>${postgresqlPort}</postgresql.port>
+              <postgresql.ssl.port>${postgresqlSslPort}</postgresql.ssl.port>
+              <postgresql.database>${postgresqlDatabase}</postgresql.database>
+              <postgresql.username>${postgresqlUsername}</postgresql.username>
+              <postgresql.password>${postgresqlPassword}</postgresql.password>
+              <mysql.host>${mysqlHost}</mysql.host>
+              <mysql.port>${mysqlPort}</mysql.port>
+              <mysql.database>${mysqlDatabase}</mysql.database>
+              <mysql.username>${mysqlUsername}</mysql.username>
+              <mysql.password>${mysqlPassword}</mysql.password>
+            </systemPropertyVariables>
+            <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
   <profiles>
