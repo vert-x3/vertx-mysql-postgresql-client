@@ -43,7 +43,7 @@ public abstract class AsyncConnectionPool {
   public static final int DEFAULT_MAX_POOL_SIZE = 10;
   public static final int DEFAULT_MAX_CONNECTION_RETRIES = 0;       // No connection retries by default
   public static final int DEFAULT_CONNECTION_RETRY_DELAY = 5_000;   // 5 seconds between retries by default
-  public static final int DEFAULT_CONNECTION_RELEASE_DELAY = 60_000;// 1 minute until release idle connection
+  public static final int DEFAULT_CONNECTION_RELEASE_DELAY = 0;     // never release idle connection by default
 
   private static final Logger logger = LoggerFactory.getLogger(AsyncConnectionPool.class);
 

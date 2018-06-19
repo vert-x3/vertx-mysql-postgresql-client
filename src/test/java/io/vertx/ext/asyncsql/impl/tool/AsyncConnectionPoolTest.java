@@ -68,8 +68,7 @@ public class AsyncConnectionPoolTest {
 
     final AsyncConnectionPoolMock pool = new AsyncConnectionPoolMock(
       new JsonObject()
-        .put("maxPoolSize", MAX_POOL_SIZE)
-        .put("connectionReleaseDelay", 0),
+        .put("maxPoolSize", MAX_POOL_SIZE),
       this::getGoodConnection);
 
     final Queue<Connection> connectionSet = new LinkedList<>();
