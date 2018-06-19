@@ -101,6 +101,39 @@ public class AsyncConnectionPoolTest {
     }
   }
 
+  @Test
+  public void testReleaseConnections(TestContext context) throws InterruptedException {
+    final int TEST_LENGTH = 26;
+
+    final AsyncConnectionPoolMock pool = new AsyncConnectionPoolMock(
+      new JsonObject()
+        .put("maxPoolSize", MAX_POOL_SIZE)
+        .put("connectionReleaseDelay", 123L),
+      this::getGoodConnection);
+
+    final Queue<Connection> connectionSet = new LinkedList<>();
+    for (int i = 0; i < TEST_LENGTH; i++) {
+      pool.take(result -> {
+        context.assertTrue(result.succeeded());
+        connectionSet.add(result.result());
+      });
+    }
+    for (int i = MAX_POOL_SIZE + 1; i <= TEST_LENGTH; i++) {
+      pool.giveBack(connectionSet.poll());
+      context.assertEquals(i, pool.connectionAttempts);
+      context.assertEquals(i, pool.createdConnections);
+      context.assertEquals(MAX_POOL_SIZE, connectionSet.size());
+    }
+    Mockito.verify(vertx, Mockito.times(TEST_LENGTH - MAX_POOL_SIZE)).setTimer(Mockito.eq(123L), Mockito.any());
+    for (int i = MAX_POOL_SIZE - 1; i >= 0; --i)  {
+      pool.giveBack(connectionSet.poll());
+      context.assertEquals(TEST_LENGTH, pool.connectionAttempts);
+      context.assertEquals(TEST_LENGTH, pool.createdConnections);
+      context.assertEquals(i, connectionSet.size());
+    }
+    Mockito.verify(vertx, Mockito.times(TEST_LENGTH)).setTimer(Mockito.eq(123L), Mockito.any());
+  }
+
   // Test that by default we don't do any retry
   @Test
   public void testNoRetriesByDefault(TestContext context) {
