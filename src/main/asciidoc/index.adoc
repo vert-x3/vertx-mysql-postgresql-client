@@ -164,6 +164,12 @@ again to acquire connections in response to future requests for connections.
 Note that if a database restart occurs, a pool may contain previously acquired but now stale Connections that will only be
 detected and purged lazily, when the pool attempts to reuse them.
 
+=== Configuring how long a connection is kept alive
+
+When clients are closed, open connections are transferred to the list of available (idle) connections in the connection pool
+for later reuse. The idle time is configured with property `connectionReleaseDelay` which is the time in milliseconds that the pool
+keeps the connection alive before closing it. The special value 0 keeps them alive forever and that is the default behavior.
+
 === Note about date and timestamps
 
 Whenever you get dates back from the database, this service will implicitly convert them into ISO 8601
