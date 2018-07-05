@@ -9,12 +9,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>vertx-mysql-postgresql-client</artifactId>
-  <version>3.5.3-SNAPSHOT</version>
+  <version>3.5.3.CR1</version>
 
   <name>Vert.x MySQL/PostgreSQL Client</name>
 
   <properties>
-    <stack.version>3.5.3-SNAPSHOT</stack.version>
+    <stack.version>3.5.3.CR1</stack.version>
     <scala.version>2.12.4</scala.version>
     <asyncdriver.version>0.2.21</asyncdriver.version>
     <codegen.rxjava.deprecated>true</codegen.rxjava.deprecated>
