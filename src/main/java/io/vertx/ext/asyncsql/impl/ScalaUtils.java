@@ -24,9 +24,11 @@ import io.vertx.core.json.JsonArray;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
 import scala.Function1;
 import scala.collection.immutable.List;
 import scala.concurrent.ExecutionContext;
+import scala.concurrent.duration.FiniteDuration;
 import scala.runtime.AbstractFunction1;
 import scala.util.Try;
 
@@ -117,6 +119,11 @@ public final class ScalaUtils {
       array.add(value.toString());
     } else if (value instanceof LocalDate) {
       array.add(value.toString());
+    } else if (value instanceof LocalTime) {
+      array.add(value.toString());
+    } else if (value instanceof FiniteDuration) {
+      String time = durationToString(((FiniteDuration) value).toMillis());
+      array.add(time);
     } else if (value instanceof DateTime) {
       array.add(Instant.ofEpochMilli(((DateTime) value).getMillis()));
     } else if (value instanceof UUID) {
@@ -138,5 +145,12 @@ public final class ScalaUtils {
       array.add(value);
     }
   }
-  
+
+  private static String durationToString(long allInMillis) {
+    long hours = allInMillis / 1000 / 60 / 60;
+    long minutes = allInMillis / 1000 / 60 % 60;
+    long seconds = allInMillis / 1000 % 60;
+    long millis = allInMillis % 1000;
+    return String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millis);
+  }
 }

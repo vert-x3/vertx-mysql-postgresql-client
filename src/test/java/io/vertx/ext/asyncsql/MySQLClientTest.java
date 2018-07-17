@@ -131,6 +131,12 @@ public class MySQLClientTest extends SQLTestBase {
   }
 
   @Override
+  protected void compareTimeStrings(TestContext context, String result, String expected) {
+    // MySQL always only delivers seconds and truncates milliseconds to ".000"
+    context.assertEquals(result, expected.replaceAll("\\.\\d{3}$", ".000"));
+  }
+
+  @Override
   protected String createByteArray1TableColumn() {
     return "BIT(1)";
   }

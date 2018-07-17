@@ -896,6 +896,42 @@ public abstract class SQLTestBase extends AbstractTestBase {
   }
 
   @Test
+  public void testTimeColumn(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      ensureSuccess(context, ar);
+      conn = ar.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", ar1 -> {
+        ensureSuccess(context, ar1);
+        conn.execute("CREATE TABLE test_table (timecolumn TIME)", ar2 -> {
+          ensureSuccess(context, ar2);
+          String someTime1 = "11:12:13.456";
+          String someTime2 = "01:02:00.120";
+          String someTime3 = "00:00:01.001";
+          JsonArray args = new JsonArray().add(someTime1).add(someTime2).add(someTime3);
+          conn.queryWithParams("INSERT INTO test_table (timecolumn) VALUES (?), (?), (?)", args, ar3 -> {
+            ensureSuccess(context, ar3);
+            conn.query("SELECT timecolumn FROM test_table", ar4 -> {
+              ensureSuccess(context, ar4);
+              String result1 = ar4.result().getResults().get(0).getString(0);
+              String result2 = ar4.result().getResults().get(1).getString(0);
+              String result3 = ar4.result().getResults().get(2).getString(0);
+              compareTimeStrings(context, result1, someTime1);
+              compareTimeStrings(context, result2, someTime2);
+              compareTimeStrings(context, result3, someTime3);
+              async.complete();
+            });
+          });
+        });
+      });
+    });
+  }
+
+  protected void compareTimeStrings(TestContext context, String result, String expected) {
+    context.assertEquals(result, expected);
+  }
+
+  @Test
   public void testUnhandledExceptionInHandlerResultSet(TestContext testContext) {
     this.<ResultSet>testUnhandledExceptionInHandler(testContext, (sqlConnection, handler) -> {
       sqlConnection.query("SELECT name FROM test_table", handler);
