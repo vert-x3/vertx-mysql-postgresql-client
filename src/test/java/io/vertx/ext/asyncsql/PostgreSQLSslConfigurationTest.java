@@ -41,7 +41,18 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
 
   @Override
   protected SQLClient createClient(Vertx vertx, JsonObject config) {
-    return PostgreSQLClient.createNonShared(vertx, config.mergeIn(SQLTestBase.POSTGRESQL_CONFIG));
+		JsonObject json = SQLTestBase.POSTGRESQL_SSL_CONFIG.copy().put("sslMode", "prefer").mergeIn(config.copy());
+    System.out.println("Creating client " + json.toString());
+    return PostgreSQLClient.createNonShared(vertx, json);
+  }
+
+	protected SQLClient createClient(Vertx vertx, JsonObject config, boolean noDefaultConfig) {
+		if (noDefaultConfig) {
+      System.out.println("Creating client " + config.toString());
+      return PostgreSQLClient.createNonShared(vertx, config);
+		} else {
+      return createClient(vertx, config);
+		}
   }
 
   @Override
@@ -92,7 +103,8 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
     client = createClient(vertx,
       SQLTestBase.POSTGRESQL_SSL_CONFIG.copy()
         .put("sslMode", "verify-ca")
-        .put("sslRootCert", "something-wrong.crt")
+        .put("sslRootCert", "something-wrong.crt"),
+      true
     );
 
     client.getConnection(sqlConnectionAsyncResult -> {
@@ -106,9 +118,9 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
   public void testNoSslConfiguration(TestContext context) {
     Async async = context.async();
     client = createClient(vertx,
-      new JsonObject()
-        .put("host", SQLTestBase.DB_HOST)
-        .put("port", Integer.parseInt(System.getProperty("dbssl.port", "54321")))
+      SQLTestBase.POSTGRESQL_CONFIG.copy()
+        .put("port", SQLTestBase.POSTGRESQL_SSL_PORT),
+      true
     );
 
     client.getConnection(sqlConnectionAsyncResult -> {
@@ -118,12 +130,11 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
   }
   */
 
-
   @Test
   public void testPreferSslConfiguration(TestContext context) {
     Async async = context.async();
-    SQLClient clientSsl = createClient(vertx, SQLTestBase.POSTGRESQL_SSL_CONFIG.copy().put("sslMode", "prefer"));
-    SQLClient clientNoSsl = createClient(vertx, SQLTestBase.POSTGRESQL_CONFIG.copy().put("sslMode", "prefer"));
+    SQLClient clientSsl = createClient(vertx, SQLTestBase.POSTGRESQL_SSL_CONFIG.copy().put("sslMode", "prefer"), true);
+    SQLClient clientNoSsl = createClient(vertx, SQLTestBase.POSTGRESQL_CONFIG.copy().put("sslMode", "prefer"), true);
 
     clientSsl.getConnection(sqlConnectionAsyncResult -> {
       context.assertTrue(sqlConnectionAsyncResult.succeeded());
