@@ -41,7 +41,7 @@ public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
 
   @Override
   protected SQLClient createClient(Vertx vertx, JsonObject config) {
-		JsonObject json = SQLTestBase.POSTGRESQL_SSL_CONFIG.copy().put("sslMode", "prefer").mergeIn(config.copy());
+    JsonObject json = SQLTestBase.POSTGRESQL_SSL_CONFIG.copy().put("sslMode", "prefer").mergeIn(config.copy());
     System.out.println("Creating client " + json.toString());
     return PostgreSQLClient.createNonShared(vertx, json);
   }
