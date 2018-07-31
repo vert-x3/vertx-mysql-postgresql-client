@@ -16,11 +16,7 @@
 
 package io.vertx.ext.asyncsql;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
+import com.wix.mysql.exceptions.MissingDependencyException;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
@@ -29,6 +25,7 @@ import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import org.junit.*;
 
 import static io.vertx.ext.asyncsql.MySQL.start;
 
@@ -39,7 +36,11 @@ public class MySQLClientTest extends SQLTestBase {
   @BeforeClass
   public static void before() throws Exception {
     if (START_MYSQL) {
-      my = start(SQLTestBase.MYSQL_PORT);
+      try {
+        my = start(SQLTestBase.MYSQL_PORT);
+      } catch (MissingDependencyException e) {
+        throw new AssumptionViolatedException("Cannot start MySQL", e);
+      }
     }
   }
 
