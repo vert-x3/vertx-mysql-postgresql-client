@@ -17,44 +17,43 @@
 package io.vertx.ext.asyncsql;
 
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 
 import java.util.List;
 
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 
-import static io.vertx.ext.asyncsql.PostgreSQL.start;
-import static io.vertx.ext.asyncsql.SQLTestBase.START_POSTGRES;
+import static io.vertx.ext.asyncsql.SQLTestBase.*;
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
 public class PostgreSQLTest extends AbstractTestBase {
 
-  private static PostgreSQL pg;
+  public static GenericContainer postgresql = new PostgreSQLContainer()
+    .withDatabaseName(POSTGRESQL_DATABASE)
+    .withUsername(POSTGRESQL_USERNAME)
+    .withPassword(POSTGRESQL_PASSWORD)
+    .withExposedPorts(5432);
 
-  @BeforeClass
-  public static void before() throws Exception {
-    if (START_POSTGRES) {
-      pg = start(SQLTestBase.POSTGRESQL_PORT);
-    }
-  }
-
-  @AfterClass
-  public static void after() throws Exception {
-    if (pg != null) {
-      pg.stop();
-    }
+  static {
+    postgresql.start();
   }
 
   @Before
   public void init() {
-    client = PostgreSQLClient.createNonShared(vertx, SQLTestBase.POSTGRESQL_CONFIG);
+    client = PostgreSQLClient.createNonShared(vertx, new JsonObject()
+      .put("host", postgresql.getContainerIpAddress())
+      .put("port", postgresql.getMappedPort(5432))
+      .put("database", POSTGRESQL_DATABASE)
+      .put("username", POSTGRESQL_USERNAME)
+      .put("password", POSTGRESQL_PASSWORD));
   }
 
   @Test
