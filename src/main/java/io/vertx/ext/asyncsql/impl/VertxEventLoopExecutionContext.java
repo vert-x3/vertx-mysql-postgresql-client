@@ -58,6 +58,7 @@ public class VertxEventLoopExecutionContext implements ExecutionContext {
         try {
           runnable.run();
         } catch (Throwable e) {
+          System.out.println("PROBLEM ");
           reportFailure(e);
         }
       });
