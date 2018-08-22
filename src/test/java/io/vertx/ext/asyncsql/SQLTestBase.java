@@ -938,7 +938,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
         setupSimpleTable(connection, testContext.asyncAssertSuccess(st -> {
           testMethod.accept(connection, ar -> {
             count.incrementAndGet();
-            throw new IndexOutOfBoundsException();
+            throw new RuntimeException();
           });
         }));
       }));
