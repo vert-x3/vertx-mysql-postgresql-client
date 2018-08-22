@@ -46,40 +46,15 @@ import static org.junit.Assert.*;
 
 public abstract class SQLTestBase extends AbstractTestBase {
 
-  static final String POSTGRESQL_HOST = System.getProperty("postgresql.host", "localhost").trim();
-  static final int POSTGRESQL_PORT = Integer.parseInt(System.getProperty("postgresl.port", "5432").trim());
-  static final String POSTGRESQL_DATABASE = System.getProperty("postgresql.database", "testdb");
-  static final String POSTGRESQL_USERNAME = System.getProperty("postgresql.username", "vertx");
-  static final String POSTGRESQL_PASSWORD = System.getProperty("postgresql.password", "password");
-  static final JsonObject POSTGRESQL_CONFIG = new JsonObject()
-    .put("host", POSTGRESQL_HOST)
-    .put("port", POSTGRESQL_PORT)
-    .put("database", POSTGRESQL_DATABASE)
-    .put("username", POSTGRESQL_USERNAME)
-    .put("password", POSTGRESQL_PASSWORD);
+  static final String POSTGRESQL_DATABASE = "testdb";
+  static final String POSTGRESQL_USERNAME = "vertx";
+  static final String POSTGRESQL_PASSWORD = "password";
 
-  static final int POSTGRESQL_SSL_PORT = Integer.parseInt(System.getProperty("postgresql.ssl.port", "54321").trim());
-  static final JsonObject POSTGRESQL_SSL_CONFIG = new JsonObject()
-    .put("host", POSTGRESQL_HOST)
-    .put("port", POSTGRESQL_SSL_PORT)
-    .put("database", POSTGRESQL_DATABASE)
-    .put("username", POSTGRESQL_USERNAME)
-    .put("password", POSTGRESQL_PASSWORD);
+  static final String MYSQL_DATABASE = "testdb";
+  static final String MYSQL_USERNAME = "vertx";
+  static final String MYSQL_PASSWORD = "password";
 
-  static final String MYSQL_HOST = System.getProperty("mysql.host", "localhost").trim();
-  static final int MYSQL_PORT = Integer.parseInt(System.getProperty("mysql.port", "3306").trim());
-  static final String MYSQL_DATABASE = System.getProperty("mysql.database", "testdb");
-  static final String MYSQL_USERNAME = System.getProperty("mysql.username", "vertx");
-  static final String MYSQL_PASSWORD = System.getProperty("mysql.password", "password");
-  static final JsonObject MYSQL_CONFIG = new JsonObject()
-    .put("host", MYSQL_HOST)
-    .put("port", MYSQL_PORT)
-    .put("database", MYSQL_DATABASE)
-    .put("username", MYSQL_USERNAME)
-    .put("password", MYSQL_PASSWORD);
 
-  static final boolean START_MYSQL = System.getProperty("mysql.host") == null || System.getProperty("mysql.host").trim().isEmpty();
-  static final boolean START_POSTGRES = System.getProperty("postgresql.host") == null || System.getProperty("postgresql.host").trim().isEmpty();
 
   @Test
   public void testSimpleConnection(TestContext context) {
@@ -963,7 +938,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
         setupSimpleTable(connection, testContext.asyncAssertSuccess(st -> {
           testMethod.accept(connection, ar -> {
             count.incrementAndGet();
-            throw new IndexOutOfBoundsException();
+            throw new RuntimeException();
           });
         }));
       }));

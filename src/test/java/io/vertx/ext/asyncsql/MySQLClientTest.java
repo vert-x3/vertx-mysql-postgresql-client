@@ -16,7 +16,8 @@
 
 package io.vertx.ext.asyncsql;
 
-import com.wix.mysql.exceptions.MissingDependencyException;
+import org.junit.*;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
@@ -25,35 +26,30 @@ import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import org.junit.*;
-
-import static io.vertx.ext.asyncsql.MySQL.start;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MySQLContainer;
 
 public class MySQLClientTest extends SQLTestBase {
 
-  private static MySQL my;
+  public static GenericContainer mysql = new MySQLContainer("mysql:5.6")
+    .withDatabaseName(MYSQL_DATABASE)
+    .withUsername(MYSQL_USERNAME)
+    .withPassword(MYSQL_PASSWORD)
+    .withExposedPorts(3306);
 
-  @BeforeClass
-  public static void before() throws Exception {
-    if (START_MYSQL) {
-      try {
-        my = start(SQLTestBase.MYSQL_PORT);
-      } catch (MissingDependencyException e) {
-        throw new AssumptionViolatedException("Cannot start MySQL", e);
-      }
-    }
-  }
-
-  @AfterClass
-  public static void after() throws Exception {
-    if (my != null) {
-      my.stop();
-    }
+  static {
+    mysql.start();
   }
 
   @Before
   public void init() {
-    client = MySQLClient.createNonShared(vertx, SQLTestBase.MYSQL_CONFIG);
+    mysql.start();
+    client = MySQLClient.createNonShared(vertx, new JsonObject()
+      .put("host", mysql.getContainerIpAddress())
+      .put("port", mysql.getMappedPort(3306))
+      .put("database", MYSQL_DATABASE)
+      .put("username", MYSQL_USERNAME)
+      .put("password", MYSQL_PASSWORD));
     clientNoDatabase = MySQLClient.createNonShared(vertx,
       new JsonObject()
         .put("host", "localhost")
