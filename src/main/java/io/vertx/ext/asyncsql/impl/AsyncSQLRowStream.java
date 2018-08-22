@@ -21,7 +21,7 @@ class AsyncSQLRowStream implements SQLRowStream {
   private final Iterator<RowData> cursor;
   private List<String> columns;
 
-  private final AtomicBoolean paused = new AtomicBoolean(false);
+  private long demand = 0L;
   private final AtomicBoolean ended = new AtomicBoolean(false);
 
   private Handler<JsonArray> handler;
@@ -37,8 +37,6 @@ class AsyncSQLRowStream implements SQLRowStream {
       rs = null;
       cursor = null;
     }
-
-    paused.set(true);
   }
 
   @Override
@@ -80,21 +78,32 @@ class AsyncSQLRowStream implements SQLRowStream {
 
   @Override
   public SQLRowStream pause() {
-    paused.compareAndSet(false, true);
+    demand = 0L;
     return this;
   }
 
   @Override
-  public SQLRowStream resume() {
-    if (paused.compareAndSet(true, false)) {
+  public synchronized SQLRowStream fetch(long amount) {
+    if (amount > 0L) {
+      if ((demand += amount) < 0L) {
+        demand = Long.MAX_VALUE;
+      }
       nextRow();
     }
     return this;
   }
 
+  @Override
+  public SQLRowStream resume() {
+    return fetch(Long.MAX_VALUE);
+  }
+
   private void nextRow() {
-    while (!paused.get()) {
+    while (demand > 0L) {
       if (cursor.hasNext()) {
+        if (demand != Long.MAX_VALUE) {
+          demand--;
+        }
         handler.handle(ScalaUtils.rowToJsonArray(cursor.next()));
       } else {
         // mark as ended if the handler was registered too late
