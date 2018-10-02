@@ -1,23 +1,27 @@
-sudo: required
-services:
-- docker
 language: java
-notifications:
-  email:
-  - vertx3-ci@googlegroups.com
-jdk:
-- oraclejdk8
 branches:
   only:
   - master
-env:
-  global:
-  - secure: IjdignAqTlY9dvkCF4Z1tHyILrFBou+CoizRlS8L43B/vwTnZEEAgyfXG7zAkT1khje9c+TOqkEYWv+24VTgaX3mkgE1Am6nhqxYIG6ULdVVRJT5JAb8L//F3Sm+g/sS5guesUjT1wkEQ8ew6ZQ7/JoC/WKjqT7jklsX5g/6UsE=
-  - secure: jGsaoOfcLzrHgsfIJBLTnhxO6C+4+qRYRMsLG1oJY4DfPZOqa78ShrL50kns15WDt9PkVq4ddPfINJrA5PmN3e0evupPRRDh1mcbvDjK9d4Mldyl5IJxRKL2lvPenC+EujOegVr9jp7Jv6QwI9mc4SJjzwA65uB96K5zvbEmUF0=
-before_install:
-- cp .travis.maven.settings.xml $HOME/.m2/settings.xml
-install: true
-script:
-- set -e
-- mvn clean verify -B
-- bash .travis.deploy.artifacts.sh
+  - /^\d+\.\d+$/
+services:
+- docker
+jobs:
+  include:
+    - stage: test
+      name: "OracleJDK 8"
+      jdk: oraclejdk8
+      script: mvn -q clean verify -B
+    - if: type != pull_request
+      name: "OpenJDK 11"
+      jdk: openjdk11
+      script: mvn -q clean verify -B
+    - stage: deploy
+      name: "Deploy to Sonatype's snapshots repository"
+      if: type != pull_request
+      script: bash .travis.deploy.artifacts.sh
+notifications:
+  email:
+    recipients:
+      - vertx3-ci@googlegroups.com
+    on_success: always
+    on_failure: always
