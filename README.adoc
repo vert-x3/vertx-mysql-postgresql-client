@@ -1,6 +1,6 @@
 = Vert.x MySQL PostgreSQL client
 
-[![Build Status](https://travis-ci.org/vert-x3/vertx-mysql-postgresql-client.svg?branch=master)](https://travis-ci.org/vert-x3/vertx-mysql-postgresql-client)
+image:https://travis-ci.org/vert-x3/vertx-mysql-postgresql-client.svg?branch=master["Build Status", link="https://travis-ci.org/vert-x3/vertx-mysql-postgresql-client"]
 
 This Vert.x client uses the https://github.com/mauricio/postgresql-async[Mauricio Linhares driver] to support
 a fully async client for MySQL and PostgreSQL.
