@@ -147,62 +147,21 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <profiles>
-    <profile>
-      <id>without-docker</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <systemPropertyVariables>
-                  <vertx.test.timeout>60</vertx.test.timeout>
-                  <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
-                </systemPropertyVariables>
-                <excludedGroups>io.vertx.ext.asyncsql.category.NeedsDocker</excludedGroups>
-                <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-
-    <profile>
-      <id>with-docker</id>
-      <activation>
-        <property>
-          <name>docker</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <systemPropertyVariables>
-                  <vertx.test.timeout>60</vertx.test.timeout>
-                  <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
-                </systemPropertyVariables>
-                <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-  </profiles>
-
-
-
-
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <systemPropertyVariables>
+              <vertx.test.timeout>60</vertx.test.timeout>
+              <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
+            </systemPropertyVariables>
+            <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 </project>
