@@ -20,17 +20,20 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.category.NeedsDocker;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.UUID;
 
+@Category(NeedsDocker.class)
 public class PostgreSQLClientTest extends SQLTestBase {
 
   public static GenericContainer postgresql = new PostgreSQLContainer()

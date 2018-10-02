@@ -18,6 +18,7 @@ package io.vertx.ext.asyncsql;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.category.NeedsDocker;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
@@ -34,6 +36,7 @@ import static io.vertx.ext.asyncsql.SQLTestBase.*;
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
+@Category(NeedsDocker.class)
 public class PostgreSQLTest extends AbstractTestBase {
 
   public static GenericContainer postgresql = new PostgreSQLContainer()

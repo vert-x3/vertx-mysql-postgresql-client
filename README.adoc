@@ -14,11 +14,13 @@ Please see the in source asciidoc documentation or the main documentation on the
 * http://vertx.io/docs/vertx-mysql-postgresql-client/groovy/[Groovy documentation]
 * http://vertx.io/docs/vertx-mysql-postgresql-client/ruby/[Ruby documentation]
 
-== Running test suite
+== Running test suite with Docker
 
 The test suite is based on testcontainers and will spawn separate instances for the different tests.
 
+NOTE: Running test with Docker requires enabling the profile as Docker isn't available on Cloudbees: `mvn clean install -Ddocker`
 
+== (Deprecated) Running test suite on CkoudBees (this is only here for historic docs to help transition to Travis)
 
 Setting up test databases with Docker:
 

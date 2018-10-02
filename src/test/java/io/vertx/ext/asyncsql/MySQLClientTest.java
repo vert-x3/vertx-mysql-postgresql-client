@@ -16,6 +16,7 @@
 
 package io.vertx.ext.asyncsql;
 
+import io.vertx.ext.asyncsql.category.NeedsDocker;
 import org.junit.*;
 
 import io.vertx.core.AsyncResult;
@@ -26,9 +27,11 @@ import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import org.junit.experimental.categories.Category;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 
+@Category(NeedsDocker.class)
 public class MySQLClientTest extends SQLTestBase {
 
   public static GenericContainer mysql = new MySQLContainer("mysql:5.6")

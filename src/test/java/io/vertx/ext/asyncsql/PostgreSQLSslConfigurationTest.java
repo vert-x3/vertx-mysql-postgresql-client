@@ -3,10 +3,12 @@ package io.vertx.ext.asyncsql;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.category.NeedsDocker;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
@@ -18,6 +20,7 @@ import static org.testcontainers.containers.BindMode.READ_ONLY;
 /**
  * Tests the configuration options of the PostgreSQL client.
  */
+@Category(NeedsDocker.class)
 public class PostgreSQLSslConfigurationTest extends ConfigurationTest {
 
   public static GenericContainer postgresql = new PostgreSQLContainer()

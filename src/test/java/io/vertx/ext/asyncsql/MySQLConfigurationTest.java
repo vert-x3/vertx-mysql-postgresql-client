@@ -3,7 +3,9 @@ package io.vertx.ext.asyncsql;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.category.NeedsDocker;
 import io.vertx.ext.sql.SQLClient;
+import org.junit.experimental.categories.Category;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 
@@ -14,6 +16,7 @@ import static io.vertx.ext.asyncsql.SQLTestBase.*;
 /**
  * Tests the configuration options of the MySQL client.
  */
+@Category(NeedsDocker.class)
 public class MySQLConfigurationTest extends ConfigurationTest {
 
   public static GenericContainer mysql = new MySQLContainer("mysql:5.6")
