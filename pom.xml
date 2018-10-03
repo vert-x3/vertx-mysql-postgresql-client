@@ -16,7 +16,7 @@
   <properties>
     <stack.version>3.6.0-SNAPSHOT</stack.version>
     <scala.version>2.12.4</scala.version>
-    <asyncdriver.version>0.2.21</asyncdriver.version>
+    <asyncdriver.version>0.8.33</asyncdriver.version>
   </properties>
 
   <dependencyManagement>
@@ -53,8 +53,8 @@
       <version>${scala.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.github.mauricio</groupId>
-      <artifactId>postgresql-async_2.12</artifactId>
+      <groupId>com.github.jasync-sql</groupId>
+      <artifactId>jasync-postgresql</artifactId>
       <version>${asyncdriver.version}</version>
       <exclusions>
         <exclusion>
@@ -68,8 +68,8 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.github.mauricio</groupId>
-      <artifactId>mysql-async_2.12</artifactId>
+      <groupId>com.github.jasync-sql</groupId>
+      <artifactId>jasync-mysql</artifactId>
       <version>${asyncdriver.version}</version>
       <exclusions>
         <exclusion>

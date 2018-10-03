@@ -16,7 +16,7 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import com.github.mauricio.async.db.RowData;
+import com.github.jasync.sql.db.RowData;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -34,6 +34,11 @@ import scala.util.Try;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
+
+import static com.github.jasync.sql.db.util.KotlinUtilsKt.XXX;
 
 /**
  * Some Scala <=> Java conversion utilities.
@@ -44,34 +49,26 @@ public final class ScalaUtils {
 
   private ScalaUtils () {}
 
-  public static <T> Future<T> scalaToVertx(scala.concurrent.Future<T> future, ExecutionContext ec) {
+  public static <T> Future<T> scalaToVertx(CompletableFuture<T> future, Executor ec) {
     Future<T> fut = Future.future();
-    future.onComplete(new AbstractFunction1<Try<T>, Void>() {
-      @Override
-      public Void apply(Try<T> v1) {
-        if (v1.isSuccess()) {
-          fut.complete(v1.get());
-        } else {
-          fut.fail(v1.failed().get());
-        }
-        return null;
+    future.whenCompleteAsync((a, t) -> {
+      if (t == null) {
+        fut.complete(a);
+      } else {
+        fut.fail(t);
       }
     }, ec);
     return fut;
   }
 
-  public static <T> Future<Void> scalaToVertxVoid(scala.concurrent.Future<T> future, ExecutionContext ec) {
+  public static <T> Future<Void> scalaToVertxVoid(CompletableFuture<T> future, Executor ec) {
     Future<Void> fut = Future.future();
-    future.onComplete(new AbstractFunction1<Try<T>, Void>() {
-      @Override
-      public Void apply(Try<T> v1) {
-        if (v1.isSuccess()) {
+    future.whenCompleteAsync((a, t) -> {
+        if (t == null) {
           fut.complete();
         } else {
-          fut.fail(v1.failed().get());
+          fut.fail(t);
         }
-        return null;
-      }
     }, ec);
     return fut;
   }
@@ -85,29 +82,23 @@ public final class ScalaUtils {
     return scala.collection.JavaConversions.asScalaBuffer(list).toList();
   }
 
-  public static <V> Function1<Try<V>, Void> toFunction1(Handler<AsyncResult<V>> code) {
-    return new AbstractFunction1<Try<V>, Void>() {
-      @Override
-      public Void apply(Try<V> v1) {
-        if (v1.isSuccess()) {
-          code.handle(Future.succeededFuture(v1.get()));
+  public static <V, U extends Throwable> BiConsumer<V, U> toFunction1(Handler<AsyncResult<V>> code) {
+    return (v, t) -> {
+        if (t == null) {
+          code.handle(Future.succeededFuture(v));
         } else {
-          code.handle(Future.failedFuture(v1.failed().get()));
+          code.handle(Future.failedFuture(t));
         }
-        return null;
       }
-    };
+    ;
   }
 
   public static JsonArray rowToJsonArray(RowData data) {
     JsonArray array = new JsonArray();
-    data.foreach(new AbstractFunction1<Object, Void>() {
-      @Override
-      public Void apply(Object value) {
+    data.forEach(value -> {
         convertValue(array, value);
-        return null;
-      }
     });
+
     return array;
   }
   private static void convertValue(JsonArray array, Object value) {
