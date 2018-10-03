@@ -1,17 +1,16 @@
 package io.vertx.ext.asyncsql.impl;
 
-import com.github.mauricio.async.db.QueryResult;
-import com.github.mauricio.async.db.ResultSet;
-import com.github.mauricio.async.db.RowData;
+import com.github.jasync.sql.db.QueryResult;
+import com.github.jasync.sql.db.ResultSet;
+import com.github.jasync.sql.db.RowData;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.sql.SQLRowStream;
-import scala.Option;
-import scala.collection.Iterator;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,9 +28,9 @@ class AsyncSQLRowStream implements SQLRowStream {
   private Handler<Void> rsClosedHandler;
 
   AsyncSQLRowStream(QueryResult qr) {
-    final Option<ResultSet> rows = qr.rows();
-    if (rows.isDefined()) {
-      rs = rows.get();
+    final ResultSet rows = qr.getRows();
+    if (rows != null) {
+      rs = rows;
       cursor = rs.iterator();
     } else {
       rs = null;
@@ -58,7 +57,7 @@ class AsyncSQLRowStream implements SQLRowStream {
         return Collections.emptyList();
       }
       // this list is always read only
-      columns = Collections.unmodifiableList(ScalaUtils.toJavaList(rs.columnNames().toList()));
+      columns = Collections.unmodifiableList((rs.columnNames()));
     }
     return columns;
   }
