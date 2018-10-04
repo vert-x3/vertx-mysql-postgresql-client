@@ -15,7 +15,7 @@
 
   <properties>
     <stack.version>3.6.0-SNAPSHOT</stack.version>
-    <scala.version>2.12.4</scala.version>
+    <scala.version>2.12.7</scala.version>
     <asyncdriver.version>0.2.21</asyncdriver.version>
   </properties>
 
