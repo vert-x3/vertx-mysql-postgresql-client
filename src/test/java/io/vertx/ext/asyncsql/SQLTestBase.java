@@ -40,8 +40,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import static java.util.concurrent.TimeUnit.*;
-import static org.hamcrest.CoreMatchers.*;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
 
 public abstract class SQLTestBase extends AbstractTestBase {
@@ -936,9 +937,11 @@ public abstract class SQLTestBase extends AbstractTestBase {
     }).runOnContext(v -> {
       client.getConnection(testContext.asyncAssertSuccess(connection -> {
         setupSimpleTable(connection, testContext.asyncAssertSuccess(st -> {
-          testMethod.accept(connection, ar -> {
-            count.incrementAndGet();
-            throw new RuntimeException();
+          vertx.runOnContext(v2 -> {
+            testMethod.accept(connection, ar -> {
+              count.incrementAndGet();
+              throw new RuntimeException();
+            });
           });
         }));
       }));
