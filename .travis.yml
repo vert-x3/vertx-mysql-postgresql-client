@@ -1,7 +1,6 @@
 language: java
 branches:
   only:
-  - master
   - /^\d+\.\d+$/
 services:
 - docker
