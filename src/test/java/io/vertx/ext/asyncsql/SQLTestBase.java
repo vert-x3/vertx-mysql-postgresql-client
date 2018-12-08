@@ -616,7 +616,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
       ensureSuccess(context, ar);
       conn = ar.result();
       conn.updateWithParams("INVALID INSERT", new JsonArray(), ar2 -> {
-        if (ar2.failed() && ar2.cause() instanceof com.github.mauricio.async.db.exceptions.DatabaseException) {
+        if (ar2.failed() && ar2.cause() instanceof com.github.jasync.sql.db.exceptions.DatabaseException) {
           async.complete();
         } else {
           context.fail("Should receive an exception of type DatabaseException.");

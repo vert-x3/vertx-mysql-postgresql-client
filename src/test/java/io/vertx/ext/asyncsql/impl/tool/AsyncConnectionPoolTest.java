@@ -16,7 +16,7 @@
 
 package io.vertx.ext.asyncsql.impl.tool;
 
-import com.github.mauricio.async.db.Connection;
+import com.github.jasync.sql.db.Connection;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -28,10 +28,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import scala.concurrent.impl.Promise;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -180,7 +180,8 @@ public class AsyncConnectionPoolTest {
 
   private Connection getGoodConnection() {
     final Connection connection = Mockito.mock(Connection.class);
-    Mockito.when(connection.connect()).thenReturn(new Promise.DefaultPromise<Connection>().success(connection).future());
+    CompletableFuture<Connection> result = CompletableFuture.completedFuture(connection);
+    Mockito.when(connection.connect()).thenReturn(result);
     Mockito.when(connection.isConnected()).thenReturn(true);
     return connection;
   }

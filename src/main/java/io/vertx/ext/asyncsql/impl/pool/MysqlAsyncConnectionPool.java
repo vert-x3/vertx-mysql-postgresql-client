@@ -16,13 +16,12 @@
 
 package io.vertx.ext.asyncsql.impl.pool;
 
-import com.github.mauricio.async.db.Configuration;
-import com.github.mauricio.async.db.Connection;
-import com.github.mauricio.async.db.mysql.MySQLConnection;
-import com.github.mauricio.async.db.mysql.util.CharsetMapper;
+import com.github.jasync.sql.db.Configuration;
+import com.github.jasync.sql.db.Connection;
+import com.github.jasync.sql.db.mysql.MySQLConnection;
+import com.github.jasync.sql.db.mysql.util.CharsetMapper;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.asyncsql.impl.VertxEventLoopExecutionContext;
 
 /**
  * Implementation of the {@link AsyncConnectionPool} for MySQL.
@@ -37,9 +36,10 @@ public class MysqlAsyncConnectionPool extends AsyncConnectionPool {
 
   @Override
   protected Connection create() {
-    return new MySQLConnection(connectionConfig, CharsetMapper.Instance(),
+    return new MySQLConnection(connectionConfig,
+        CharsetMapper.Companion.getInstance(),
         vertx.nettyEventLoopGroup().next(),
-        VertxEventLoopExecutionContext.create(vertx)
+        vertx.nettyEventLoopGroup().next()
     );
   }
 

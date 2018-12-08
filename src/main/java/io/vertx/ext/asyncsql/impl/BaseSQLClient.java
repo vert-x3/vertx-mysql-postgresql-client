@@ -16,9 +16,9 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import com.github.mauricio.async.db.Configuration;
-import com.github.mauricio.async.db.Connection;
-import com.github.mauricio.async.db.SSLConfiguration;
+import com.github.jasync.sql.db.Configuration;
+import com.github.jasync.sql.db.Connection;
+import com.github.jasync.sql.db.SSLConfiguration;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -29,14 +29,13 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
-import scala.Option;
-import scala.Tuple2;
-import scala.collection.Map$;
-import scala.collection.immutable.Map;
-import scala.concurrent.ExecutionContext;
-import scala.concurrent.duration.Duration;
 
 import java.nio.charset.Charset;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -58,13 +57,13 @@ public abstract class BaseSQLClient {
 
   protected abstract AsyncConnectionPool pool();
 
-  protected abstract SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec);
+  protected abstract SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutorService ec);
 
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
     pool().take(ar -> {
       if (ar.succeeded()) {
         final AsyncConnectionPool pool = pool();
-        ExecutionContext ec = VertxEventLoopExecutionContext.create(vertx);
+        ExecutorService ec = vertx.nettyEventLoopGroup().next();
         handler.handle(Future.succeededFuture(createFromPool(ar.result(), pool, ec)));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
@@ -109,12 +108,7 @@ public abstract class BaseSQLClient {
     String password = config.getString("password", defaultPassword);
     String database = config.getString("database", defaultDatabase);
     Charset charset = Charset.forName(config.getString("charset", defaultCharset));
-    long connectTimeout = config.getLong("connectTimeout", defaultConnectTimeout);
-    long testTimeout = config.getLong("testTimeout", defaultTestTimeout);
     Long queryTimeout = config.getLong("queryTimeout");
-    Option<Duration> queryTimeoutOption = (queryTimeout == null) ?
-      Option.empty() : Option.apply(Duration.apply(queryTimeout, TimeUnit.MILLISECONDS));
-
     Map<String, String> sslConfig = buildSslConfig(config);
 
     log.info("Creating configuration for " + host + ":" + port);
@@ -122,24 +116,22 @@ public abstract class BaseSQLClient {
       username,
       host,
       port,
-      Option.apply(password),
-      Option.apply(database),
-      SSLConfiguration.apply(sslConfig),
+      password,
+      database,
+      new SSLConfiguration(sslConfig),
       charset,
       16777216,
       PooledByteBufAllocator.DEFAULT,
-      Duration.apply(connectTimeout, TimeUnit.MILLISECONDS),
-      Duration.apply(testTimeout, TimeUnit.MILLISECONDS),
-      queryTimeoutOption);
+      queryTimeout == null ? null : Duration.of(queryTimeout.longValue(), ChronoUnit.MILLIS));
   }
 
   private Map<String, String> buildSslConfig(JsonObject config) {
-    Map<String, String> sslConfig = Map$.MODULE$.empty();
+    Map<String, String> sslConfig = new HashMap<String,String>();
     if (config.getString("sslMode")!= null) {
-      sslConfig = sslConfig.$plus(Tuple2.apply("sslmode", config.getString("sslMode")));
+      sslConfig.put("sslmode", config.getString("sslMode"));
     }
     if (config.getString("sslRootCert") != null) {
-      sslConfig = sslConfig.$plus(Tuple2.apply("sslrootcert", config.getString("sslRootCert")));
+      sslConfig.put("sslrootcert", config.getString("sslRootCert"));
     }
     return sslConfig;
   }

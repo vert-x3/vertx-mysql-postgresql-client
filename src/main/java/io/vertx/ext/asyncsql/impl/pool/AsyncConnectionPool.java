@@ -16,8 +16,8 @@
 
 package io.vertx.ext.asyncsql.impl.pool;
 
-import com.github.mauricio.async.db.Configuration;
-import com.github.mauricio.async.db.Connection;
+import com.github.jasync.sql.db.Configuration;
+import com.github.jasync.sql.db.Connection;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -25,8 +25,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.asyncsql.impl.ScalaUtils;
-import io.vertx.ext.asyncsql.impl.VertxEventLoopExecutionContext;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -93,7 +91,14 @@ public abstract class AsyncConnectionPool {
     try {
       create()
         .connect()
-        .onComplete(ScalaUtils.toFunction1(handler), VertxEventLoopExecutionContext.create(vertx));
+        .whenCompleteAsync((connection, error) -> {
+          if (error != null) {
+            logger.info("failed to create connection", error);
+            handler.handle(Future.failedFuture(error));
+          } else {
+            handler.handle(Future.succeededFuture(connection));
+          }
+        }, vertx.nettyEventLoopGroup().next());
     } catch (Throwable e) {
       logger.info("creating a connection went wrong", e);
       handler.handle(Future.failedFuture(e));
