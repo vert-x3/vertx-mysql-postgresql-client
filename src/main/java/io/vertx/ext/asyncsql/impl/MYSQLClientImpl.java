@@ -44,8 +44,6 @@ public class MYSQLClientImpl extends BaseSQLClient {
         MySQLClient.DEFAULT_USER,
         MySQLClient.DEFAULT_PASSWORD,
         MySQLClient.DEFAULT_CHARSET,
-        MySQLClient.DEFAULT_CONNECT_TIMEOUT,
-        MySQLClient.DEFAULT_TEST_TIMEOUT,
         globalConfig));
   }
 
@@ -55,7 +53,7 @@ public class MYSQLClientImpl extends BaseSQLClient {
   }
 
   @Override
-  protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutorService ec) {
-    return new MySQLConnectionImpl(conn, pool, ec);
+  protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, Vertx vertx) {
+    return new MySQLConnectionImpl(conn, pool, vertx);
   }
 }

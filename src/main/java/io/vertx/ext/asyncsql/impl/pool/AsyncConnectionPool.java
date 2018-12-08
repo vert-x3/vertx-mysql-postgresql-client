@@ -93,13 +93,22 @@ public abstract class AsyncConnectionPool {
       create()
         .connect()
         .whenCompleteAsync((connection, error) -> {
-          if (error != null) {
-            logger.info("failed to create connection", error);
-            handler.handle(Future.failedFuture(error));
-          } else {
-            handler.handle(Future.succeededFuture(connection));
+          try {
+            if (error != null) {
+              logger.info("failed to create connection", error);
+              handler.handle(Future.failedFuture(error));
+            } else {
+              handler.handle(Future.succeededFuture(connection));
+            }
+          } catch (Throwable exception) {
+            Handler<Throwable> exceptionHandler = vertx.getOrCreateContext().exceptionHandler();
+            if (exceptionHandler != null) {
+              exceptionHandler.handle(exception);
+            } else {
+              throw exception;
+            }
           }
-        }, ConversionUtils.vertxToExecutorService(vertx));
+        }, ConversionUtils.vertxToExecutor(vertx));
     } catch (Throwable e) {
       logger.info("creating a connection went wrong", e);
       handler.handle(Future.failedFuture(e));

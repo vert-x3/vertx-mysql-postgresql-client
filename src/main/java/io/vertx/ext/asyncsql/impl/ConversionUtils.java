@@ -32,10 +32,11 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.UUID;
 
 /**
@@ -47,7 +48,7 @@ public final class ConversionUtils {
 
   private ConversionUtils () {}
 
-  public static <T> Future<T> completableFutureToVertx(CompletableFuture<T> future, ExecutorService executor) {
+  static <T> Future<T> completableFutureToVertx(CompletableFuture<T> future, Vertx vertx) {
     Future<T> fut = Future.future();
     future.whenCompleteAsync((result, error) -> {
       if (error != null) {
@@ -55,11 +56,19 @@ public final class ConversionUtils {
       } else {
         fut.complete(result);
       }
-    }, executor);
+    }, vertxToExecutor(vertx))
+      .exceptionally(error -> {
+        Handler<Throwable> exceptionHandler = vertx.getOrCreateContext().exceptionHandler();
+        if (exceptionHandler != null) {
+          exceptionHandler.handle(error);
+        }
+
+        return null;
+      });
     return fut;
   }
 
-  public static <T> Future<Void> completableFutureToVertxVoid(CompletableFuture<T> future, ExecutorService executor) {
+  static <T> Future<Void> completableFutureToVertxVoid(CompletableFuture<T> future, Vertx vertx) {
     Future<Void> fut = Future.future();
     future.whenCompleteAsync((ignored, error) -> {
       if (error != null) {
@@ -67,11 +76,19 @@ public final class ConversionUtils {
       } else {
         fut.complete();
       }
-    }, executor);
+    }, vertxToExecutor(vertx))
+      .exceptionally(error -> {
+        Handler<Throwable> exceptionHandler = vertx.getOrCreateContext().exceptionHandler();
+        if (exceptionHandler != null) {
+          exceptionHandler.handle(error);
+        }
+
+        return null;
+      });
     return fut;
   }
 
-  public static <T> void connectCompletableFutureWithHandler(CompletableFuture<T> future, ExecutorService executor, Handler<AsyncResult<T>> handler)
+  static <T> void connectCompletableFutureWithHandler(CompletableFuture<T> future, Vertx vertx, Handler<AsyncResult<T>> handler)
   {
     future.whenCompleteAsync((result, error) -> {
       if (error != null) {
@@ -79,10 +96,18 @@ public final class ConversionUtils {
       } else {
         handler.handle(Future.succeededFuture(result));
       }
-    }, executor);
+    }, vertxToExecutor(vertx))
+      .exceptionally(error -> {
+        Handler<Throwable> exceptionHandler = vertx.getOrCreateContext().exceptionHandler();
+        if (exceptionHandler != null) {
+          exceptionHandler.handle(error);
+        }
+
+        return null;
+      });
   }
 
-  public static <T> void connectCompletableFutureWithVoidHandler(CompletableFuture<T> future, ExecutorService executor, Handler<AsyncResult<Void>> handler)
+  static <T> void connectCompletableFutureWithVoidHandler(CompletableFuture<T> future, Vertx vertx, Handler<AsyncResult<Void>> handler)
   {
     future.whenCompleteAsync((ignored, error) -> {
       if (error != null) {
@@ -90,22 +115,30 @@ public final class ConversionUtils {
       } else {
         handler.handle(Future.succeededFuture());
       }
-    }, executor);
+    }, vertxToExecutor(vertx))
+      .exceptionally(error -> {
+        Handler<Throwable> exceptionHandler = vertx.getOrCreateContext().exceptionHandler();
+        if (exceptionHandler != null) {
+          exceptionHandler.handle(error);
+        }
+
+        return null;
+      });
   }
 
-  public static ExecutorService vertxToExecutorService(Vertx vertx)
+  public static Executor vertxToExecutor(Vertx vertx)
   {
     EventLoopGroup eventLoopGroup = vertx.nettyEventLoopGroup();
-    return eventLoopGroup == null ? ExecutorServiceUtils.INSTANCE.getCommonPool() : eventLoopGroup;
+    return eventLoopGroup == null ? ExecutorServiceUtils.INSTANCE.getCommonPool() : new VxContextAwareExecutor(vertx);
   }
 
   @SuppressWarnings("unchecked")
-  public static List<Object> WrapList(JsonArray array)
+  static List<Object> WrapList(JsonArray array)
   {
     return (List<Object>)array.getList();
   }
 
-  public static JsonArray rowToJsonArray(RowData data) {
+  static JsonArray rowToJsonArray(RowData data) {
     JsonArray array = new JsonArray();
     data.forEach(value -> convertValue(array, value));
     return array;
@@ -123,15 +156,18 @@ public final class ConversionUtils {
       array.add(value.toString());
     } else if (value instanceof DateTime) {
       array.add(Instant.ofEpochMilli(((DateTime) value).getMillis()));
+    } else if (value instanceof Duration) {
+      Duration duration = (Duration)value;
+      array.add(String.format("%02d:%02d:%02d.%03d", duration.toHours() % 24, duration.toMinutes() % 60, duration.getSeconds() % 60, duration.toMillis() % 1000));
     } else if (value instanceof UUID) {
       array.add(value.toString());
     } else if (value instanceof List) {
       JsonArray subArray = new JsonArray();
       @SuppressWarnings("unchecked")
       List<Object> list = (List<Object>)value;
-      for (int i = 0; i < list.size(); ++i)
+      for(Object item : list)
       {
-        convertValue(subArray, list.get(i));
+        convertValue(subArray, item);
       }
       array.add(subArray);
     } else {

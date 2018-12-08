@@ -40,7 +40,7 @@ public class MysqlAsyncConnectionPool extends AsyncConnectionPool {
     return new MySQLConnection(connectionConfig,
         CharsetMapper.Companion.getInstance(),
         vertx.nettyEventLoopGroup(),
-      ConversionUtils.vertxToExecutorService(vertx)
+        vertx.nettyEventLoopGroup()
     );
   }
 

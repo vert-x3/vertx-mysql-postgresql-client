@@ -57,14 +57,13 @@ public abstract class BaseSQLClient {
 
   protected abstract AsyncConnectionPool pool();
 
-  protected abstract SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutorService ec);
+  protected abstract SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, Vertx vertx);
 
   public void getConnection(Handler<AsyncResult<SQLConnection>> handler) {
     pool().take(ar -> {
       if (ar.succeeded()) {
         final AsyncConnectionPool pool = pool();
-        ExecutorService ec = ConversionUtils.vertxToExecutorService(vertx);
-        handler.handle(Future.succeededFuture(createFromPool(ar.result(), pool, ec)));
+        handler.handle(Future.succeededFuture(createFromPool(ar.result(), pool, vertx)));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }
@@ -98,8 +97,6 @@ public abstract class BaseSQLClient {
     String defaultUser,
     String defaultPassword,
     String defaultCharset,
-    long defaultConnectTimeout,
-    long defaultTestTimeout,
     JsonObject config) {
 
     String host = config.getString("host", defaultHost);

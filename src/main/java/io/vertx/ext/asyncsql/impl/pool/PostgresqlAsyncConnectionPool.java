@@ -39,11 +39,11 @@ public class PostgresqlAsyncConnectionPool extends AsyncConnectionPool {
   @Override
   protected Connection create() {
     return new PostgreSQLConnection(
-        connectionConfig,
-        PostgreSQLColumnEncoderRegistry.Companion.getInstance(),
-        PostgreSQLColumnDecoderRegistry.Companion.getInstance(),
-        vertx.nettyEventLoopGroup(),
-      ConversionUtils.vertxToExecutorService(vertx)
+      connectionConfig,
+      PostgreSQLColumnEncoderRegistry.Companion.getInstance(),
+      PostgreSQLColumnDecoderRegistry.Companion.getInstance(),
+      vertx.nettyEventLoopGroup(),
+      vertx.nettyEventLoopGroup()
     );
   }
 

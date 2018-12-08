@@ -18,10 +18,7 @@ package io.vertx.ext.asyncsql.impl;
 
 import com.github.jasync.sql.db.Connection;
 import com.github.jasync.sql.db.QueryResult;
-import com.github.jasync.sql.db.RowData;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
+import io.vertx.core.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.ResultSet;
@@ -43,17 +40,17 @@ import java.util.concurrent.ExecutorService;
  */
 public abstract class AsyncSQLConnectionImpl implements SQLConnection {
 
-  private final ExecutorService executionContext;
+  private final Vertx vertx;
   private volatile boolean inTransaction = false;
   private boolean inAutoCommit = true;
 
   private final Connection connection;
   private final AsyncConnectionPool pool;
 
-  public AsyncSQLConnectionImpl(Connection connection, AsyncConnectionPool pool, ExecutorService executionContext) {
+  public AsyncSQLConnectionImpl(Connection connection, AsyncConnectionPool pool, Vertx vertx) {
     this.connection = connection;
     this.pool = pool;
-    this.executionContext = executionContext;
+    this.vertx = vertx;
   }
 
   /**
@@ -83,7 +80,7 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
     synchronized (this) {
       if (inTransaction && autoCommit) {
         inTransaction = false;
-        fut = ConversionUtils.completableFutureToVertxVoid(connection.sendQuery("COMMIT"), executionContext);
+        fut = ConversionUtils.completableFutureToVertxVoid(connection.sendQuery("COMMIT"), vertx);
       } else {
         fut = Future.succeededFuture();
       }
@@ -98,7 +95,7 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection execute(String sql, Handler<AsyncResult<Void>> handler) {
     beginTransactionIfNeeded(v -> {
-      ConversionUtils.connectCompletableFutureWithVoidHandler(connection.sendQuery(sql), executionContext, handler);
+      ConversionUtils.connectCompletableFutureWithVoidHandler(connection.sendQuery(sql), vertx, handler);
     });
 
     return this;
@@ -108,8 +105,8 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   public SQLConnection query(String sql, Handler<AsyncResult<ResultSet>> handler) {
     beginTransactionIfNeeded(v -> {
       ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendQuery(sql), 
-        executionContext, 
+        connection.sendQuery(sql),
+        vertx,
         handleAsyncQueryResultToResultSet(handler));
     });
 
@@ -121,7 +118,7 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
     beginTransactionIfNeeded(v -> {
       ConversionUtils.connectCompletableFutureWithHandler(
         connection.sendQuery(sql),
-        executionContext, 
+        vertx,
         handleAsyncQueryResultToRowStream(handler));
     });
 
@@ -132,8 +129,8 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   public SQLConnection queryWithParams(String sql, JsonArray params, Handler<AsyncResult<ResultSet>> handler) {
     beginTransactionIfNeeded(v -> {
       ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendPreparedStatement(sql, ConversionUtils.WrapList(params)), 
-        executionContext, 
+        connection.sendPreparedStatement(sql, ConversionUtils.WrapList(params)),
+        vertx,
         handleAsyncQueryResultToResultSet(handler));
     });
 
@@ -144,8 +141,8 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   public SQLConnection queryStreamWithParams(String sql, JsonArray params, Handler<AsyncResult<SQLRowStream>> handler) {
     beginTransactionIfNeeded(v -> {
       ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendPreparedStatement(sql, ConversionUtils.WrapList(params)), 
-        executionContext, 
+        connection.sendPreparedStatement(sql, ConversionUtils.WrapList(params)),
+        vertx,
         handleAsyncQueryResultToRowStream(handler));
     });
 
@@ -156,8 +153,8 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   public SQLConnection update(String sql, Handler<AsyncResult<UpdateResult>> handler) {
     beginTransactionIfNeeded(v -> {
       ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendQuery(sql), 
-        executionContext, 
+        connection.sendQuery(sql),
+        vertx,
         handleAsyncUpdateResultToResultSet(handler));
     });
 
@@ -168,8 +165,8 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   public SQLConnection updateWithParams(String sql, JsonArray params, Handler<AsyncResult<UpdateResult>> handler) {
     beginTransactionIfNeeded(v -> {
       ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendPreparedStatement(sql, ConversionUtils.WrapList(params)), 
-        executionContext, 
+        connection.sendPreparedStatement(sql, ConversionUtils.WrapList(params)),
+        vertx,
         handleAsyncUpdateResultToResultSet(handler));
     });
 
@@ -181,7 +178,7 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
     inAutoCommit = true;
     if (inTransaction) {
       inTransaction = false;
-      Future<QueryResult> future = ConversionUtils.completableFutureToVertx(connection.sendQuery("COMMIT"), executionContext);
+      Future<QueryResult> future = ConversionUtils.completableFutureToVertx(connection.sendQuery("COMMIT"), vertx);
       future.setHandler((v) -> {
         pool.giveBack(connection);
         handler.handle(Future.succeededFuture());
@@ -273,12 +270,12 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   private SQLConnection endAndStartTransaction(String command, Handler<AsyncResult<Void>> handler) {
     if (inTransaction) {
       inTransaction = false;
-      ConversionUtils.completableFutureToVertx(connection.sendQuery(command), executionContext).setHandler(
+      ConversionUtils.completableFutureToVertx(connection.sendQuery(command), vertx).setHandler(
           ar -> {
             if (ar.failed()) {
               handler.handle(Future.failedFuture(ar.cause()));
             } else {
-              ConversionUtils.completableFutureToVertx(connection.sendQuery("BEGIN"), executionContext).setHandler(
+              ConversionUtils.completableFutureToVertx(connection.sendQuery("BEGIN"), vertx).setHandler(
                   ar2 -> {
                     if (ar2.failed()) {
                       handler.handle(Future.failedFuture(ar.cause()));
@@ -300,7 +297,7 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   private synchronized void beginTransactionIfNeeded(Handler<AsyncResult<Void>> action) {
     if (!inAutoCommit && !inTransaction) {
       inTransaction = true;
-      ConversionUtils.completableFutureToVertxVoid(connection.sendQuery(getStartTransactionStatement()), executionContext)
+      ConversionUtils.completableFutureToVertxVoid(connection.sendQuery(getStartTransactionStatement()), vertx)
           .setHandler(action);
     } else {
       action.handle(Future.succeededFuture());

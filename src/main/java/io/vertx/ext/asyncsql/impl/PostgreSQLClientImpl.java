@@ -44,8 +44,6 @@ public class PostgreSQLClientImpl extends BaseSQLClient {
         PostgreSQLClient.DEFAULT_USER,
         PostgreSQLClient.DEFAULT_PASSWORD,
         PostgreSQLClient.DEFAULT_CHARSET,
-        PostgreSQLClient.DEFAULT_CONNECT_TIMEOUT,
-        PostgreSQLClient.DEFAULT_TEST_TIMEOUT,
         globalConfig));
   }
 
@@ -55,7 +53,7 @@ public class PostgreSQLClientImpl extends BaseSQLClient {
   }
 
   @Override
-  protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutorService ec) {
-    return new PostgreSQLConnectionImpl(conn, pool, ec);
+  protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, Vertx vertx) {
+    return new PostgreSQLConnectionImpl(conn, pool, vertx);
   }
 }
