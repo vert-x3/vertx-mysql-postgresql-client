@@ -40,7 +40,7 @@ public class MyVerticle extends AbstractVerticle {
         throw new RuntimeException("Bad context");
       }
       CONTEXTS.add(Vertx.currentContext());
-    }, vertx.nettyEventLoopGroup().next());
+    }, vertx.nettyEventLoopGroup());
     promise.complete("hello");
   }
 }

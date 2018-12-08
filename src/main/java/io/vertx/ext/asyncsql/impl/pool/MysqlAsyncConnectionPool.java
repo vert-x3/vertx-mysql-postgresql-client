@@ -38,8 +38,8 @@ public class MysqlAsyncConnectionPool extends AsyncConnectionPool {
   protected Connection create() {
     return new MySQLConnection(connectionConfig,
         CharsetMapper.Companion.getInstance(),
-        vertx.nettyEventLoopGroup().next(),
-        vertx.nettyEventLoopGroup().next()
+        vertx.nettyEventLoopGroup(),
+        vertx.nettyEventLoopGroup()
     );
   }
 

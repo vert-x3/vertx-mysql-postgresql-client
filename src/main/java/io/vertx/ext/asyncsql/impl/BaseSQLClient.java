@@ -63,7 +63,7 @@ public abstract class BaseSQLClient {
     pool().take(ar -> {
       if (ar.succeeded()) {
         final AsyncConnectionPool pool = pool();
-        ExecutorService ec = vertx.nettyEventLoopGroup().next();
+        ExecutorService ec = vertx.nettyEventLoopGroup();
         handler.handle(Future.succeededFuture(createFromPool(ar.result(), pool, ec)));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));

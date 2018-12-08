@@ -17,6 +17,8 @@
 package io.vertx.ext.asyncsql.impl.tool;
 
 import com.github.jasync.sql.db.Connection;
+
+import io.netty.channel.EventLoopGroup;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -53,7 +55,8 @@ public class AsyncConnectionPoolTest {
 
   @Before
   public void setUp() {
-    this.vertx = Vertx.vertx();
+    this.vertx = Mockito.mock(Vertx.class);
+    Mockito.when(this.vertx.nettyEventLoopGroup()).thenReturn(Mockito.mock(EventLoopGroup.class));
     Mockito.when(vertx.setTimer(Mockito.anyLong(),Mockito.any()))
       .then(invocation -> {
         final Handler<Long> handler = invocation.getArgument(1);
