@@ -25,6 +25,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.asyncsql.impl.ConversionUtils;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -98,7 +99,7 @@ public abstract class AsyncConnectionPool {
           } else {
             handler.handle(Future.succeededFuture(connection));
           }
-        }, vertx.nettyEventLoopGroup());
+        }, ConversionUtils.vertxToExecutorService(vertx));
     } catch (Throwable e) {
       logger.info("creating a connection went wrong", e);
       handler.handle(Future.failedFuture(e));

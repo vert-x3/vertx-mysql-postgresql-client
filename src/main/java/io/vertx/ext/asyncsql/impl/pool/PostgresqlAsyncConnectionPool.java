@@ -23,6 +23,7 @@ import com.github.jasync.sql.db.postgresql.column.PostgreSQLColumnDecoderRegistr
 import com.github.jasync.sql.db.postgresql.column.PostgreSQLColumnEncoderRegistry;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.impl.ConversionUtils;
 
 /**
  * Implementation of the {@link AsyncConnectionPool} for PostGresSQL.
@@ -42,7 +43,7 @@ public class PostgresqlAsyncConnectionPool extends AsyncConnectionPool {
         PostgreSQLColumnEncoderRegistry.Companion.getInstance(),
         PostgreSQLColumnDecoderRegistry.Companion.getInstance(),
         vertx.nettyEventLoopGroup(),
-        vertx.nettyEventLoopGroup()
+      ConversionUtils.vertxToExecutorService(vertx)
     );
   }
 

@@ -18,9 +18,12 @@ package io.vertx.ext.asyncsql.impl;
 
 import com.github.jasync.sql.db.RowData;
 
+import com.github.jasync.sql.db.util.ExecutorServiceUtils;
+import io.netty.channel.EventLoopGroup;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 
 import org.joda.time.DateTime;
@@ -88,6 +91,12 @@ public final class ConversionUtils {
         handler.handle(Future.succeededFuture());
       }
     }, executor);
+  }
+
+  public static ExecutorService vertxToExecutorService(Vertx vertx)
+  {
+    EventLoopGroup eventLoopGroup = vertx.nettyEventLoopGroup();
+    return eventLoopGroup == null ? ExecutorServiceUtils.INSTANCE.getCommonPool() : eventLoopGroup;
   }
 
   @SuppressWarnings("unchecked")
