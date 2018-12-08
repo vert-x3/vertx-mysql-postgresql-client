@@ -98,7 +98,7 @@ public abstract class AsyncConnectionPool {
           } else {
             handler.handle(Future.succeededFuture(connection));
           }
-        }, vertx.nettyEventLoopGroup().next());
+        }, vertx.nettyEventLoopGroup());
     } catch (Throwable e) {
       logger.info("creating a connection went wrong", e);
       handler.handle(Future.failedFuture(e));

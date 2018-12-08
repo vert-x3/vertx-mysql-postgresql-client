@@ -28,6 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -51,7 +53,7 @@ public class AsyncConnectionPoolTest {
 
   @Before
   public void setUp() {
-    this.vertx = Mockito.mock(Vertx.class);
+    this.vertx = Vertx.vertx();
     Mockito.when(vertx.setTimer(Mockito.anyLong(),Mockito.any()))
       .then(invocation -> {
         final Handler<Long> handler = invocation.getArgument(1);
@@ -180,8 +182,12 @@ public class AsyncConnectionPoolTest {
 
   private Connection getGoodConnection() {
     final Connection connection = Mockito.mock(Connection.class);
-    CompletableFuture<Connection> result = CompletableFuture.completedFuture(connection);
-    Mockito.when(connection.connect()).thenReturn(result);
+    Mockito.when(connection.connect()).thenAnswer(new Answer<CompletableFuture<? extends Connection>>(){
+      @Override
+      public CompletableFuture<? extends Connection> answer(InvocationOnMock invocation) throws Throwable {
+        return CompletableFuture.completedFuture(connection);
+      }
+    });
     Mockito.when(connection.isConnected()).thenReturn(true);
     return connection;
   }

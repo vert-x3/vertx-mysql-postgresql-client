@@ -19,10 +19,9 @@ package io.vertx.ext.asyncsql.impl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
-import scala.concurrent.impl.Promise;
-import scala.util.Success;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -34,14 +33,14 @@ public class MyVerticle extends AbstractVerticle {
 
   @Override
   public void start() throws Exception {
-    final Promise.DefaultPromise<String> promise = new Promise.DefaultPromise<>();
+    CompletableFuture<String> promise = new CompletableFuture<String>();
     CONTEXTS.add(context);
-    promise.onComplete(ScalaUtils.toFunction1(v -> {
+    promise.whenCompleteAsync((v, e) -> {
       if (context != Vertx.currentContext()) {
         throw new RuntimeException("Bad context");
       }
       CONTEXTS.add(Vertx.currentContext());
-    }), VertxEventLoopExecutionContext.create(vertx));
-    promise.complete(new Success<>("hello"));
+    }, vertx.nettyEventLoopGroup().next());
+    promise.complete("hello");
   }
 }
