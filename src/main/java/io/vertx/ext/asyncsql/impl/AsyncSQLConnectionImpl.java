@@ -275,7 +275,7 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
             if (ar.failed()) {
               handler.handle(Future.failedFuture(ar.cause()));
             } else {
-              ConversionUtils.completableFutureToVertx(connection.sendQuery("BEGIN"), vertx).setHandler(
+              ConversionUtils.completableFutureToVertx(connection.sendQuery(getStartTransactionStatement()), vertx).setHandler(
                   ar2 -> {
                     if (ar2.failed()) {
                       handler.handle(Future.failedFuture(ar.cause()));
