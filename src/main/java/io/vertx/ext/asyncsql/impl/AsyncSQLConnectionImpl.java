@@ -290,8 +290,12 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
             }
           });
     } else {
-      handler.handle(Future.failedFuture(
-          new IllegalStateException("Not in transaction currently")));
+      if (inAutoCommit) {
+        handler.handle(Future.failedFuture(
+            new IllegalStateException("Not in transaction currently")));
+      } else {
+        handler.handle(Future.succeededFuture());
+      }
     }
     return this;
   }
