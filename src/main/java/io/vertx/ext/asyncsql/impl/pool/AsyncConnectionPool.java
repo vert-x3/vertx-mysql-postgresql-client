@@ -138,7 +138,7 @@ public abstract class AsyncConnectionPool {
     } else {
       if (connection.isConnected()) {
         // Do connection test if connection test timeout is configured
-        if (connectionConfig.getConnectionTestTimeout() > 0) {
+        if (connectionConfig != null && connectionConfig.getConnectionTestTimeout() > 0) {
           AtomicBoolean testCompleted = new AtomicBoolean(false);
           long timer = vertx.setTimer(connectionConfig.getConnectionTestTimeout(), ignored -> {
             // check if the test request has completed or not, if not, try it again and drop the current connection
