@@ -44,6 +44,8 @@ public class PostgreSQLClientImpl extends BaseSQLClient {
         PostgreSQLClient.DEFAULT_USER,
         PostgreSQLClient.DEFAULT_PASSWORD,
         PostgreSQLClient.DEFAULT_CHARSET,
+        PostgreSQLClient.DEFAULT_CONNECT_TIMEOUT,
+        PostgreSQLClient.DEFAULT_TEST_TIMEOUT,
         globalConfig));
   }
 

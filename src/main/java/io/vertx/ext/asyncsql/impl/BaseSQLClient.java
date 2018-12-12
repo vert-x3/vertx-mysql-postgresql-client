@@ -18,7 +18,9 @@ package io.vertx.ext.asyncsql.impl;
 
 import com.github.jasync.sql.db.Configuration;
 import com.github.jasync.sql.db.Connection;
+import com.github.jasync.sql.db.ConnectionPoolConfiguration;
 import com.github.jasync.sql.db.SSLConfiguration;
+import com.github.jasync.sql.db.pool.PoolConfiguration;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -49,6 +51,7 @@ public abstract class BaseSQLClient {
   protected final Vertx vertx;
 
   protected final JsonObject globalConfig;
+  private long testTimeout;
 
   public BaseSQLClient(Vertx vertx, JsonObject globalConfig) {
     this.vertx = vertx;
@@ -90,13 +93,15 @@ public abstract class BaseSQLClient {
     close(null);
   }
 
-  protected Configuration getConnectionConfiguration(
+  protected ConnectionPoolConfiguration getConnectionConfiguration(
     String defaultHost,
     int defaultPort,
     String defaultDatabase,
     String defaultUser,
     String defaultPassword,
     String defaultCharset,
+    long defaultConnectTimeout,
+    long defaultTestTimeout,
     JsonObject config) {
 
     String host = config.getString("host", defaultHost);
@@ -105,26 +110,33 @@ public abstract class BaseSQLClient {
     String password = config.getString("password", defaultPassword);
     String database = config.getString("database", defaultDatabase);
     Charset charset = Charset.forName(config.getString("charset", defaultCharset));
+    long connectTimeout = config.getLong("connectTimeout", defaultConnectTimeout);
+    long testTimeout = config.getLong("testTimeout", defaultTestTimeout);
     Long queryTimeout = config.getLong("queryTimeout");
     Map<String, String> sslConfig = buildSslConfig(config);
 
     log.info("Creating configuration for " + host + ":" + port);
-    return new Configuration(
-      username,
+    return new ConnectionPoolConfiguration(
       host,
       port,
-      password,
       database,
+      username,
+      password,
+      0 /*maxActiveConnections, unused*/,
+      0 /*maxIdleTime, unused*/,
+      0 /*maxPendingQueries, unused*/,
+      0 /*connectionValidationInterval*/,
+      connectTimeout,
+      testTimeout,
+      queryTimeout,
+      vertx.nettyEventLoopGroup(),
       new SSLConfiguration(sslConfig),
-      charset,
-      16777216,
-      PooledByteBufAllocator.DEFAULT,
-      queryTimeout == null ? null : Duration.of(queryTimeout.longValue(), ChronoUnit.MILLIS));
+      charset);
   }
 
   private Map<String, String> buildSslConfig(JsonObject config) {
-    Map<String, String> sslConfig = new HashMap<String,String>();
-    if (config.getString("sslMode")!= null) {
+    Map<String, String> sslConfig = new HashMap<String, String>();
+    if (config.getString("sslMode") != null) {
       sslConfig.put("sslmode", config.getString("sslMode"));
     }
     if (config.getString("sslRootCert") != null) {
