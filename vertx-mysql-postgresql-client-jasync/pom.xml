@@ -9,12 +9,12 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>vertx-mysql-postgresql-client</artifactId>
+  <artifactId>vertx-mysql-postgresql-client-jasync</artifactId>
 
-  <name>Vert.x MySQL/PostgreSQL Client based on Netty/Scala</name>
+  <name>Vert.x MySQL/PostgreSQL Client based on jasync-sql/Kotlin</name>
 
   <properties>
-    <asyncdriver.version>0.8.55</asyncdriver.version>
+    <asyncdriver.version>0.8.58</asyncdriver.version>
   </properties>
 
   <dependencies>
