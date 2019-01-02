@@ -146,6 +146,32 @@ public abstract class SQLTestBase extends AbstractTestBase {
   }
 
   @Test
+  public void testEmptyTransactions(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      conn = ar.result();
+      conn.setAutoCommit(false, ar2 -> {
+        ensureSuccess(context, ar2);
+        conn.rollback(ar3 -> {
+          ensureSuccess(context, ar3);
+          conn.commit(ar4 -> {
+            ensureSuccess(context, ar4);
+            conn.setAutoCommit(true, ar5 -> {
+              ensureSuccess(context, ar5);
+              async.complete();
+            });
+          });
+        });
+      });
+    });
+  }
+
+  @Test
   public void testUpdatingRow(TestContext context) {
     int id = 0;
     String name = "Adele";
