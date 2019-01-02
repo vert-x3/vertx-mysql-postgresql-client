@@ -16,14 +16,15 @@
 
 package io.vertx.ext.asyncsql.impl.pool;
 
-import com.github.mauricio.async.db.Configuration;
-import com.github.mauricio.async.db.Connection;
-import com.github.mauricio.async.db.postgresql.PostgreSQLConnection;
-import com.github.mauricio.async.db.postgresql.column.PostgreSQLColumnDecoderRegistry;
-import com.github.mauricio.async.db.postgresql.column.PostgreSQLColumnEncoderRegistry;
+import com.github.jasync.sql.db.Configuration;
+import com.github.jasync.sql.db.Connection;
+import com.github.jasync.sql.db.ConnectionPoolConfiguration;
+import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
+import com.github.jasync.sql.db.postgresql.column.PostgreSQLColumnDecoderRegistry;
+import com.github.jasync.sql.db.postgresql.column.PostgreSQLColumnEncoderRegistry;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.asyncsql.impl.VertxEventLoopExecutionContext;
+import io.vertx.ext.asyncsql.impl.ConversionUtils;
 
 /**
  * Implementation of the {@link AsyncConnectionPool} for PostGresSQL.
@@ -32,18 +33,18 @@ import io.vertx.ext.asyncsql.impl.VertxEventLoopExecutionContext;
  */
 public class PostgresqlAsyncConnectionPool extends AsyncConnectionPool {
 
-  public PostgresqlAsyncConnectionPool(Vertx vertx, JsonObject globalConfig, Configuration connectionConfig) {
+  public PostgresqlAsyncConnectionPool(Vertx vertx, JsonObject globalConfig, ConnectionPoolConfiguration connectionConfig) {
     super(vertx, globalConfig, connectionConfig);
   }
 
   @Override
   protected Connection create() {
     return new PostgreSQLConnection(
-        connectionConfig,
-        PostgreSQLColumnEncoderRegistry.Instance(),
-        PostgreSQLColumnDecoderRegistry.Instance(),
-        vertx.nettyEventLoopGroup().next(),
-        VertxEventLoopExecutionContext.create(vertx)
+      connectionConfig.getConnectionConfiguration(),
+      PostgreSQLColumnEncoderRegistry.Companion.getInstance(),
+      PostgreSQLColumnDecoderRegistry.Companion.getInstance(),
+      vertx.nettyEventLoopGroup(),
+      vertx.nettyEventLoopGroup()
     );
   }
 

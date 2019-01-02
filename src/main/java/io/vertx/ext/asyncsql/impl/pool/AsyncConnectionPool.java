@@ -16,8 +16,9 @@
 
 package io.vertx.ext.asyncsql.impl.pool;
 
-import com.github.mauricio.async.db.Configuration;
-import com.github.mauricio.async.db.Connection;
+import com.github.jasync.sql.db.Configuration;
+import com.github.jasync.sql.db.Connection;
+import com.github.jasync.sql.db.ConnectionPoolConfiguration;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -25,11 +26,12 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.asyncsql.impl.ScalaUtils;
-import io.vertx.ext.asyncsql.impl.VertxEventLoopExecutionContext;
+import io.vertx.ext.asyncsql.impl.ConversionUtils;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Manages a pool of connection.
@@ -48,14 +50,14 @@ public abstract class AsyncConnectionPool {
   private final int maxConnectionRetries;
   private final int connectionRetryDelay;
 
-  protected final Configuration connectionConfig;
+  protected final ConnectionPoolConfiguration connectionConfig;
   protected final Vertx vertx;
 
   private int poolSize = 0;
   private final Deque<Connection> availableConnections = new ArrayDeque<>();
   private final Deque<Handler<AsyncResult<Connection>>> waiters = new ArrayDeque<>();
 
-  public AsyncConnectionPool(Vertx vertx, JsonObject globalConfig, Configuration connectionConfig) {
+  public AsyncConnectionPool(Vertx vertx, JsonObject globalConfig, ConnectionPoolConfiguration connectionConfig) {
     this.vertx = vertx;
     this.maxPoolSize = globalConfig.getInteger("maxPoolSize", DEFAULT_MAX_POOL_SIZE);
     this.maxConnectionRetries = globalConfig.getInteger("maxConnectionRetries", DEFAULT_MAX_CONNECTION_RETRIES);
@@ -69,6 +71,7 @@ public abstract class AsyncConnectionPool {
     poolSize += 1;
     createAndConnect(new Handler<AsyncResult<Connection>>() {
       int retries = 0;
+
       @Override
       public void handle(AsyncResult<Connection> connectionResult) {
         if (connectionResult.succeeded()) {
@@ -93,7 +96,23 @@ public abstract class AsyncConnectionPool {
     try {
       create()
         .connect()
-        .onComplete(ScalaUtils.toFunction1(handler), VertxEventLoopExecutionContext.create(vertx));
+        .whenCompleteAsync((connection, error) -> {
+          try {
+            if (error != null) {
+              logger.info("failed to create connection", error);
+              handler.handle(Future.failedFuture(error));
+            } else {
+              handler.handle(Future.succeededFuture(connection));
+            }
+          } catch (Throwable exception) {
+            Handler<Throwable> exceptionHandler = vertx.getOrCreateContext().exceptionHandler();
+            if (exceptionHandler != null) {
+              exceptionHandler.handle(exception);
+            } else {
+              throw exception;
+            }
+          }
+        }, ConversionUtils.vertxToExecutor(vertx));
     } catch (Throwable e) {
       logger.info("creating a connection went wrong", e);
       handler.handle(Future.failedFuture(e));
@@ -118,7 +137,50 @@ public abstract class AsyncConnectionPool {
       createOrWaitForAvailableConnection(handler);
     } else {
       if (connection.isConnected()) {
-        handler.handle(Future.succeededFuture(connection));
+        // Do connection test if connection test timeout is configured
+        if (connectionConfig != null && connectionConfig.getConnectionTestTimeout() > 0) {
+          AtomicBoolean testCompleted = new AtomicBoolean(false);
+          long timer = vertx.setTimer(connectionConfig.getConnectionTestTimeout(), ignored -> {
+            // check if the test request has completed or not, if not, try it again and drop the current connection
+            if (testCompleted.compareAndSet(false, true)) {
+              logger.info("connection test timeout");
+              connection.disconnect(); // drop the connection if it's still alive
+              synchronized (this) {
+                poolSize -= 1;
+              }
+
+              take(handler);
+            }
+          });
+          connection.sendQuery("SELECT 1 AS alive")
+            .whenCompleteAsync((ignored, error) -> {
+              if (error != null) {
+                logger.info("connection test failed", error);
+                connection.disconnect(); // try to close the connection
+                synchronized (this) {
+                  poolSize -= 1;
+                }
+
+                take(handler);
+              } else {
+                // connection is good, however, need to check if the test query has timeout or not
+                // if timeout is not fired yet, then we will cleanup the timeout timer and return
+                // the connection, otherwise, we will skip this event, as timeout timer already
+                // drop the connection and retry
+                if (testCompleted.compareAndSet(false, true)) {
+                  // cleanup the timer
+                  if (this.connectionConfig.getConnectionTestTimeout() > 0) {
+                    vertx.cancelTimer(timer);
+                  }
+
+                  handler.handle(Future.succeededFuture(connection));
+                }
+              }
+            }, ConversionUtils.vertxToExecutor(vertx));
+        } else {
+          // No test connection timeout is configured, return the connection directly
+          handler.handle(Future.succeededFuture(connection));
+        }
       } else {
         poolSize -= 1;
         take(handler);
