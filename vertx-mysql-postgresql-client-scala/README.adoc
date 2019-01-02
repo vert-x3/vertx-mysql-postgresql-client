@@ -1,0 +1,47 @@
+= Vert.x MySQL PostgreSQL client
+
+image:https://travis-ci.org/vert-x3/vertx-mysql-postgresql-client.svg?branch=master["Build Status", link="https://travis-ci.org/vert-x3/vertx-mysql-postgresql-client"]
+
+This Vert.x client uses the https://github.com/mauricio/postgresql-async[Mauricio Linhares driver] to support
+a fully async client for MySQL and PostgreSQL.
+
+Please see the in source asciidoc documentation or the main documentation on the web-site for a full description:
+
+* http://vertx.io/docs/vertx-mysql-postgresql-client/java/[Java documentation]
+* http://vertx.io/docs/vertx-mysql-postgresql-client/js/[JavaScript documentation]
+* http://vertx.io/docs/vertx-mysql-postgresql-client/kotlin/[Kotlin documentation]
+* http://vertx.io/docs/vertx-mysql-postgresql-client/groovy/[Groovy documentation]
+* http://vertx.io/docs/vertx-mysql-postgresql-client/ruby/[Ruby documentation]
+
+== Running test suite with Docker
+
+The test suite is based on testcontainers and will spawn separate instances for the different tests.
+
+NOTE: Running test with Docker requires enabling the profile as Docker isn't available on Cloudbees: `mvn clean install -Ddocker`
+
+== (Deprecated) Running test suite on CkoudBees (this is only here for historic docs to help transition to Travis)
+
+Setting up test databases with Docker:
+
+----
+docker run --rm --name vertx-postgres -e POSTGRES_USER=vertx -e POSTGRES_PASSWORD=password -e POSTGRES_DB=testdb -p 5432:5432 postgres
+----
+
+----
+docker run --rm --name vertx-postgres-ssl -p 54321:5432 \
+  -e POSTGRES_USER=vertx \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=testdb \
+  -v $(pwd)/src/test/resources/ssl-docker/server.crt:/docker-entrypoint-initdb.d/server.crt \
+  -v $(pwd)/src/test/resources/ssl-docker/server.key:/docker-entrypoint-initdb.d/server.key \
+  -v $(pwd)/src/test/resources/ssl-docker/init.sh:/docker-entrypoint-initdb.d/init.sh \
+  postgres
+----
+
+NOTE: If you're working with Fedora, CentOS or RHEL and have selinux enabled, you need to add `:z` to the volume options.
+Otherwise Postgres won't be able to read the SSL setup files.
+For more details, read http://www.projectatomic.io/blog/2015/06/using-volumes-with-docker-can-cause-problems-with-selinux/[Using Volumes with Docker can Cause Problems with SELinux].
+
+----
+docker run --rm --name vertx-mysql -e MYSQL_ROOT_PASSWORD=password -e MYSQL_USER=vertx -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=testdb -p 3306:3306 mysql/mysql-server:5.6
+----
