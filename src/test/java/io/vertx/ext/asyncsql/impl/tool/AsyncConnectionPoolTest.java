@@ -18,7 +18,6 @@ package io.vertx.ext.asyncsql.impl.tool;
 
 import com.github.jasync.sql.db.Connection;
 
-import io.netty.channel.EventLoopGroup;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -114,26 +113,37 @@ public class AsyncConnectionPoolTest {
         .put("connectionReleaseDelay", 123L),
       this::getGoodConnection);
 
+    final Async testLengthAsync = context.async(TEST_LENGTH);
+    final Async maxPoolSizeAsync = context.async(MAX_POOL_SIZE);
     final Queue<Connection> connectionSet = new LinkedList<>();
     for (int i = 0; i < TEST_LENGTH; i++) {
       pool.take(result -> {
         context.assertTrue(result.succeeded());
         connectionSet.add(result.result());
+        testLengthAsync.countDown();
+        maxPoolSizeAsync.countDown();
       });
     }
-    for (int i = MAX_POOL_SIZE + 1; i <= TEST_LENGTH; i++) {
+    maxPoolSizeAsync.await(1000);
+    context.assertEquals(MAX_POOL_SIZE, pool.connectionAttempts);
+    context.assertEquals(MAX_POOL_SIZE, pool.createdConnections);
+    context.assertEquals(MAX_POOL_SIZE, connectionSet.size());
+
+    for (int i = MAX_POOL_SIZE; i < TEST_LENGTH; i++) {
       pool.giveBack(connectionSet.poll());
-      context.assertEquals(i, pool.connectionAttempts);
-      context.assertEquals(i, pool.createdConnections);
-      context.assertEquals(MAX_POOL_SIZE, connectionSet.size());
     }
+    testLengthAsync.await(1000);
+    context.assertEquals(TEST_LENGTH, pool.connectionAttempts);
+    context.assertEquals(TEST_LENGTH, pool.createdConnections);
+    context.assertEquals(MAX_POOL_SIZE, connectionSet.size());
     Mockito.verify(vertx, Mockito.times(TEST_LENGTH - MAX_POOL_SIZE)).setTimer(Mockito.eq(123L), Mockito.any());
-    for (int i = MAX_POOL_SIZE - 1; i >= 0; --i)  {
+
+    for (int i = 0; i < MAX_POOL_SIZE; i++)  {
       pool.giveBack(connectionSet.poll());
-      context.assertEquals(TEST_LENGTH, pool.connectionAttempts);
-      context.assertEquals(TEST_LENGTH, pool.createdConnections);
-      context.assertEquals(i, connectionSet.size());
     }
+    context.assertEquals(TEST_LENGTH, pool.connectionAttempts);
+    context.assertEquals(TEST_LENGTH, pool.createdConnections);
+    context.assertEquals(0, connectionSet.size());
     Mockito.verify(vertx, Mockito.times(TEST_LENGTH)).setTimer(Mockito.eq(123L), Mockito.any());
   }
 
