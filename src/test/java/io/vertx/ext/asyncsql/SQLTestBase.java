@@ -40,46 +40,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import static java.util.concurrent.TimeUnit.*;
-import static org.hamcrest.CoreMatchers.*;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
 
 public abstract class SQLTestBase extends AbstractTestBase {
 
-  static final String POSTGRESQL_HOST = System.getProperty("postgresql.host", "localhost").trim();
-  static final int POSTGRESQL_PORT = Integer.parseInt(System.getProperty("postgresl.port", "5432").trim());
-  static final String POSTGRESQL_DATABASE = System.getProperty("postgresql.database", "testdb");
-  static final String POSTGRESQL_USERNAME = System.getProperty("postgresql.username", "vertx");
-  static final String POSTGRESQL_PASSWORD = System.getProperty("postgresql.password", "password");
-  static final JsonObject POSTGRESQL_CONFIG = new JsonObject()
-    .put("host", POSTGRESQL_HOST)
-    .put("port", POSTGRESQL_PORT)
-    .put("database", POSTGRESQL_DATABASE)
-    .put("username", POSTGRESQL_USERNAME)
-    .put("password", POSTGRESQL_PASSWORD);
+  static final String POSTGRESQL_DATABASE = "testdb";
+  static final String POSTGRESQL_USERNAME = "vertx";
+  static final String POSTGRESQL_PASSWORD = "password";
 
-  static final int POSTGRESQL_SSL_PORT = Integer.parseInt(System.getProperty("postgresql.ssl.port", "54321").trim());
-  static final JsonObject POSTGRESQL_SSL_CONFIG = new JsonObject()
-    .put("host", POSTGRESQL_HOST)
-    .put("port", POSTGRESQL_SSL_PORT)
-    .put("database", POSTGRESQL_DATABASE)
-    .put("username", POSTGRESQL_USERNAME)
-    .put("password", POSTGRESQL_PASSWORD);
+  static final String MYSQL_DATABASE = "testdb";
+  static final String MYSQL_USERNAME = "vertx";
+  static final String MYSQL_PASSWORD = "password";
 
-  static final String MYSQL_HOST = System.getProperty("mysql.host", "localhost").trim();
-  static final int MYSQL_PORT = Integer.parseInt(System.getProperty("mysql.port", "3306").trim());
-  static final String MYSQL_DATABASE = System.getProperty("mysql.database", "testdb");
-  static final String MYSQL_USERNAME = System.getProperty("mysql.username", "vertx");
-  static final String MYSQL_PASSWORD = System.getProperty("mysql.password", "password");
-  static final JsonObject MYSQL_CONFIG = new JsonObject()
-    .put("host", MYSQL_HOST)
-    .put("port", MYSQL_PORT)
-    .put("database", MYSQL_DATABASE)
-    .put("username", MYSQL_USERNAME)
-    .put("password", MYSQL_PASSWORD);
 
-  static final boolean START_MYSQL = System.getProperty("mysql.host") == null || System.getProperty("mysql.host").trim().isEmpty();
-  static final boolean START_POSTGRES = System.getProperty("postgresql.host") == null || System.getProperty("postgresql.host").trim().isEmpty();
 
   @Test
   public void testSimpleConnection(TestContext context) {
@@ -162,6 +138,32 @@ public abstract class SQLTestBase extends AbstractTestBase {
                   async.complete();
                 });
               });
+            });
+          });
+        });
+      });
+    });
+  }
+
+  @Test
+  public void testEmptyTransactions(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      if (ar.failed()) {
+        context.fail(ar.cause());
+        return;
+      }
+
+      conn = ar.result();
+      conn.setAutoCommit(false, ar2 -> {
+        ensureSuccess(context, ar2);
+        conn.rollback(ar3 -> {
+          ensureSuccess(context, ar3);
+          conn.commit(ar4 -> {
+            ensureSuccess(context, ar4);
+            conn.setAutoCommit(true, ar5 -> {
+              ensureSuccess(context, ar5);
+              async.complete();
             });
           });
         });
@@ -640,7 +642,7 @@ public abstract class SQLTestBase extends AbstractTestBase {
       ensureSuccess(context, ar);
       conn = ar.result();
       conn.updateWithParams("INVALID INSERT", new JsonArray(), ar2 -> {
-        if (ar2.failed() && ar2.cause() instanceof com.github.mauricio.async.db.exceptions.DatabaseException) {
+        if (ar2.failed() && ar2.cause() instanceof com.github.jasync.sql.db.exceptions.DatabaseException) {
           async.complete();
         } else {
           context.fail("Should receive an exception of type DatabaseException.");
@@ -896,6 +898,42 @@ public abstract class SQLTestBase extends AbstractTestBase {
   }
 
   @Test
+  public void testTimeColumn(TestContext context) {
+    Async async = context.async();
+    client.getConnection(ar -> {
+      ensureSuccess(context, ar);
+      conn = ar.result();
+      conn.execute("DROP TABLE IF EXISTS test_table", ar1 -> {
+        ensureSuccess(context, ar1);
+        conn.execute("CREATE TABLE test_table (timecolumn TIME)", ar2 -> {
+          ensureSuccess(context, ar2);
+          String someTime1 = "11:12:13.456";
+          String someTime2 = "01:02:00.120";
+          String someTime3 = "00:00:01.001";
+          JsonArray args = new JsonArray().add(someTime1).add(someTime2).add(someTime3);
+          conn.queryWithParams("INSERT INTO test_table (timecolumn) VALUES (?), (?), (?)", args, ar3 -> {
+            ensureSuccess(context, ar3);
+            conn.query("SELECT timecolumn FROM test_table", ar4 -> {
+              ensureSuccess(context, ar4);
+              String result1 = ar4.result().getResults().get(0).getString(0);
+              String result2 = ar4.result().getResults().get(1).getString(0);
+              String result3 = ar4.result().getResults().get(2).getString(0);
+              compareTimeStrings(context, result1, someTime1);
+              compareTimeStrings(context, result2, someTime2);
+              compareTimeStrings(context, result3, someTime3);
+              async.complete();
+            });
+          });
+        });
+      });
+    });
+  }
+
+  protected void compareTimeStrings(TestContext context, String result, String expected) {
+    context.assertEquals(result, expected);
+  }
+
+  @Test
   public void testUnhandledExceptionInHandlerResultSet(TestContext testContext) {
     this.<ResultSet>testUnhandledExceptionInHandler(testContext, (sqlConnection, handler) -> {
       sqlConnection.query("SELECT name FROM test_table", handler);
@@ -925,9 +963,11 @@ public abstract class SQLTestBase extends AbstractTestBase {
     }).runOnContext(v -> {
       client.getConnection(testContext.asyncAssertSuccess(connection -> {
         setupSimpleTable(connection, testContext.asyncAssertSuccess(st -> {
-          testMethod.accept(connection, ar -> {
-            count.incrementAndGet();
-            throw new IndexOutOfBoundsException();
+          vertx.runOnContext(v2 -> {
+            testMethod.accept(connection, ar -> {
+              count.incrementAndGet();
+              throw new RuntimeException();
+            });
           });
         }));
       }));

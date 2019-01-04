@@ -1,7 +1,6 @@
 = Vert.x MySQL PostgreSQL client
 
-image:https://vertx.ci.cloudbees.com/buildStatus/icon?job=vert.x3-mysql-postgresql-client["Build Status",link="https://vertx.ci.cloudbees.com/view/vert.x-3/job/vert.x3-mysql-postgresql-client/"]
-
+image:https://travis-ci.org/vert-x3/vertx-mysql-postgresql-client.svg?branch=master["Build Status", link="https://travis-ci.org/vert-x3/vertx-mysql-postgresql-client"]
 
 This Vert.x client uses the https://github.com/mauricio/postgresql-async[Mauricio Linhares driver] to support
 a fully async client for MySQL and PostgreSQL.
@@ -14,43 +13,13 @@ Please see the in source asciidoc documentation or the main documentation on the
 * http://vertx.io/docs/vertx-mysql-postgresql-client/groovy/[Groovy documentation]
 * http://vertx.io/docs/vertx-mysql-postgresql-client/ruby/[Ruby documentation]
 
-== Running test suite
+== Running test suite with Docker
 
-The test suite embeds PostgreSQL and MySQL with
+The test suite is based on testcontainers and will spawn separate instances for the different tests.
 
-* ru.yandex.qatools.embed:postgresql-embedded
-* com.wix:wix-embedded-mysql
+NOTE: Running test with Docker requires enabling the profile as Docker isn't available on Cloudbees: `mvn clean install -Ddocker`
 
-You can also run your own server instead by providing hosts
-
-----
-> mvn test -DmysqlHost=localhost -DpostgresqlHost=localhost
-----
-
-* For testing PostgreSQL: A `testdb` database on a local PostgreSQL install and a user called `vertx` with password `password`
-* For testing MySQL: A `testdb` database on a local MySQL install and a user called `vertx` with password `password`
-
-When needed these properties can be overriden
-
-* postgresqlHost: empty => start an embedded DB
-* postgresqlPort=5432
-* postgresqlSslPort=54321
-* postgresqlDatabase=testdb
-* postgresqlUsername=vertx
-* postgresqlPassword=password
-* mysqlHost: empty => start an embedded DB
-* mysqlPort=3306
-* mysqlDatabase=testdb
-* mysqlUsername=vertx
-* mysqlPassword=password
-
-e.g:
-
-----
-> mvn test -DpostgresqlPort=5432 -DpostgresqlSslPort=54321 -DmysqlPort=3306
-----
-
-
+== (Deprecated) Running test suite on CkoudBees (this is only here for historic docs to help transition to Travis)
 
 Setting up test databases with Docker:
 

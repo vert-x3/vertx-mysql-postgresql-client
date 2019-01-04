@@ -16,10 +16,8 @@
 
 package io.vertx.ext.asyncsql;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import io.vertx.ext.asyncsql.category.NeedsDocker;
+import org.junit.*;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -29,30 +27,32 @@ import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import org.junit.experimental.categories.Category;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MySQLContainer;
 
-import static io.vertx.ext.asyncsql.MySQL.start;
-
+@Category(NeedsDocker.class)
 public class MySQLClientTest extends SQLTestBase {
 
-  private static MySQL my;
+  public static GenericContainer mysql = new MySQLContainer("mysql:5.6")
+    .withDatabaseName(MYSQL_DATABASE)
+    .withUsername(MYSQL_USERNAME)
+    .withPassword(MYSQL_PASSWORD)
+    .withExposedPorts(3306);
 
-  @BeforeClass
-  public static void before() throws Exception {
-    if (START_MYSQL) {
-      my = start(SQLTestBase.MYSQL_PORT);
-    }
-  }
-
-  @AfterClass
-  public static void after() throws Exception {
-    if (my != null) {
-      my.stop();
-    }
+  static {
+    mysql.start();
   }
 
   @Before
   public void init() {
-    client = MySQLClient.createNonShared(vertx, SQLTestBase.MYSQL_CONFIG);
+    mysql.start();
+    client = MySQLClient.createNonShared(vertx, new JsonObject()
+      .put("host", mysql.getContainerIpAddress())
+      .put("port", mysql.getMappedPort(3306))
+      .put("database", MYSQL_DATABASE)
+      .put("username", MYSQL_USERNAME)
+      .put("password", MYSQL_PASSWORD));
     clientNoDatabase = MySQLClient.createNonShared(vertx,
       new JsonObject()
         .put("host", "localhost")
@@ -128,6 +128,12 @@ public class MySQLClientTest extends SQLTestBase {
     final int oneSecond = 1000000000;
 
     context.assertTrue(Math.abs(test.getInstant("expected").getNano() - test.getInstant("result").getNano()) <= oneSecond);
+  }
+
+  @Override
+  protected void compareTimeStrings(TestContext context, String result, String expected) {
+    // MySQL always only delivers seconds and truncates milliseconds to ".000"
+    context.assertEquals(result, expected.replaceAll("\\.\\d{3}$", ".000"));
   }
 
   @Override

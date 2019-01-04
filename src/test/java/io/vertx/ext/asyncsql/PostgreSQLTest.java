@@ -17,44 +17,46 @@
 package io.vertx.ext.asyncsql;
 
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.category.NeedsDocker;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 
 import java.util.List;
 
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 
-import static io.vertx.ext.asyncsql.PostgreSQL.start;
-import static io.vertx.ext.asyncsql.SQLTestBase.START_POSTGRES;
+import static io.vertx.ext.asyncsql.SQLTestBase.*;
 
 /**
  * @author <a href="http://www.campudus.com">Joern Bernhardt</a>.
  */
+@Category(NeedsDocker.class)
 public class PostgreSQLTest extends AbstractTestBase {
 
-  private static PostgreSQL pg;
+  public static GenericContainer postgresql = new PostgreSQLContainer()
+    .withDatabaseName(POSTGRESQL_DATABASE)
+    .withUsername(POSTGRESQL_USERNAME)
+    .withPassword(POSTGRESQL_PASSWORD)
+    .withExposedPorts(5432);
 
-  @BeforeClass
-  public static void before() throws Exception {
-    if (START_POSTGRES) {
-      pg = start(SQLTestBase.POSTGRESQL_PORT);
-    }
-  }
-
-  @AfterClass
-  public static void after() throws Exception {
-    if (pg != null) {
-      pg.stop();
-    }
+  static {
+    postgresql.start();
   }
 
   @Before
   public void init() {
-    client = PostgreSQLClient.createNonShared(vertx, SQLTestBase.POSTGRESQL_CONFIG);
+    client = PostgreSQLClient.createNonShared(vertx, new JsonObject()
+      .put("host", postgresql.getContainerIpAddress())
+      .put("port", postgresql.getMappedPort(5432))
+      .put("database", POSTGRESQL_DATABASE)
+      .put("username", POSTGRESQL_USERNAME)
+      .put("password", POSTGRESQL_PASSWORD));
   }
 
   @Test
@@ -130,7 +132,7 @@ public class PostgreSQLTest extends AbstractTestBase {
           conn.query("INSERT INTO test_table DEFAULT VALUES RETURNING id", ar3 -> {
             ensureSuccess(context, ar3);
             final long id = ar3.result().getResults().get(0).getLong(0);
-            conn.updateWithParams("UPDATE test_table SET numcol = ? WHERE id = ?", new JsonArray().add(1234).add(id), ar4 -> {
+            conn.updateWithParams("UPDATE test_table SET numcol = ? WHERE id = ?", new JsonArray().add(1234.0).add(id), ar4 -> {
               ensureSuccess(context, ar4);
               conn.updateWithParams("UPDATE test_table SET numcol = ? WHERE id = ?", new JsonArray().addNull().add(id), ar5 -> {
                 ensureSuccess(context, ar5);

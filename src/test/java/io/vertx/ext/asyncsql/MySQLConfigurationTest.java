@@ -3,39 +3,40 @@ package io.vertx.ext.asyncsql;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.category.NeedsDocker;
 import io.vertx.ext.sql.SQLClient;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.experimental.categories.Category;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MySQLContainer;
 
 import java.util.List;
 
-import static io.vertx.ext.asyncsql.MySQL.start;
-import static io.vertx.ext.asyncsql.SQLTestBase.START_MYSQL;
+import static io.vertx.ext.asyncsql.SQLTestBase.*;
 
 /**
  * Tests the configuration options of the MySQL client.
  */
+@Category(NeedsDocker.class)
 public class MySQLConfigurationTest extends ConfigurationTest {
 
-  private static MySQL my;
+  public static GenericContainer mysql = new MySQLContainer("mysql:5.6")
+    .withDatabaseName(MYSQL_DATABASE)
+    .withUsername(MYSQL_USERNAME)
+    .withPassword(MYSQL_PASSWORD)
+    .withExposedPorts(3306);
 
-  @BeforeClass
-  public static void before() throws Exception {
-    if (START_MYSQL) {
-      my = start(SQLTestBase.MYSQL_PORT);
-    }
-  }
-
-  @AfterClass
-  public static void after() throws Exception {
-    if (my != null) {
-      my.stop();
-    }
+  static {
+    mysql.start();
   }
 
   @Override
   protected SQLClient createClient(Vertx vertx, JsonObject config) {
-    return MySQLClient.createNonShared(vertx, config.mergeIn(SQLTestBase.MYSQL_CONFIG));
+    return MySQLClient.createNonShared(vertx, config.mergeIn(new JsonObject()
+      .put("host", mysql.getContainerIpAddress())
+      .put("port", mysql.getMappedPort(3306))
+      .put("database", MYSQL_DATABASE)
+      .put("username", MYSQL_USERNAME)
+      .put("password", MYSQL_PASSWORD)));
   }
 
   @Override

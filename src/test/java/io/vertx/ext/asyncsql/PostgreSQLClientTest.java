@@ -16,45 +16,45 @@
 
 package io.vertx.ext.asyncsql;
 
-import java.util.UUID;
-
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.category.NeedsDocker;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 
-import static io.vertx.ext.asyncsql.PostgreSQL.start;
+import java.util.UUID;
 
+@Category(NeedsDocker.class)
 public class PostgreSQLClientTest extends SQLTestBase {
 
-  private static PostgreSQL pg;
+  public static GenericContainer postgresql = new PostgreSQLContainer()
+    .withDatabaseName(POSTGRESQL_DATABASE)
+    .withUsername(POSTGRESQL_USERNAME)
+    .withPassword(POSTGRESQL_PASSWORD)
+    .withExposedPorts(5432);
 
-  @BeforeClass
-  public static void before() throws Exception {
-    if (START_POSTGRES) {
-      pg = start(SQLTestBase.POSTGRESQL_PORT);
-    }
-  }
-
-  @AfterClass
-  public static void after() throws Exception {
-    if (pg != null) {
-      pg.stop();
-    }
+  static {
+    postgresql.start();
   }
 
   @Before
   public void init() {
-    client = PostgreSQLClient.createNonShared(vertx, SQLTestBase.POSTGRESQL_CONFIG);
+    client = PostgreSQLClient.createNonShared(vertx,   new JsonObject()
+      .put("host", postgresql.getContainerIpAddress())
+      .put("port", postgresql.getMappedPort(5432))
+      .put("database", POSTGRESQL_DATABASE)
+      .put("username", POSTGRESQL_USERNAME)
+      .put("password", POSTGRESQL_PASSWORD));
+
     clientNoDatabase = PostgreSQLClient.createNonShared(vertx,
       new JsonObject()
         .put("host", "localhost")

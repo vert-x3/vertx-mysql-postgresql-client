@@ -9,27 +9,22 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>vertx-mysql-postgresql-client</artifactId>
-  <version>3.6.0-SNAPSHOT</version>
+  <version>3.6.3-SNAPSHOT</version>
 
   <name>Vert.x MySQL/PostgreSQL Client</name>
 
   <properties>
-    <stack.version>3.6.0-SNAPSHOT</stack.version>
-    <scala.version>2.12.4</scala.version>
-    <asyncdriver.version>0.2.21</asyncdriver.version>
-    <!-- Empty host => uses embedded DB -->
-    <postgresqlHost></postgresqlHost>
-    <postgresqlPort>5432</postgresqlPort>
-    <postgresqlSslPort>54321</postgresqlSslPort>
-    <postgresqlDatabase>testdb</postgresqlDatabase>
-    <postgresqlUsername>vertx</postgresqlUsername>
-    <postgresqlPassword>password</postgresqlPassword>
-    <mysqlHost></mysqlHost>
-    <mysqlPort>3306</mysqlPort>
-    <mysqlDatabase>testdb</mysqlDatabase>
-    <mysqlUsername>vertx</mysqlUsername>
-    <mysqlPassword>password</mysqlPassword>
+    <stack.version>3.6.3-SNAPSHOT</stack.version>
+    <asyncdriver.version>0.8.55</asyncdriver.version>
   </properties>
+
+  <repositories>
+    <repository>
+      <id>spring-repo</id>
+      <name>Spring Repository</name>
+      <url>https://repo.spring.io/libs-milestone</url>
+    </repository>
+  </repositories>
 
   <dependencyManagement>
     <dependencies>
@@ -60,13 +55,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.github.mauricio</groupId>
-      <artifactId>postgresql-async_2.12</artifactId>
+      <groupId>com.github.jasync-sql</groupId>
+      <artifactId>jasync-postgresql</artifactId>
       <version>${asyncdriver.version}</version>
       <exclusions>
         <exclusion>
@@ -80,8 +70,8 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.github.mauricio</groupId>
-      <artifactId>mysql-async_2.12</artifactId>
+      <groupId>com.github.jasync-sql</groupId>
+      <artifactId>jasync-mysql</artifactId>
       <version>${asyncdriver.version}</version>
       <exclusions>
         <exclusion>
@@ -128,21 +118,37 @@
       <version>2.10.0</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
-      <groupId>ru.yandex.qatools.embed</groupId>
-      <artifactId>postgresql-embedded</artifactId>
-      <version>2.2</version>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>1.8.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.wix</groupId>
-      <artifactId>wix-embedded-mysql</artifactId>
-      <version>4.1.0</version>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mysql</artifactId>
+      <version>1.8.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.6</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>1.8.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.25</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
-
   <build>
     <pluginManagement>
       <plugins>
@@ -153,17 +159,6 @@
             <systemPropertyVariables>
               <vertx.test.timeout>60</vertx.test.timeout>
               <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
-              <postgresql.host>${postgresqlHost}</postgresql.host>
-              <postgresql.port>${postgresqlPort}</postgresql.port>
-              <postgresql.ssl.port>${postgresqlSslPort}</postgresql.ssl.port>
-              <postgresql.database>${postgresqlDatabase}</postgresql.database>
-              <postgresql.username>${postgresqlUsername}</postgresql.username>
-              <postgresql.password>${postgresqlPassword}</postgresql.password>
-              <mysql.host>${mysqlHost}</mysql.host>
-              <mysql.port>${mysqlPort}</mysql.port>
-              <mysql.database>${mysqlDatabase}</mysql.database>
-              <mysql.username>${mysqlUsername}</mysql.username>
-              <mysql.password>${mysqlPassword}</mysql.password>
             </systemPropertyVariables>
             <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
           </configuration>
@@ -171,49 +166,4 @@
       </plugins>
     </pluginManagement>
   </build>
-
-  <profiles>
-    <profile>
-      <!-- To launch the database in docker container using docker-machine, execute:
-       mvn clean install -Pdocker -Dhost=(docker-machine ip default)
-       where `default` is the docker machine you use.
-      -->
-      <id>docker</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.4.0</version>
-            <executions>
-              <execution>
-                <id>start-db</id>
-                <phase>process-test-classes</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <workingDirectory>${project.basedir}/src/test/resources/docker</workingDirectory>
-                  <executable>./start-db.sh</executable>
-                </configuration>
-              </execution>
-
-              <execution>
-                <id>stop-db</id>
-                <phase>prepare-package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <workingDirectory>${project.basedir}/src/test/resources/docker</workingDirectory>
-                  <executable>./stop-db.sh</executable>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-
 </project>
