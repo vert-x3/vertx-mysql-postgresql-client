@@ -16,7 +16,6 @@
 
 package io.vertx.ext.asyncsql.impl.pool;
 
-import com.github.jasync.sql.db.Configuration;
 import com.github.jasync.sql.db.Connection;
 import com.github.jasync.sql.db.ConnectionPoolConfiguration;
 import io.vertx.core.AsyncResult;
@@ -33,7 +32,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Manages a pool of connection.
@@ -72,6 +70,10 @@ public abstract class AsyncConnectionPool {
   }
 
   protected abstract Connection create();
+
+  synchronized int getPoolSize() {
+    return poolSize;
+  }
 
   private synchronized void createConnection(Handler<AsyncResult<Connection>> handler) {
     poolSize += 1;
@@ -205,7 +207,7 @@ public abstract class AsyncConnectionPool {
     }
   }
 
-  private synchronized void expire(Connection connection) {
+  synchronized void expire(Connection connection) {
     connection.disconnect();
     availableConnections.remove(connection);
     poolSize -= 1;
