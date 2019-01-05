@@ -15,7 +15,8 @@
 
   <properties>
     <stack.version>3.6.3-SNAPSHOT</stack.version>
-    <asyncdriver.version>0.8.55</asyncdriver.version>
+    <asyncdriver.version>0.8.62</asyncdriver.version>
+    <netty.native.version>4.1.30.Final</netty.native.version>
   </properties>
 
   <repositories>
@@ -147,6 +148,32 @@
       <artifactId>slf4j-simple</artifactId>
       <version>1.7.25</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport-native-epoll</artifactId>
+      <version>${netty.native.version}</version>
+      <classifier>linux-x86_64</classifier>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-all</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport-native-kqueue</artifactId>
+      <version>${netty.native.version}</version>
+      <classifier>osx-x86_64</classifier>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-all</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
   <build>
