@@ -19,12 +19,12 @@ public abstract class AbstractTestBase {
   protected SQLClient client;
   protected SQLClient clientNoDatabase;
   protected static Vertx vertx;
-  protected static VertxOptions vertxOptions = new VertxOptions();
   protected SQLConnection conn;
 
   @BeforeClass
   public static void setUp() {
-    vertx = Vertx.vertx(vertxOptions);
+    boolean useNativeTransport = Boolean.parseBoolean(System.getProperty("vertx.useNativeTransport", "false"));
+    vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(useNativeTransport));
   }
 
   @AfterClass
