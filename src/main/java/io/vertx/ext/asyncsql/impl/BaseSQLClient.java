@@ -130,6 +130,7 @@ public abstract class BaseSQLClient {
       testTimeout,
       queryTimeout,
       vertx.nettyEventLoopGroup(),
+      vertx.nettyEventLoopGroup(), /*executor: in non-blocking world, we should only have one event loop group*/
       new SSLConfiguration(sslConfig),
       charset);
   }

@@ -10,7 +10,7 @@ jobs:
     - stage: test
       name: "OracleJDK 8"
       jdk: oraclejdk8
-      script: mvn -q clean verify -B
+      script: mvn -q clean verify -B && mvn -P testNativeTransport -q clean verify -B
 #    - if: type != pull_request
 #      name: "OpenJDK 11"
 #      jdk: openjdk11
