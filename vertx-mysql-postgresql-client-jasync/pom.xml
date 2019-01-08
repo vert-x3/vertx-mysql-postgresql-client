@@ -14,7 +14,8 @@
   <name>Vert.x MySQL/PostgreSQL Client based on jasync-sql/Kotlin</name>
 
   <properties>
-    <asyncdriver.version>0.8.58</asyncdriver.version>
+    <asyncdriver.version>0.8.62</asyncdriver.version>
+    <vertx.testNativeTransport>false</vertx.testNativeTransport>
   </properties>
 
   <dependencies>
@@ -128,6 +129,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
   <build>
     <pluginManagement>
       <plugins>
@@ -138,6 +140,7 @@
             <systemPropertyVariables>
               <vertx.test.timeout>60</vertx.test.timeout>
               <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
+              <vertx.useNativeTransport>${vertx.testNativeTransport}</vertx.useNativeTransport>
             </systemPropertyVariables>
             <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
           </configuration>
@@ -145,4 +148,28 @@
       </plugins>
     </pluginManagement>
   </build>
+
+  <profiles>
+    <!-- Run tests with native transport -->
+    <profile>
+      <id>testNativeTransport</id>
+      <properties>
+        <vertx.testNativeTransport>true</vertx.testNativeTransport>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-transport-native-epoll</artifactId>
+          <optional>true</optional>
+          <classifier>linux-x86_64</classifier>
+        </dependency>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-transport-native-kqueue</artifactId>
+          <optional>true</optional>
+          <classifier>osx-x86_64</classifier>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 </project>

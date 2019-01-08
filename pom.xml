@@ -16,6 +16,7 @@
 
   <properties>
     <stack.version>3.6.3-SNAPSHOT</stack.version>
+    <doc.skip>true</doc.skip>
   </properties>
 
   <repositories>
@@ -23,6 +24,10 @@
       <id>spring-repo</id>
       <name>Spring Repository</name>
       <url>https://repo.spring.io/libs-milestone</url>
+    </repository>
+    <repository>
+      <id>jcenter</id>
+      <url>https://jcenter.bintray.com/</url>
     </repository>
   </repositories>
 

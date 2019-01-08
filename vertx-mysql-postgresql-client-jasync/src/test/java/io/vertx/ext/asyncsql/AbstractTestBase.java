@@ -3,6 +3,7 @@ package io.vertx.ext.asyncsql;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.unit.TestContext;
@@ -22,7 +23,8 @@ public abstract class AbstractTestBase {
 
   @BeforeClass
   public static void setUp() {
-    vertx = Vertx.vertx();
+    boolean useNativeTransport = Boolean.parseBoolean(System.getProperty("vertx.useNativeTransport", "false"));
+    vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(useNativeTransport));
   }
 
   @AfterClass
