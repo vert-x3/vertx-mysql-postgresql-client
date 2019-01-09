@@ -6,17 +6,17 @@
     <version>34</version>
   </parent>
 
+  <packaging>pom</packaging>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>vertx-mysql-postgresql-client</artifactId>
+  <artifactId>vertx-mysql-postgresql-client-parent</artifactId>
   <version>3.6.3-SNAPSHOT</version>
 
-  <name>Vert.x MySQL/PostgreSQL Client</name>
+  <name>Vert.x MySQL/PostgreSQL Client Parent</name>
 
   <properties>
     <stack.version>3.6.3-SNAPSHOT</stack.version>
-    <asyncdriver.version>0.8.62</asyncdriver.version>
-    <vertx.testNativeTransport>false</vertx.testNativeTransport>
+    <doc.skip>true</doc.skip>
   </properties>
 
   <repositories>
@@ -24,6 +24,10 @@
       <id>spring-repo</id>
       <name>Spring Repository</name>
       <url>https://repo.spring.io/libs-milestone</url>
+    </repository>
+    <repository>
+      <id>jcenter</id>
+      <url>https://jcenter.bintray.com/</url>
     </repository>
   </repositories>
 
@@ -39,158 +43,8 @@
     </dependencies>
   </dependencyManagement>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.21</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-sql-common</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-unit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.github.jasync-sql</groupId>
-      <artifactId>jasync-postgresql</artifactId>
-      <version>${asyncdriver.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-all</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.github.jasync-sql</groupId>
-      <artifactId>jasync-mysql</artifactId>
-      <version>${asyncdriver.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-all</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-codegen</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-docgen</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-core</artifactId>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-      <version>4.12</version>
-    </dependency>
-    <dependency>
-      <groupId>com.jayway.awaitility</groupId>
-      <artifactId>awaitility</artifactId>
-      <version>1.6.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>2.10.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-      <version>1.8.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>mysql</artifactId>
-      <version>1.8.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>5.1.6</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>1.8.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>1.7.25</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-            <systemPropertyVariables>
-              <vertx.test.timeout>60</vertx.test.timeout>
-              <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
-              <vertx.useNativeTransport>${vertx.testNativeTransport}</vertx.useNativeTransport>
-            </systemPropertyVariables>
-            <argLine>-server -Xms128m -Xmx1024m -XX:NewRatio=2</argLine>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
-
-  <profiles>
-    <!-- Run tests with native transport -->
-    <profile>
-      <id>testNativeTransport</id>
-      <properties>
-        <vertx.testNativeTransport>true</vertx.testNativeTransport>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport-native-epoll</artifactId>
-          <optional>true</optional>
-          <classifier>linux-x86_64</classifier>
-        </dependency>
-        <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport-native-kqueue</artifactId>
-          <optional>true</optional>
-          <classifier>osx-x86_64</classifier>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
+  <modules>
+    <module>vertx-mysql-postgresql-client-jasync</module>
+    <module>vertx-mysql-postgresql-client-scala</module>
+  </modules>
 </project>
