@@ -132,7 +132,7 @@ public class PostgreSQLTest extends AbstractTestBase {
           conn.query("INSERT INTO test_table DEFAULT VALUES RETURNING id", ar3 -> {
             ensureSuccess(context, ar3);
             final long id = ar3.result().getResults().get(0).getLong(0);
-            conn.updateWithParams("UPDATE test_table SET numcol = ? WHERE id = ?", new JsonArray().add(1234.0).add(id), ar4 -> {
+            conn.updateWithParams("UPDATE test_table SET numcol = ? WHERE id = ?", new JsonArray().add(1234).add(id), ar4 -> {
               ensureSuccess(context, ar4);
               conn.updateWithParams("UPDATE test_table SET numcol = ? WHERE id = ?", new JsonArray().addNull().add(id), ar5 -> {
                 ensureSuccess(context, ar5);

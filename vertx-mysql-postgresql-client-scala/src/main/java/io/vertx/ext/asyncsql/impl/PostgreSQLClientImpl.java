@@ -16,15 +16,14 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import java.util.concurrent.ExecutorService;
-
-import com.github.jasync.sql.db.Connection;
+import com.github.mauricio.async.db.Connection;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.PostgreSQLClient;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.asyncsql.impl.pool.PostgresqlAsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
+import scala.concurrent.ExecutionContext;
 
 /**
  * Implementation of the {@link BaseSQLClient} for PostGreSQL.
@@ -55,7 +54,7 @@ public class PostgreSQLClientImpl extends BaseSQLClient {
   }
 
   @Override
-  protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, Vertx vertx) {
-    return new PostgreSQLConnectionImpl(conn, pool, vertx);
+  protected SQLConnection createFromPool(Connection conn, AsyncConnectionPool pool, ExecutionContext ec) {
+    return new PostgreSQLConnectionImpl(conn, pool, ec);
   }
 }

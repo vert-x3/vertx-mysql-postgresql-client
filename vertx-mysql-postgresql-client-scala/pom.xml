@@ -10,12 +10,27 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>vertx-mysql-postgresql-client</artifactId>
+  <version>3.6.3-SNAPSHOT</version>
 
-  <name>Vert.x MySQL/PostgreSQL Client based on Netty/Scala</name>
+  <name>Vert.x MySQL/PostgreSQL Client based on Scala</name>
 
   <properties>
-    <asyncdriver.version>0.8.55</asyncdriver.version>
+    <stack.version>3.6.1-SNAPSHOT</stack.version>
+    <scala.version>2.12.7</scala.version>
+    <asyncdriver.version>0.2.21</asyncdriver.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-dependencies</artifactId>
+        <version>${stack.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -34,8 +49,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.github.jasync-sql</groupId>
-      <artifactId>jasync-postgresql</artifactId>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.mauricio</groupId>
+      <artifactId>postgresql-async_2.12</artifactId>
       <version>${asyncdriver.version}</version>
       <exclusions>
         <exclusion>
@@ -49,8 +69,8 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.github.jasync-sql</groupId>
-      <artifactId>jasync-mysql</artifactId>
+      <groupId>com.github.mauricio</groupId>
+      <artifactId>mysql-async_2.12</artifactId>
       <version>${asyncdriver.version}</version>
       <exclusions>
         <exclusion>

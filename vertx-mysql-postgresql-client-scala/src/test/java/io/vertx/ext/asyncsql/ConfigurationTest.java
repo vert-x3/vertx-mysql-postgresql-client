@@ -1,6 +1,6 @@
 package io.vertx.ext.asyncsql;
 
-import com.github.jasync.sql.db.exceptions.ConnectionTimeoutedException;
+import com.github.mauricio.async.db.exceptions.ConnectionTimeoutedException;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;

@@ -16,9 +16,12 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import com.github.jasync.sql.db.Connection;
-import com.github.jasync.sql.db.QueryResult;
-import io.vertx.core.*;
+import com.github.mauricio.async.db.Connection;
+import com.github.mauricio.async.db.QueryResult;
+import com.github.mauricio.async.db.RowData;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.ResultSet;
@@ -27,11 +30,13 @@ import io.vertx.ext.sql.SQLOptions;
 import io.vertx.ext.sql.SQLRowStream;
 import io.vertx.ext.sql.TransactionIsolation;
 import io.vertx.ext.sql.UpdateResult;
+import scala.Option;
+import scala.concurrent.ExecutionContext;
+import scala.runtime.AbstractFunction1;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 /**
  * Implementation of {@link SQLConnection} using the {@link AsyncConnectionPool}.
@@ -40,17 +45,17 @@ import java.util.concurrent.ExecutorService;
  */
 public abstract class AsyncSQLConnectionImpl implements SQLConnection {
 
-  private final Vertx vertx;
+  private final ExecutionContext executionContext;
   private volatile boolean inTransaction = false;
   private boolean inAutoCommit = true;
 
   private final Connection connection;
   private final AsyncConnectionPool pool;
 
-  public AsyncSQLConnectionImpl(Connection connection, AsyncConnectionPool pool, Vertx vertx) {
+  public AsyncSQLConnectionImpl(Connection connection, AsyncConnectionPool pool, ExecutionContext executionContext) {
     this.connection = connection;
     this.pool = pool;
-    this.vertx = vertx;
+    this.executionContext = executionContext;
   }
 
   /**
@@ -80,7 +85,7 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
     synchronized (this) {
       if (inTransaction && autoCommit) {
         inTransaction = false;
-        fut = ConversionUtils.completableFutureToVertxVoid(connection.sendQuery("COMMIT"), vertx);
+        fut = ScalaUtils.scalaToVertxVoid(connection.sendQuery("COMMIT"), executionContext);
       } else {
         fut = Future.succeededFuture();
       }
@@ -95,7 +100,14 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection execute(String sql, Handler<AsyncResult<Void>> handler) {
     beginTransactionIfNeeded(v -> {
-      ConversionUtils.connectCompletableFutureWithVoidHandler(connection.sendQuery(sql), vertx, handler);
+      final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
+      future.onComplete(ScalaUtils.toFunction1(ar -> {
+        if (ar.succeeded()) {
+          handler.handle(Future.succeededFuture());
+        } else {
+          handler.handle(Future.failedFuture(ar.cause()));
+        }
+      }), executionContext);
     });
 
     return this;
@@ -104,10 +116,8 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection query(String sql, Handler<AsyncResult<ResultSet>> handler) {
     beginTransactionIfNeeded(v -> {
-      ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendQuery(sql),
-        vertx,
-        handleAsyncQueryResultToResultSet(handler));
+      final Future<QueryResult> future = ScalaUtils.scalaToVertx(connection.sendQuery(sql), executionContext);
+      future.setHandler(handleAsyncQueryResultToResultSet(handler));
     });
 
     return this;
@@ -116,10 +126,8 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection queryStream(String sql, Handler<AsyncResult<SQLRowStream>> handler) {
     beginTransactionIfNeeded(v -> {
-      ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendQuery(sql),
-        vertx,
-        handleAsyncQueryResultToRowStream(handler));
+      final Future<QueryResult> future = ScalaUtils.scalaToVertx(connection.sendQuery(sql), executionContext);
+      future.setHandler(handleAsyncQueryResultToRowStream(handler));
     });
 
     return this;
@@ -128,10 +136,9 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection queryWithParams(String sql, JsonArray params, Handler<AsyncResult<ResultSet>> handler) {
     beginTransactionIfNeeded(v -> {
-      ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendPreparedStatement(sql, ConversionUtils.WrapList(params)),
-        vertx,
-        handleAsyncQueryResultToResultSet(handler));
+      final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(sql,
+          ScalaUtils.toScalaList(params.getList()));
+      future.onComplete(ScalaUtils.toFunction1(handleAsyncQueryResultToResultSet(handler)), executionContext);
     });
 
     return this;
@@ -140,10 +147,8 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection queryStreamWithParams(String sql, JsonArray params, Handler<AsyncResult<SQLRowStream>> handler) {
     beginTransactionIfNeeded(v -> {
-      ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendPreparedStatement(sql, ConversionUtils.WrapList(params)),
-        vertx,
-        handleAsyncQueryResultToRowStream(handler));
+      final Future<QueryResult> future = ScalaUtils.scalaToVertx(connection.sendPreparedStatement(sql, ScalaUtils.toScalaList(params.getList())), executionContext);
+      future.setHandler(handleAsyncQueryResultToRowStream(handler));
     });
 
     return this;
@@ -152,10 +157,8 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection update(String sql, Handler<AsyncResult<UpdateResult>> handler) {
     beginTransactionIfNeeded(v -> {
-      ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendQuery(sql),
-        vertx,
-        handleAsyncUpdateResultToResultSet(handler));
+      final scala.concurrent.Future<QueryResult> future = connection.sendQuery(sql);
+      future.onComplete(ScalaUtils.toFunction1(handleAsyncUpdateResultToResultSet(handler)), executionContext);
     });
 
     return this;
@@ -164,10 +167,9 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   @Override
   public SQLConnection updateWithParams(String sql, JsonArray params, Handler<AsyncResult<UpdateResult>> handler) {
     beginTransactionIfNeeded(v -> {
-      ConversionUtils.connectCompletableFutureWithHandler(
-        connection.sendPreparedStatement(sql, ConversionUtils.WrapList(params)),
-        vertx,
-        handleAsyncUpdateResultToResultSet(handler));
+      final scala.concurrent.Future<QueryResult> future = connection.sendPreparedStatement(sql,
+          ScalaUtils.toScalaList(params.getList()));
+      future.onComplete(ScalaUtils.toFunction1(handleAsyncUpdateResultToResultSet(handler)), executionContext);
     });
 
     return this;
@@ -178,7 +180,7 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
     inAutoCommit = true;
     if (inTransaction) {
       inTransaction = false;
-      Future<QueryResult> future = ConversionUtils.completableFutureToVertx(connection.sendQuery("COMMIT"), vertx);
+      Future<QueryResult> future = ScalaUtils.scalaToVertx(connection.sendQuery("COMMIT"), executionContext);
       future.setHandler((v) -> {
         pool.giveBack(connection);
         handler.handle(Future.succeededFuture());
@@ -270,12 +272,12 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   private SQLConnection endAndStartTransaction(String command, Handler<AsyncResult<Void>> handler) {
     if (inTransaction) {
       inTransaction = false;
-      ConversionUtils.completableFutureToVertx(connection.sendQuery(command), vertx).setHandler(
+      ScalaUtils.scalaToVertx(connection.sendQuery(command), executionContext).setHandler(
           ar -> {
             if (ar.failed()) {
               handler.handle(Future.failedFuture(ar.cause()));
             } else {
-              ConversionUtils.completableFutureToVertx(connection.sendQuery(getStartTransactionStatement()), vertx).setHandler(
+              ScalaUtils.scalaToVertx(connection.sendQuery("BEGIN"), executionContext).setHandler(
                   ar2 -> {
                     if (ar2.failed()) {
                       handler.handle(Future.failedFuture(ar.cause()));
@@ -297,7 +299,7 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   private synchronized void beginTransactionIfNeeded(Handler<AsyncResult<Void>> action) {
     if (!inAutoCommit && !inTransaction) {
       inTransaction = true;
-      ConversionUtils.completableFutureToVertxVoid(connection.sendQuery(getStartTransactionStatement()), vertx)
+      ScalaUtils.scalaToVertxVoid(connection.sendQuery(getStartTransactionStatement()), executionContext)
           .setHandler(action);
     } else {
       action.handle(Future.succeededFuture());
@@ -339,12 +341,12 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   }
 
   private ResultSet queryResultToResultSet(QueryResult qr) {
-    com.github.jasync.sql.db.ResultSet rows = qr.getRows();
-    if (rows == null) {
+    final Option<com.github.mauricio.async.db.ResultSet> rows = qr.rows();
+    if (!rows.isDefined()) {
       return new ResultSet(Collections.emptyList(), Collections.emptyList(), null);
     } else {
-      final List<String> names = rows.columnNames();
-      final List<JsonArray> arrays = rowDataSeqToJsonArray(rows);
+      final List<String> names = ScalaUtils.toJavaList(rows.get().columnNames().toList());
+      final List<JsonArray> arrays = rowDataSeqToJsonArray(rows.get());
       return new ResultSet(names, arrays, null);
     }
   }
@@ -367,13 +369,19 @@ public abstract class AsyncSQLConnectionImpl implements SQLConnection {
   }
 
   protected UpdateResult queryResultToUpdateResult(QueryResult qr) {
-    int affected = (int) qr.getRowsAffected();
+    int affected = (int) qr.rowsAffected();
     return new UpdateResult(affected, new JsonArray());
   }
 
-  private List<JsonArray> rowDataSeqToJsonArray(com.github.jasync.sql.db.ResultSet set) {
+  private List<JsonArray> rowDataSeqToJsonArray(com.github.mauricio.async.db.ResultSet set) {
     List<JsonArray> list = new ArrayList<>();
-    set.forEach(row -> list.add(ConversionUtils.rowToJsonArray(row)));
+    set.foreach(new AbstractFunction1<RowData, Void>() {
+      @Override
+      public Void apply(RowData row) {
+        list.add(ScalaUtils.rowToJsonArray(row));
+        return null;
+      }
+    });
     return list;
   }
 }
