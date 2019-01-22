@@ -18,7 +18,6 @@ package io.vertx.ext.asyncsql.impl.tool;
 
 import com.github.jasync.sql.db.Connection;
 
-import io.netty.channel.EventLoopGroup;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -101,6 +100,57 @@ public class AsyncConnectionPoolTest {
       context.assertEquals(MAX_POOL_SIZE, connectionSet.size());
       context.assertEquals(TEST_LENGTH - i, (int)countDownLatch.getCount());
     }
+  }
+
+  @Test
+  public void testReleaseConnections(TestContext context) throws InterruptedException {
+    final int TEST_LENGTH = 26;
+    final long DELAY = 123L;
+
+    final AsyncConnectionPoolMock pool = Mockito.spy(new AsyncConnectionPoolMock(
+      new JsonObject()
+        .put("maxPoolSize", MAX_POOL_SIZE)
+        .put("connectionReleaseDelay", DELAY),
+      this::getGoodConnection));
+
+    final Async testLengthAsync = context.async(TEST_LENGTH);
+    final Async maxPoolSizeAsync = context.async(MAX_POOL_SIZE);
+    final Queue<Connection> connectionSet = new LinkedList<>();
+    for (int i = 0; i < TEST_LENGTH; i++) {
+      pool.take(result -> {
+        context.assertTrue(result.succeeded());
+        connectionSet.add(result.result());
+        testLengthAsync.countDown();
+        maxPoolSizeAsync.countDown();
+      });
+    }
+    maxPoolSizeAsync.await(1000);
+    context.assertEquals(MAX_POOL_SIZE, pool.connectionAttempts);
+    context.assertEquals(MAX_POOL_SIZE, pool.createdConnections);
+    context.assertEquals(MAX_POOL_SIZE, pool.getPoolSize());
+
+    for (int i = MAX_POOL_SIZE; i < TEST_LENGTH; i++) {
+      pool.giveBack(connectionSet.poll());
+    }
+    testLengthAsync.await(1000);
+    context.assertEquals(TEST_LENGTH, pool.connectionAttempts);
+    context.assertEquals(TEST_LENGTH, pool.createdConnections);
+    context.assertEquals(MAX_POOL_SIZE, pool.getPoolSize());
+    Mockito.verify(vertx, Mockito.times(TEST_LENGTH - MAX_POOL_SIZE)).setTimer(Mockito.eq(DELAY), Mockito.any());
+
+    for (int i = 0; i < 2; i++)  {
+      pool.giveBack(connectionSet.poll());
+    }
+    context.assertEquals(TEST_LENGTH, pool.connectionAttempts);
+    context.assertEquals(TEST_LENGTH, pool.createdConnections);
+    context.assertEquals(MAX_POOL_SIZE - 2, pool.getPoolSize());
+
+    for (int i = 2; i < MAX_POOL_SIZE; i++)  {
+      pool.giveBack(connectionSet.poll());
+    }
+    Mockito.verify(pool, Mockito.timeout(1000).times(TEST_LENGTH)).expire(Mockito.any());
+    Mockito.verify(vertx, Mockito.times(TEST_LENGTH)).setTimer(Mockito.eq(DELAY), Mockito.any());
+    context.assertEquals(0, pool.getPoolSize());
   }
 
   // Test that by default we don't do any retry
