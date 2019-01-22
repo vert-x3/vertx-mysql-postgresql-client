@@ -16,6 +16,7 @@
 
 package io.vertx.ext.asyncsql.impl.pool;
 
+import com.github.jasync.sql.db.Configuration;
 import com.github.jasync.sql.db.Connection;
 import com.github.jasync.sql.db.ConnectionPoolConfiguration;
 import io.vertx.core.AsyncResult;
@@ -29,9 +30,8 @@ import io.vertx.ext.asyncsql.impl.ConversionUtils;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Manages a pool of connection.
@@ -43,14 +43,12 @@ public abstract class AsyncConnectionPool {
   public static final int DEFAULT_MAX_POOL_SIZE = 10;
   public static final int DEFAULT_MAX_CONNECTION_RETRIES = 0;       // No connection retries by default
   public static final int DEFAULT_CONNECTION_RETRY_DELAY = 5_000;   // 5 seconds between retries by default
-  public static final int DEFAULT_CONNECTION_RELEASE_DELAY = 0;     // never release idle connection by default
 
   private static final Logger logger = LoggerFactory.getLogger(AsyncConnectionPool.class);
 
   private final int maxPoolSize;
   private final int maxConnectionRetries;
   private final int connectionRetryDelay;
-  private final int connectionReleaseDelay;
 
   protected final ConnectionPoolConfiguration connectionConfig;
   protected final Vertx vertx;
@@ -58,22 +56,16 @@ public abstract class AsyncConnectionPool {
   private int poolSize = 0;
   private final Deque<Connection> availableConnections = new ArrayDeque<>();
   private final Deque<Handler<AsyncResult<Connection>>> waiters = new ArrayDeque<>();
-  private final Map<Connection,Long> timers = new HashMap<>();
 
   public AsyncConnectionPool(Vertx vertx, JsonObject globalConfig, ConnectionPoolConfiguration connectionConfig) {
     this.vertx = vertx;
     this.maxPoolSize = globalConfig.getInteger("maxPoolSize", DEFAULT_MAX_POOL_SIZE);
     this.maxConnectionRetries = globalConfig.getInteger("maxConnectionRetries", DEFAULT_MAX_CONNECTION_RETRIES);
     this.connectionRetryDelay = globalConfig.getInteger("connectionRetryDelay", DEFAULT_CONNECTION_RETRY_DELAY);
-    this.connectionReleaseDelay = globalConfig.getInteger("connectionReleaseDelay", DEFAULT_CONNECTION_RELEASE_DELAY);
     this.connectionConfig = connectionConfig;
   }
 
   protected abstract Connection create();
-
-  synchronized int getPoolSize() {
-    return poolSize;
-  }
 
   private synchronized void createConnection(Handler<AsyncResult<Connection>> handler) {
     poolSize += 1;
@@ -144,10 +136,6 @@ public abstract class AsyncConnectionPool {
     if (connection == null) {
       createOrWaitForAvailableConnection(handler);
     } else {
-      Long timerId = timers.remove(connection);
-      if (timerId != null) {
-        vertx.cancelTimer(timerId);
-      }
       if (connection.isConnected()) {
         // Do connection test if connection test timeout is configured
         if (connectionConfig != null && connectionConfig.getConnectionTestTimeout() > 0) {
@@ -207,19 +195,9 @@ public abstract class AsyncConnectionPool {
     }
   }
 
-  synchronized void expire(Connection connection) {
-    connection.disconnect();
-    availableConnections.remove(connection);
-    poolSize -= 1;
-  }
-
   public synchronized void giveBack(Connection connection) {
     if (connection.isConnected()) {
       availableConnections.add(connection);
-      if (connectionReleaseDelay > 0) {
-        Long timerId = vertx.setTimer(connectionReleaseDelay, res -> expire(connection));
-        timers.put(connection, timerId);
-      }
     } else {
       poolSize -= 1;
     }
@@ -227,10 +205,6 @@ public abstract class AsyncConnectionPool {
   }
 
   public synchronized void close() {
-    for (long id : timers.values()) {
-      vertx.cancelTimer(id);
-    }
-    timers.clear();
     availableConnections.forEach(Connection::disconnect);
   }
 
