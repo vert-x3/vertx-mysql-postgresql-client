@@ -16,6 +16,7 @@
   <properties>
     <asyncdriver.version>0.8.62</asyncdriver.version>
     <vertx.testNativeTransport>false</vertx.testNativeTransport>
+    <doc.skip>false</doc.skip>
   </properties>
 
   <dependencies>

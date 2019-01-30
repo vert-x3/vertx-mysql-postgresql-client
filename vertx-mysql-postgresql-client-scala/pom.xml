@@ -17,6 +17,7 @@
   <properties>
     <scala.version>2.12.7</scala.version>
     <asyncdriver.version>0.2.21</asyncdriver.version>
+    <doc.skip>false</doc.skip>
   </properties>
 
   <dependencyManagement>
