@@ -71,7 +71,7 @@ public abstract class AsyncConnectionPool {
 
   protected abstract Connection create();
 
-  synchronized int getPoolSize() {
+  public synchronized int getPoolSize() {
     return poolSize;
   }
 
@@ -207,7 +207,7 @@ public abstract class AsyncConnectionPool {
     }
   }
 
-  synchronized void expire(Connection connection) {
+  public synchronized void expire(Connection connection) {
     connection.disconnect();
     availableConnections.remove(connection);
     poolSize -= 1;
