@@ -15,7 +15,6 @@
   <name>Vert.x MySQL/PostgreSQL Client based on Scala</name>
 
   <properties>
-    <stack.version>3.6.3-SNAPSHOT</stack.version>
     <scala.version>2.12.7</scala.version>
     <asyncdriver.version>0.2.21</asyncdriver.version>
   </properties>
