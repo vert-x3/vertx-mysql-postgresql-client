@@ -4,7 +4,7 @@
     <groupId>io.vertx</groupId>
     <artifactId>vertx-mysql-postgresql-client-parent</artifactId>
     <relativePath>../</relativePath>
-    <version>3.6.3</version>
+    <version>3.7.0-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
