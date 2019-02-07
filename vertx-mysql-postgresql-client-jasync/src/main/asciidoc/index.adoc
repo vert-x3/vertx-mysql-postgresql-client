@@ -3,7 +3,7 @@
 The Async MySQL / PostgreSQL Client is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
-It uses Mauricio Linhares https://github.com/mauricio/postgresql-async[async driver] to interact with the MySQL
+It uses jasync-sql https://github.com/jasync-sql/jasync-sql[async driver] to interact with the MySQL
 or PostgreSQL databases in a non blocking way.
 
 == Using the MySQL and PostgreSQL client
@@ -16,8 +16,8 @@ application.
 To use this client, you need to add the following jar to your `CLASSPATH`:
 
 * ${maven.artifactId} ${maven.version} (the client)
-* scala-library 2.11.4
-* the postgress-async-2.11 and mysdql-async-2.11 from https://github.com/mauricio/postgresql-async
+* kotlin-library 1.3.20
+* the postgress-async and mysdql-async from https://github.com/jasync-sql/jasync-sql
 * joda time
 
 All these jars are downloadable from Maven Central.
@@ -32,7 +32,7 @@ If you are building a _Fat-jar_ using Maven or Gradle, just add the following de
 ----
 <dependency>
   <groupId>io.vertx</groupId>
-  <artifactId>vertx-mysql-postgresql-client</artifactId>
+  <artifactId>vertx-mysql-postgresql-client-jasync</artifactId>
   <version>${maven.version}</version>
 </dependency>
 ----
@@ -41,7 +41,7 @@ If you are building a _Fat-jar_ using Maven or Gradle, just add the following de
 
 [source,groovy,subs="+attributes"]
 ----
-compile 'io.vertx:vertx-mysql-postgresql-client:${maven.version}'
+compile 'io.vertx:vertx-mysql-postgresql-client-jasync:${maven.version}'
 ----
 
 === In an application using a vert.x distributions
@@ -49,7 +49,7 @@ compile 'io.vertx:vertx-mysql-postgresql-client:${maven.version}'
 If you are using a vert.x distribution, add the jar files listed above to the `$VERTX_HOME/lib` directory.
 
 Alternatively, you can edit the `vertx-stack.json` file located in `$VERTX_HOME`, and set `"included": true`
-for the `vertx-mysql-postgresql-client` dependency. Once done, launch: `vertx resolve --dir=lib --stack=
+for the `vertx-mysql-postgresql-client-jasync` dependency. Once done, launch: `vertx resolve --dir=lib --stack=
 ./vertx-stack.json`. It downloads the client and its dependencies.
 
 == Creating a client
