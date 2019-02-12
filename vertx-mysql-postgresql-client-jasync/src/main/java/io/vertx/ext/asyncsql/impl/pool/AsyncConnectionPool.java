@@ -22,6 +22,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.ConnectionPoolTooBusyException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -44,6 +45,7 @@ public abstract class AsyncConnectionPool {
   public static final int DEFAULT_MAX_CONNECTION_RETRIES = 0;       // No connection retries by default
   public static final int DEFAULT_CONNECTION_RETRY_DELAY = 5_000;   // 5 seconds between retries by default
   public static final int DEFAULT_CONNECTION_RELEASE_DELAY = 0;     // never release idle connection by default
+  public static final int DEFAULT_MAX_WAIT_QUEUE_SIZE = -1;     // unlimited queue size
 
   private static final Logger logger = LoggerFactory.getLogger(AsyncConnectionPool.class);
 
@@ -51,6 +53,7 @@ public abstract class AsyncConnectionPool {
   private final int maxConnectionRetries;
   private final int connectionRetryDelay;
   private final int connectionReleaseDelay;
+  private final int maxQueueSize;
 
   protected final ConnectionPoolConfiguration connectionConfig;
   protected final Vertx vertx;
@@ -58,7 +61,7 @@ public abstract class AsyncConnectionPool {
   private int poolSize = 0;
   private final Deque<Connection> availableConnections = new ArrayDeque<>();
   private final Deque<Handler<AsyncResult<Connection>>> waiters = new ArrayDeque<>();
-  private final Map<Connection,Long> timers = new HashMap<>();
+  private final Map<Connection, Long> timers = new HashMap<>();
 
   public AsyncConnectionPool(Vertx vertx, JsonObject globalConfig, ConnectionPoolConfiguration connectionConfig) {
     this.vertx = vertx;
@@ -66,6 +69,7 @@ public abstract class AsyncConnectionPool {
     this.maxConnectionRetries = globalConfig.getInteger("maxConnectionRetries", DEFAULT_MAX_CONNECTION_RETRIES);
     this.connectionRetryDelay = globalConfig.getInteger("connectionRetryDelay", DEFAULT_CONNECTION_RETRY_DELAY);
     this.connectionReleaseDelay = globalConfig.getInteger("connectionReleaseDelay", DEFAULT_CONNECTION_RELEASE_DELAY);
+    this.maxQueueSize = globalConfig.getInteger("maxWaitQueueSize", DEFAULT_MAX_WAIT_QUEUE_SIZE);
     this.connectionConfig = connectionConfig;
   }
 
@@ -73,6 +77,10 @@ public abstract class AsyncConnectionPool {
 
   public synchronized int getPoolSize() {
     return poolSize;
+  }
+
+  public synchronized int getQueueSize() {
+    return waiters.size();
   }
 
   private synchronized void createConnection(Handler<AsyncResult<Connection>> handler) {
@@ -128,7 +136,16 @@ public abstract class AsyncConnectionPool {
   }
 
   private synchronized void waitForAvailableConnection(Handler<AsyncResult<Connection>> handler) {
-    waiters.add(handler);
+    if (canAddWaiter()) {
+      waiters.add(handler);
+      return;
+    }
+
+    handler.handle(Future.failedFuture(new ConnectionPoolTooBusyException("Connection pool reached max wait queue size of " + maxQueueSize)));
+  }
+
+  private synchronized boolean canAddWaiter() {
+    return maxQueueSize < 0 || waiters.size() < maxQueueSize;
   }
 
   private synchronized void createOrWaitForAvailableConnection(Handler<AsyncResult<Connection>> handler) {

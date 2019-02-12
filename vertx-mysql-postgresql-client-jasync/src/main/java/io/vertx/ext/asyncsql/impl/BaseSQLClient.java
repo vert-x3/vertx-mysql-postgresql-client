@@ -16,12 +16,9 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import com.github.jasync.sql.db.Configuration;
 import com.github.jasync.sql.db.Connection;
 import com.github.jasync.sql.db.ConnectionPoolConfiguration;
 import com.github.jasync.sql.db.SSLConfiguration;
-import com.github.jasync.sql.db.pool.PoolConfiguration;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -33,12 +30,8 @@ import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
 
 import java.nio.charset.Charset;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Base class for the SQL client.
@@ -51,7 +44,6 @@ public abstract class BaseSQLClient {
   protected final Vertx vertx;
 
   protected final JsonObject globalConfig;
-  private long testTimeout;
 
   public BaseSQLClient(Vertx vertx, JsonObject globalConfig) {
     this.vertx = vertx;

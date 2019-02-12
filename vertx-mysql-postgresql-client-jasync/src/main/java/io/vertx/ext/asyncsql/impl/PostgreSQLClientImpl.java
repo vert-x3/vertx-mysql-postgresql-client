@@ -16,8 +16,6 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import java.util.concurrent.ExecutorService;
-
 import com.github.jasync.sql.db.Connection;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
