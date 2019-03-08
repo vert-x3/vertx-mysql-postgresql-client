@@ -16,7 +16,6 @@
 
 package io.vertx.ext.asyncsql.impl.pool;
 
-import com.github.jasync.sql.db.Configuration;
 import com.github.jasync.sql.db.Connection;
 import com.github.jasync.sql.db.ConnectionPoolConfiguration;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
@@ -24,7 +23,6 @@ import com.github.jasync.sql.db.postgresql.column.PostgreSQLColumnDecoderRegistr
 import com.github.jasync.sql.db.postgresql.column.PostgreSQLColumnEncoderRegistry;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.asyncsql.impl.ConversionUtils;
 
 /**
  * Implementation of the {@link AsyncConnectionPool} for PostGresSQL.
@@ -42,10 +40,7 @@ public class PostgresqlAsyncConnectionPool extends AsyncConnectionPool {
     return new PostgreSQLConnection(
       connectionConfig.getConnectionConfiguration(),
       PostgreSQLColumnEncoderRegistry.Companion.getInstance(),
-      PostgreSQLColumnDecoderRegistry.Companion.getInstance(),
-      vertx.nettyEventLoopGroup(),
-      vertx.nettyEventLoopGroup()
-    );
+      PostgreSQLColumnDecoderRegistry.Companion.getInstance());
   }
 
 }

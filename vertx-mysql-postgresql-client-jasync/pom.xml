@@ -14,7 +14,7 @@
   <name>Vert.x MySQL/PostgreSQL Client based on jasync-sql/Kotlin</name>
 
   <properties>
-    <asyncdriver.version>0.8.62</asyncdriver.version>
+    <asyncdriver.version>0.9.23</asyncdriver.version>
     <vertx.testNativeTransport>false</vertx.testNativeTransport>
     <doc.skip>false</doc.skip>
   </properties>
