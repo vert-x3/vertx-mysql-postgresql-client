@@ -206,7 +206,8 @@ Both the PostgreSql and MySql clients take the same configuration:
   "maxConnectionRetries" : <maximum-number-of-connection-retries>,
   "connectionRetryDelay" : <delay-in-milliseconds>,
   "sslMode" : <"disable"|"prefer"|"require"|"verify-ca"|"verify-full">,
-  "sslRootCert" : <path to file with certificate>
+  "sslRootCert" : <path to file with certificate>,
+  "maxWaitQueueSize" : <maximum-number-of-waiters-in-queue-for-connection>
 }
 ----
 
@@ -237,3 +238,4 @@ Both the PostgreSql and MySql clients take the same configuration:
                       that the server host name matches that in the certificate
 `sslRootCert` :: Path to SSL root certificate file. Is used if you want to verify privately issued certificate.
                  Refer to https://github.com/mauricio/postgresql-async[postgresql-async] documentation for more details.
+`maxWaitQueueSize`:: The maximum requests allowed in the wait queue for connection. Defaults to `-1` (unlimited).

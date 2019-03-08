@@ -232,6 +232,107 @@ public class AsyncConnectionPoolTest {
     });
   }
 
+  // Try to get 30 connections from connectionPool with 15-connection, should result in queueSize of 15 and once the connections are released/given-back to pool waiters should run and queueSize should become 0
+  @Test
+  public void testQueueSize(TestContext context) throws InterruptedException {
+    final int TEST_LENGTH = 30;
+    final AsyncConnectionPool pool = new AsyncConnectionPoolMock(
+      new JsonObject()
+        .put("maxPoolSize", MAX_POOL_SIZE),
+      this::getGoodConnection);
+    final Queue<Connection> connectionSet = new LinkedList<>();
+    final CountDownLatch countDownLatch = new CountDownLatch(TEST_LENGTH);
+
+    // Ask for 30 connections
+    for (int i = 0; i < TEST_LENGTH; i++) {
+      pool.take(result -> {
+        // We will decrease our CountDownLatch with each obtained connection
+        countDownLatch.countDown();
+        context.assertTrue(result.succeeded());
+        connectionSet.add(result.result());
+      });
+    }
+    // Wait up to 200 millisecond to obtain the 30 connections (it should not happen)
+    context.assertFalse(countDownLatch.await(200, TimeUnit.MILLISECONDS));
+    final int expectedWaiterQueueSize = TEST_LENGTH - MAX_POOL_SIZE;
+    context.assertEquals(pool.getQueueSize(), expectedWaiterQueueSize);
+    context.assertEquals(pool.getPoolSize(), MAX_POOL_SIZE);
+
+    // Now releasing/giving-back connection to the pool should reduce waiter queueSize to 0
+    for (int i = 0; i < MAX_POOL_SIZE; i++) {
+      pool.giveBack(connectionSet.poll());
+    }
+
+    // Once the connections available then the waiters should get the connection and run
+    context.assertTrue(countDownLatch.await(1, TimeUnit.SECONDS));
+    context.assertEquals(pool.getQueueSize(), 0);
+    context.assertEquals(pool.getPoolSize(), MAX_POOL_SIZE);
+  }
+
+  // Max queue size exceed should fail(maxWaitQueueSize=1, maxPoolSize=1)
+  @Test
+  public void testMaxQueueSizeExceeds(TestContext context) throws InterruptedException {
+    final int TEST_LENGTH = 2;
+    final int MAX_POOL_SIZE = 1;
+    final int MAX_WAIT_QUEUE_SIZE = 1;
+    final AsyncConnectionPool pool = new AsyncConnectionPoolMock(
+      new JsonObject()
+        .put("maxPoolSize", MAX_POOL_SIZE)
+        .put("maxWaitQueueSize", MAX_WAIT_QUEUE_SIZE),
+      this::getGoodConnection);
+
+    final CountDownLatch countDownLatch = new CountDownLatch(TEST_LENGTH);
+
+    // Ask for 2 connections
+    for (int i = 0; i < TEST_LENGTH; i++) {
+      pool.take(result -> {
+        // We will decrease our CountDownLatch with each obtained connection
+        countDownLatch.countDown();
+        context.assertTrue(result.succeeded());
+      });
+    }
+    // Wait up to 200 millisecond to obtain the 2 connections (it should not happen)
+    context.assertFalse(countDownLatch.await(200, TimeUnit.MILLISECONDS));
+    context.assertEquals(pool.getPoolSize(), MAX_POOL_SIZE);
+    context.assertEquals(pool.getQueueSize(), MAX_WAIT_QUEUE_SIZE);
+
+    // Now when user makes call for new connection request should fail with proper message
+    final Async waitForCompletion = context.async();
+    final String expectedExceptionMessage = "Connection pool reached max wait queue size of " + MAX_WAIT_QUEUE_SIZE;
+    pool.take(result -> {
+      context.assertTrue(result.failed());
+      context.assertEquals(result.cause().getMessage(), expectedExceptionMessage);
+      waitForCompletion.complete();
+    });
+    waitForCompletion.awaitSuccess(200);
+  }
+
+  // will try to get 1000 connection, 985 should wait in the queue(maxPoolSize=15)
+  @Test
+  public void testNoMaxWaitQueueLimitByDefault(TestContext context) throws InterruptedException {
+    final int TEST_LENGTH = 1000;
+    final AsyncConnectionPool pool = new AsyncConnectionPoolMock(
+      new JsonObject()
+        .put("maxPoolSize", MAX_POOL_SIZE),
+      this::getGoodConnection);
+    final CountDownLatch countDownLatch = new CountDownLatch(TEST_LENGTH);
+
+    // Ask for 1000 connections
+    for (int i = 0; i < TEST_LENGTH; i++) {
+      pool.take(result -> {
+        // We will decrease our CountDownLatch with each obtained connection
+        countDownLatch.countDown();
+        context.assertTrue(result.succeeded());
+      });
+    }
+    // Wait up to 200 millisecond to obtain the 1000 connections (it should not happen)
+    context.assertFalse(countDownLatch.await(200, TimeUnit.MILLISECONDS));
+
+    // Only 15 connection will be provided and remaining should wait in waiters queue
+    final int expectedWaiterQueueSize = TEST_LENGTH - MAX_POOL_SIZE;
+    context.assertEquals(pool.getQueueSize(), expectedWaiterQueueSize);
+  }
+
   private Connection getGoodConnection() {
     final Connection connection = Mockito.mock(Connection.class);
     Mockito.when(connection.connect()).thenAnswer(new Answer<CompletableFuture<? extends Connection>>(){
