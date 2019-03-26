@@ -16,11 +16,9 @@
 
 package io.vertx.ext.asyncsql.impl;
 
-import com.github.jasync.sql.db.Configuration;
 import com.github.jasync.sql.db.Connection;
 import com.github.jasync.sql.db.ConnectionPoolConfiguration;
 import com.github.jasync.sql.db.SSLConfiguration;
-import com.github.jasync.sql.db.pool.PoolConfiguration;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -31,14 +29,11 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.impl.pool.AsyncConnectionPool;
 import io.vertx.ext.sql.SQLConnection;
+import kotlinx.coroutines.Dispatchers;
 
 import java.nio.charset.Charset;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Base class for the SQL client.
@@ -114,6 +109,7 @@ public abstract class BaseSQLClient {
     long testTimeout = config.getLong("testTimeout", defaultTestTimeout);
     Long queryTimeout = config.getLong("queryTimeout");
     Map<String, String> sslConfig = buildSslConfig(config);
+    String applicationName = config.getString("applicationName");
 
     log.info("Creating configuration for " + host + ":" + port);
     return new ConnectionPoolConfiguration(
@@ -122,7 +118,7 @@ public abstract class BaseSQLClient {
       database,
       username,
       password,
-      0 /*maxActiveConnections, unused*/,
+      1 /*maxActiveConnections, unused*/,
       0 /*maxIdleTime, unused*/,
       0 /*maxPendingQueries, unused*/,
       0 /*connectionValidationInterval*/,
@@ -131,8 +127,12 @@ public abstract class BaseSQLClient {
       queryTimeout,
       vertx.nettyEventLoopGroup(),
       vertx.nettyEventLoopGroup(), /*executor: in non-blocking world, we should only have one event loop group*/
+      Dispatchers.getDefault(),
       new SSLConfiguration(sslConfig),
-      charset);
+      charset,
+      16777216,
+      PooledByteBufAllocator.DEFAULT,
+      applicationName);
   }
 
   private Map<String, String> buildSslConfig(JsonObject config) {
