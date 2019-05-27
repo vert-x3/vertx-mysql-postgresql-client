@@ -16,6 +16,7 @@
 
 package io.vertx.ext.asyncsql;
 
+import com.github.jasync.sql.db.exceptions.InsufficientParametersException;
 import io.vertx.ext.asyncsql.category.NeedsDocker;
 import org.junit.*;
 
@@ -113,6 +114,18 @@ public class MySQLClientTest extends SQLTestBase {
           });
         });
       });
+    });
+  }
+
+  @Test
+  public void test(TestContext context){
+    JsonArray arr = new JsonArray().add(1).add(2);
+    Async async = context.async();
+    // a exception will throw. @see https://github.com/jasync-sql/jasync-sql/blob/master/mysql-async/src/main/java/com/github/jasync/sql/db/mysql/MySQLConnection.kt#L288-L301
+    client.queryWithParams("?", arr, r -> {
+      context.assertTrue(r.failed());
+      context.assertTrue(r.cause() instanceof InsufficientParametersException);
+      async.complete();
     });
   }
 
