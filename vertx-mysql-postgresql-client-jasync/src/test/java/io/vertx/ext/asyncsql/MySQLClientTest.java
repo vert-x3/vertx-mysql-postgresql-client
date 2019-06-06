@@ -18,6 +18,7 @@ package io.vertx.ext.asyncsql;
 
 import com.github.jasync.sql.db.exceptions.InsufficientParametersException;
 import io.vertx.ext.asyncsql.category.NeedsDocker;
+import io.vertx.ext.sql.SQLClient;
 import org.junit.*;
 
 import io.vertx.core.AsyncResult;
@@ -126,6 +127,22 @@ public class MySQLClientTest extends SQLTestBase {
       context.assertTrue(r.failed());
       context.assertTrue(r.cause() instanceof InsufficientParametersException);
       async.complete();
+    });
+  }
+
+  public void testCloseAfterClientExecute(TestContext context){
+    Async async = context.async();
+    SQLClient mysqlClient = MySQLClient.createNonShared(vertx, new JsonObject()
+      .put("host", mysql.getContainerIpAddress())
+      .put("port", mysql.getMappedPort(3306))
+      .put("database", MYSQL_DATABASE)
+      .put("username", MYSQL_USERNAME)
+      .put("password", MYSQL_PASSWORD)
+      .put("maxPoolSize", 1));// one connection for two execution
+    mysqlClient.query("select 1;", r -> {
+      mysqlClient.query("select 1;", r2 -> {
+        async.complete();
+      });
     });
   }
 
