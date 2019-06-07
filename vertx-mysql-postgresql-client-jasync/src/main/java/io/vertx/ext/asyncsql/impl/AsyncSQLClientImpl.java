@@ -118,7 +118,13 @@ public class AsyncSQLClientImpl implements AsyncSQLClient {
         } catch (Throwable e) {
           future = Future.failedFuture(e);
         }
-        future.setHandler(handler);
+        future.setHandler(asyncResult -> conn.close(close -> {
+          if (close.failed()) {
+            handler.handle(Future.failedFuture(close.cause()));
+          } else {
+            handler.handle(asyncResult);
+          }
+        }));
       }
     });
   }
