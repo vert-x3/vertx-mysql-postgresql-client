@@ -75,6 +75,10 @@ public abstract class AsyncConnectionPool {
     return poolSize;
   }
 
+  synchronized int getTimersSize() {
+    return timers.size();
+  }
+
   private synchronized void createConnection(Handler<AsyncResult<Connection>> handler) {
     poolSize += 1;
     createAndConnect(new Handler<AsyncResult<Connection>>() {
@@ -144,10 +148,7 @@ public abstract class AsyncConnectionPool {
     if (connection == null) {
       createOrWaitForAvailableConnection(handler);
     } else {
-      Long timerId = timers.remove(connection);
-      if (timerId != null) {
-        vertx.cancelTimer(timerId);
-      }
+      cancelTimer(connection);
       if (connection.isConnected()) {
         // Do connection test if connection test timeout is configured
         if (connectionConfig != null && connectionConfig.getConnectionTestTimeout() > 0) {
@@ -207,7 +208,15 @@ public abstract class AsyncConnectionPool {
     }
   }
 
+  private synchronized void cancelTimer(Connection connection) {
+    Long timerId = timers.remove(connection);
+    if (timerId != null) {
+      vertx.cancelTimer(timerId.longValue());
+    }
+  }
+
   public synchronized void expire(Connection connection) {
+    cancelTimer(connection);
     connection.disconnect();
     availableConnections.remove(connection);
     poolSize -= 1;
