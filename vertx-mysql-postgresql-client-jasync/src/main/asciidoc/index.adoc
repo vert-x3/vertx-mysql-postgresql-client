@@ -1,5 +1,8 @@
 = Vert.x MySQL / PostgreSQL client
 
+WARNING: This module is deprecated and will be removed in Vertx 4.0.
+Instead, use either the https://vertx.io/docs/vertx-mysql-client/${lang}/[Reactive MySQL Client] or the https://vertx.io/docs/vertx-pg-client/${lang}/[Reactive PostgreSQL Client].
+
 The Async MySQL / PostgreSQL Client is responsible for providing an
 interface for Vert.x applications that need to interact with a MySQL or PostgreSQL database.
 
