@@ -1,5 +1,9 @@
 = Vert.x MySQL PostgreSQL client
 
+== Deprecated
+
+WARNING: This client is deprecated, use the https://github.com/eclipse-vertx/vertx-sql-client[Reactive SQL Client] instead.
+
 There are two types of MySQL/PostgreSQL-clients:
 
 - (Soon to be legacy) Scala based version
