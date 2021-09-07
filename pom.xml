@@ -1,50 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <parent>
-    <groupId>io.vertx</groupId>
-    <artifactId>vertx-ext-parent</artifactId>
-    <version>38</version>
-  </parent>
-
-  <packaging>pom</packaging>
-  <modelVersion>4.0.0</modelVersion>
-
-  <artifactId>vertx-mysql-postgresql-client-parent</artifactId>
-  <version>3.9.9-SNAPSHOT</version>
-
-  <name>Vert.x MySQL/PostgreSQL Client Parent</name>
-
-  <properties>
-    <stack.version>3.9.9-SNAPSHOT</stack.version>
-    <doc.skip>true</doc.skip>
-  </properties>
-
-  <repositories>
-    <repository>
-      <id>spring-repo</id>
-      <name>Spring Repository</name>
-      <url>https://repo.spring.io/libs-milestone</url>
-    </repository>
-    <repository>
-      <id>jcenter</id>
-      <url>https://jcenter.bintray.com/</url>
-    </repository>
-  </repositories>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
+      
+    <parent>
+            
         <groupId>io.vertx</groupId>
-        <artifactId>vertx-dependencies</artifactId>
-        <version>${stack.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
-  <modules>
-    <module>vertx-mysql-postgresql-client-jasync</module>
-    <module>vertx-mysql-postgresql-client-scala</module>
-  </modules>
+            
+        <artifactId>vertx-ext-parent</artifactId>
+            
+        <version>38</version>
+          
+    </parent>
+      
+    <packaging>pom</packaging>
+      
+    <modelVersion>4.0.0</modelVersion>
+      
+    <artifactId>vertx-mysql-postgresql-client-parent</artifactId>
+      
+    <version>3.9.9</version>
+      
+    <name>Vert.x MySQL/PostgreSQL Client Parent</name>
+      
+    <properties>
+            
+        <stack.version>3.9.9</stack.version>
+            
+        <doc.skip>true</doc.skip>
+          
+    </properties>
+      
+    <repositories>
+            
+        <repository>
+                  
+            <id>spring-repo</id>
+                  
+            <name>Spring Repository</name>
+                  
+            <url>https://repo.spring.io/libs-milestone</url>
+                
+        </repository>
+            
+        <repository>
+                  
+            <id>jcenter</id>
+                  
+            <url>https://jcenter.bintray.com/</url>
+                
+        </repository>
+          
+    </repositories>
+      
+    <dependencyManagement>
+            
+        <dependencies>
+                  
+            <dependency>
+                        
+                <groupId>io.vertx</groupId>
+                        
+                <artifactId>vertx-dependencies</artifactId>
+                        
+                <version>${stack.version}</version>
+                        
+                <type>pom</type>
+                        
+                <scope>import</scope>
+                      
+            </dependency>
+                
+        </dependencies>
+          
+    </dependencyManagement>
+      
+    <modules>
+            
+        <module>vertx-mysql-postgresql-client-jasync</module>
+            
+        <module>vertx-mysql-postgresql-client-scala</module>
+          
+    </modules>
+    
 </project>
