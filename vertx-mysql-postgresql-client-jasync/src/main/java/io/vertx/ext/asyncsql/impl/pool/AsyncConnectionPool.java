@@ -96,7 +96,9 @@ public abstract class AsyncConnectionPool {
             createAndConnect(this) // Try to connect again using this handler
           );
         } else {
-          poolSize -= 1;
+          synchronized (this) {
+            poolSize -= 1;
+          }
           notifyWaitersAboutAvailableConnection();
           handler.handle(connectionResult);
         }
@@ -111,7 +113,7 @@ public abstract class AsyncConnectionPool {
         .whenCompleteAsync((connection, error) -> {
           try {
             if (error != null) {
-              logger.info("failed to create connection", error);
+              logger.error("failed to create connection", error);
               handler.handle(Future.failedFuture(error));
             } else {
               handler.handle(Future.succeededFuture(connection));
@@ -126,7 +128,7 @@ public abstract class AsyncConnectionPool {
           }
         }, ConversionUtils.vertxToExecutor(vertx));
     } catch (Throwable e) {
-      logger.info("creating a connection went wrong", e);
+      logger.error("creating a connection went wrong", e);
       handler.handle(Future.failedFuture(e));
     }
   }
@@ -152,40 +154,25 @@ public abstract class AsyncConnectionPool {
       if (connection.isConnected()) {
         // Do connection test if connection test timeout is configured
         if (connectionConfig != null && connectionConfig.getConnectionTestTimeout() > 0) {
-          AtomicBoolean testCompleted = new AtomicBoolean(false);
           long timer = vertx.setTimer(connectionConfig.getConnectionTestTimeout(), ignored -> {
-            // check if the test request has completed or not, if not, try it again and drop the current connection
-            if (testCompleted.compareAndSet(false, true)) {
-              logger.info("connection test timeout");
-              connection.disconnect(); // drop the connection if it's still alive
-              synchronized (this) {
-                poolSize -= 1;
-              }
-
-              take(handler);
+            logger.error("connection test timeout");
+            connection.disconnect(); // drop the connection if it's still alive
+            synchronized (this) {
+              poolSize -= 1;
             }
+            take(handler);
           });
           connection.sendQuery("SELECT 1 AS alive")
             .whenCompleteAsync((ignored, error) -> {
-              if (error != null) {
-                logger.info("connection test failed", error);
-                connection.disconnect(); // try to close the connection
-                synchronized (this) {
-                  poolSize -= 1;
-                }
-
-                take(handler);
-              } else {
-                // connection is good, however, need to check if the test query has timeout or not
-                // if timeout is not fired yet, then we will cleanup the timeout timer and return
-                // the connection, otherwise, we will skip this event, as timeout timer already
-                // drop the connection and retry
-                if (testCompleted.compareAndSet(false, true)) {
-                  // cleanup the timer
-                  if (this.connectionConfig.getConnectionTestTimeout() > 0) {
-                    vertx.cancelTimer(timer);
+              if (vertx.cancelTimer(timer)) {
+                if (error != null) {
+                  logger.error("connection test failed", error);
+                  connection.disconnect(); // try to close the connection
+                  synchronized (this) {
+                    poolSize -= 1;
                   }
-
+                  take(handler);
+                } else {
                   handler.handle(Future.succeededFuture(connection));
                 }
               }
