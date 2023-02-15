@@ -17,13 +17,13 @@
       
     <artifactId>vertx-mysql-postgresql-client-parent</artifactId>
       
-    <version>3.9.15-SNAPSHOT</version>
+    <version>3.9.15</version>
       
     <name>Vert.x MySQL/PostgreSQL Client Parent</name>
       
     <properties>
             
-        <stack.version>3.9.15-SNAPSHOT</stack.version>
+        <stack.version>3.9.15</stack.version>
             
         <doc.skip>true</doc.skip>
           
